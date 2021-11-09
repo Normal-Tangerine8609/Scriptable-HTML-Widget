@@ -45,7 +45,7 @@ let widget = await htmlWidget(`
   <text font="system-ui, 11" minimum-scale-factor="0.3">${title}</text>
   <text font="system-ui, 11" minimum-scale-factor="0.3">${body}</text>
   <stack center-align-content>
-     <symbol named="arrow.up.circle.fill" image-size="11,11">
+    <symbol named="arrow.up.circle.fill" image-size="11,11">
     <spacer space="2">
     <text font="system-ui, 11">${ups}</text>
     <spacer>
