@@ -6,7 +6,7 @@ HTML Widget allows you to create [Scriptable](https://scriptable.app/) widgets i
 ## The Function
 
 ```javascript
-await htmlWidget(code: String, debug: Boolean): ListWidget
+await htmlWidget(input: String, debug: Boolean): ListWidget
 ```
 
 Provide the HTML string as the first parameter. The second parameter is optional and when `true` logs the compiled code.
@@ -25,6 +25,13 @@ widget.presentSmall()
 Visit one of the files from the [code](/code) folder. Copy the text and paste it into a new Scriptable script. You are ready to  create a widget.
 
 ## Documentation
+
+* [<widget\>](#widget)
+* [<stack\>](#stack)
+* [<spacer\>](#spacer)
+* [<img\>](#img)
+* [<symbol\>](#symbol)
+* [<text\>](#text)
 
 ### <widget\>
 
@@ -318,7 +325,7 @@ Boolean attribute right aligns the text.
 
 ## Bugs and Feedback 
 
-If you find any bugs please message me. I would prefer Reddit because I do not know how to use GitHub very well but if you must you can put a issue here.
+If you find any bugs please message me. My preferred mode of communication is Reddit but fell free to poste the issues to this respiratory.
  
 [u/Normal-Tangerine8609](https://www.reddit.com/user/Normal-Tangerine8609)
 
