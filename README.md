@@ -24,6 +24,46 @@ widget.presentSmall()
 
 Visit one of the files from the [code](/code) folder. Copy the text and paste it into a new Scriptable script. You are ready to  create a widget.
 
+## Example
+
+![Small Reddit Widget](/images/RedditWidget.jpeg)
+
+```javascript
+let json = await new Request("https://www.reddit.com/r/Showerthoughts.json").loadJSON()
+let post = json["data"]["children"][Math.floor((Math.random() * 10) + 2)]["data"]
+let title = post["title"].replace(/</g,"&lt;").replace(/>/g,"&gt;")
+let body = post["selftext"].replace(/</g,"&lt;").replace(/>/g,"&gt;")
+let ups = post["ups"]
+let awards = post["all_awardings"].length
+let comments = post["num_comments"]
+let url = post["url"]
+
+let widget = await htmlWidget(`
+<widget refresh-after-date="15" url="${url}">
+ <text font="system-ui, 13" center-align-text>Showerthoughts</text>
+  <spacer space="5">
+  <text font="system-ui, 11" minimum-scale-factor="0.3">${title}</text>
+  <text font="system-ui, 11" minimum-scale-factor="0.3">${body}</text>
+  <stack center-align-content>
+     <symbol named="arrow.up.circle.fill" image-size="11,11">
+    <spacer space="2">
+    <text font="system-ui, 11">${ups}</text>
+    <spacer>
+    <symbol named="star.circle.fill" image-size="11,11">
+    <spacer space="2">
+    <text font="system-ui, 11">${awards}</text>
+    <spacer>
+    <symbol named="message.circle.fill" image-size="11,11">
+    <spacer space="2">
+    <text font="system-ui, 11">${comments}</text>
+  </stack>
+</widget>
+`)
+Script.setWidget(widget)
+widget.presentSmall()
+Script.complete()
+```
+
 ## Documentation
 
 * [<widget\>](#widget)
@@ -32,6 +72,8 @@ Visit one of the files from the [code](/code) folder. Copy the text and paste it
 * [<img\>](#img)
 * [<symbol\>](#symbol)
 * [<text\>](#text)
+
+***
 
 ### <widget\>
 
