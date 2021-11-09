@@ -33,7 +33,7 @@ Visit one of the files from the [code](/code) folder. Copy the text and paste it
 </widget>
 ```
 
-All tags must be nestled in the `widget `tag. There must be a parent `widget `tag. The `widget` element defines the widget.
+All tags must be nestled in the `widget` element. There must be a parent `widget` element. The `widget` element defines the widget.
 
 #### Attributes
 
@@ -260,7 +260,7 @@ Boolean attribute right aligns the text.
 
 If you find any bugs please message me. I would prefer Reddit because I do not know how to use GitHub very well but if you must you can put a issue here.
  
-[u/Normal-Tangerine8609](g)
+[u/Normal-Tangerine8609](https://www.reddit.com/user/Normal-Tangerine8609)
 
 ## Support
 
