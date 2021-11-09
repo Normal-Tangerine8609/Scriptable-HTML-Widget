@@ -138,16 +138,18 @@ Boolean attribute lays out the stack vertically.
 
 ```html
 <widget>
-  <spacer>5</spacer>
-  <spacer></spacer>
+  <spacer space="5">
 </widget>
 ```
 
 The `spacer` element defines a widget spacer element.
 
-#### Inner Text
+#### Attributes
 
-The spacer element can have an integer or nothing as inner text. If the spacer has an Integer, the space measures the integer. If the inner text is nothing, the spacer automatically sizes.
+**space**
+
+Defines the space of the spacer. Value must be a valid integer. If the value is empty or not provided, the space automatically sizes.
+
 
 ***
 
