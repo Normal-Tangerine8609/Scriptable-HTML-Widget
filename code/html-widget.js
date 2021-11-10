@@ -12,7 +12,7 @@ String.prototype.getNumber = function () {
     return this.match(/\d/g)?this.match(/\d/g).join(""):0
     }
 //Set base variables
-  let currentStack, stackNumber=-1, imageNumber=-1, textNumber=-1, code
+  let currentStack, stackNumber=-1, imageNumber=-1, textNumber=-1,gradientNumber=-1,code
 //compile only the first widget tag
   compile(htmlParser(input)["children"].filter(element => {
     if(element.tagName == "widget"){return element}
@@ -37,7 +37,25 @@ String.prototype.getNumber = function () {
           } else {
             code+= `\nwidget.backgroundColor = new Color("${value.replaceQuotes()}")`
           }
-        break;
+        break
+        case "background-gradient":
+          let colours = value.match(/(,|^)\s*\(\s*#([a-fA-F0-9]{3}){1,2}\s*,\s*#[a-fA-F0-9]{3,6}\)|(,|^)\s*#([a-fA-F0-9]{3}){1,2}/g).map(e => 
+{
+            e = e.match(/#([a-fA-F0-9]{3}){1,2}/g)
+            if(e.length == 2) {
+              e = `Color.dynamic(new Color("${e[0]}"),new Color("${e[1]}"))`
+            } else {
+              e = `new Color("${e[0]}")`
+            }
+          return e
+        })
+        let gradientLocations=[]
+        for(let i = 0, l = colours.length; i < l; i++) {
+          gradientLocations.push(i/(l-1))
+        }
+        gradientNumber++
+        code+=`\nlet gradient${gradientNumber} = new LinearGradient()\ngradient${gradientNumber}.colors = [${colours}]\ngradient${gradientNumber}.locations= [${gradientLocations}]\nwidget.backgroundGradient = gradient${gradientNumber}`
+        break
         case "background-image":
           if(value.startsWith("data:image/")) {
           value = value.replace("data:image/png;base64,","").replace("data:image/jpeg;base64,","")
@@ -91,6 +109,24 @@ throw new Error("padding Attribute On widget Must Have 1, 2 Or 4 Parameters")}
           } else {
             code+= `\nstack${stackNumber}.backgroundColor = new Color("${value.replaceQuotes()}")`
           }
+        break
+        case "background-gradient":
+          let colours = value.match(/(,|^)\s*\(\s*#([a-fA-F0-9]{3}){1,2}\s*,\s*#[a-fA-F0-9]{3,6}\)|(,|^)\s*#([a-fA-F0-9]{3}){1,2}/g).map(e => 
+{
+            e = e.match(/#([a-fA-F0-9]{3}){1,2}/g)
+            if(e.length == 2) {
+              e = `Color.dynamic(new Color("${e[0]}"),new Color("${e[1]}"))`
+            } else {
+              e = `new Color("${e[0]}")`
+            }
+          return e
+        })
+        let gradientLocations=[]
+        for(let i = 0, l = colours.length; i < l; i++) {
+          gradientLocations.push(i/(l-1))
+        }
+        gradientNumber++
+        code+=`\nlet gradient${gradientNumber} = new LinearGradient()\ngradient${gradientNumber}.colors = [${colours}]\ngradient${gradientNumber}.locations= [${gradientLocations}]\nstack${stackNumber}.backgroundGradient = gradient${gradientNumber}`
         break
         case "background-image":
           if(value.startsWith("data:image/")) {
