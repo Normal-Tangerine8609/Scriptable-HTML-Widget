@@ -90,6 +90,10 @@ All tags must be nestled in the `widget` element. There must be a parent `widget
 
 Defines the background color. Value must be a hex or two hexes separated by commas. If there are two hexes, the first is the light mode colour and the second is the dark mode colour.
 
+**background-gradient**
+
+Defines the background gradient. Value must be one or more hexes or hexes separated by commas and in brackets (for light mode and dark mode colours respectively) separated by commas. Example: `#ff00ff, (#ffffff, #000000), #00ff00`
+
 **background-image**
 
 Defines the background image. Value must be a valid url leading to an image or a data url starting with `data:image/jpeg;base64,` or `data:image/png;base64,` and with the base encoded image following.
@@ -128,6 +132,10 @@ The `stack`  element defines a widget stack element.
 **background-color**
 
 Defines the background color. Value must be a hex or two hexes separated by commas. If there are two hexes, the first is the light mode colour and the second is the dark mode colour.
+
+**background-gradient**
+
+Defines the background gradient. Value must be one or more hexes or hexes separated by commas and in brackets (for light mode and dark mode colours respectively) separated by commas. Example: `#ff00ff, (#ffffff, #000000), #00ff00`
 
 **background-image**
 
