@@ -100,15 +100,15 @@ Defines the background image. Value must be a valid url leading to an image or a
 
 **padding**
 
-Defines the widget padding. Value must be 1, 2 or 4 integers separated by commas. 1 integer sets all padding. 2 integers sets the top and bottom padding to the first integer and left and right padding to the second. 4 integers sets the top padding to the first integer, right padding to the second, bottom padding to the third and left padding to the fourth integer.
+Defines the widget padding. Value must be 1, 2 or 4 positive integers separated by commas. 1 integer sets all padding. 2 integers sets the top and bottom padding to the first integer and left and right padding to the second. 4 integers sets the top padding to the first integer, right padding to the second, bottom padding to the third and left padding to the fourth integer.
 
 **refresh-after-date**
 
-Defines the minimum refresh time for the widget in minutes.  Value must be an integer.
+Defines the minimum refresh time for the widget in minutes.  Value must be a positive integer.
 
 **spacing**
 
-Defines the spacing between widget elements. Value must be an integer.
+Defines the spacing between widget elements. Value must be a positive  integer.
 
 **url**
 
@@ -147,23 +147,23 @@ Defines the border color. Value must be a hex or two hexes separated by commas. 
 
 **border-width**
 
-Defines the border width.  Value must be an integer.
+Defines the border width.  Value must be a positive integer.
 
 **corner-radius**
 
-Defines the corner radius.  Value must be an integer.
+Defines the corner radius.  Value must be a positive integer.
 
 **padding**
 
-Defines the widget padding. Value must be 1, 2 or 4 integers separated by commas. 1 integer sets all padding. 2 integers sets the top and bottom padding to the first integer and left and right padding to the second. 4 integers sets the top padding to the first integer, right padding to the second, bottom padding to the third and left padding to the fourth integer.
+Defines the widget padding. Value must be 1, 2 or 4 positive integers separated by commas. 1 integer sets all padding. 2 integers sets the top and bottom padding to the first integer and left and right padding to the second. 4 integers sets the top padding to the first integer, right padding to the second, bottom padding to the third and left padding to the fourth integer.
 
 **size**
 
-Defines the size of the stack.  Value must be two integers separated by commas. The first integer is the width and the second is the height.
+Defines the size of the stack.  Value must be two positive integers separated by commas. The first integer is the width and the second is the height.
 
 **spacing**
 
-Defines the spacing between widget elements. Value must be an integer.
+Defines the spacing between widget elements. Value must be a positive integer.
 
 **url**
 
@@ -232,19 +232,19 @@ Defines the border color. Value must be a hex or two hexes separated by commas. 
 
 **border-width**
 
-Defines the border width.  Value must be an integer.
+Defines the border width.  Value must be a  positive integer.
 
 **corner-radius**
 
-Defines the corner radius.  Value must be an integer.
+Defines the corner radius.  Value must be a positive integer.
 
 **image-opacity**
 
-Defines the opacity of the image. Value can be a integer or float with an optional  `%` at the end.
+Defines the opacity of the image. Value must be a positive integer or float with an optional  `%` at the end.
 
 **image-size**
 
-Defines the size of the image.  Value must be two integers separated by commas. The first integer is the width and the second is the height.
+Defines the size of the image.  Value must be two positive integers separated by commas. The first integer is the width and the second is the height.
 
 **tint-color**
 
@@ -322,15 +322,15 @@ The `text` element can have any character as the inner text excluding `<` and `>
 
 **font**
 
-Defines the font family and size of the text. Value  must be a valid font name and then a integer separated by commas.
+Defines the font family and size of the text. Value  must be a valid font name and then a positive integer separated by commas.
 
 **line-limit**
 
-Defines the maximum line limit.  Value must be an integer.
+Defines the maximum line limit.  Value must be a positive integer.
 
 **minimum-scale-factor**
 
-Defines the minimum scale factor. Value can be a integer or float with an optional  `%` at the end.
+Defines the minimum scale factor. Value must be a integer or float with an optional  `%` at the end.
 
 **shadow-color**
 
@@ -342,7 +342,7 @@ Defines the shadow offset. Value must be 2 integers separated by commas. The fir
 
 **shadow radius**
 
-Defines the shadow radius. Value must be an integer.
+Defines the shadow radius. Value must be a positive integer.
 
 **text-color**
 
@@ -370,7 +370,6 @@ Boolean attribute right aligns the text.
 
 ## Unsupported Features 
 * Date widget element
-* Background gradient
 * Applying pre-set fonts (`Font.boldSystemFont(12)`)
 
 ## Bugs and Feedback 
