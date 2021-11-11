@@ -39,7 +39,7 @@ const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s
           posInt("widget", key, value, "widget")
         break
         case "url":
-          code += `\nwidget.url = "${value.replaceQuotes()}"`
+          code += `\nwidget.url = "${value.replace(/"/g,"")}"`
         break
         case "padding":
           padding("widget", value, "widget")
@@ -89,7 +89,7 @@ const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s
           posInt("stack", key, value, "stack" + stackNumber)
         break
         case "url":
-          code += `\nstack${stackNumber}.url = "${value.replaceQuotes()}"`
+          code += `\nstack${stackNumber}.url = "${value.replace(/"/g,"")}"`
         break
         case "padding":
           padding("stack", value, "stack" + stackNumber)
@@ -169,7 +169,7 @@ const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s
           colour("img", key, value, "image" + imageNumber)
         break
         case "url":
-          code += `\nimage${imageNumber}.url = "${value.replaceQuotes()}"`
+          code += `\nimage${imageNumber}.url = "${value.replace(/"/g,"")}"`
         break
         case "apply-filling-content-mode":
           code += `\nimage${imageNumber}.applyFillingContentMode()`
@@ -242,7 +242,7 @@ for(var key of Object.keys(tag["attributes"])){
           decimal("text", key, value, "text" + textNumber)
         break
         case "url":
-          code += `\ntext${textNumber}.url = ${value.replaceQuotes}`
+          code += `\ntext${textNumber}.url = ${value.replace(/"/g,"")}`
         break
         case "center-align-text":
           code += `\ntext${textNumber}.centerAlignText()`
