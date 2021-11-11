@@ -1,3 +1,4 @@
+//HTML Widget Version 1.00
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 async function htmlWidget(input, debug){  
 //https://github.com/henryluki/html-parser
