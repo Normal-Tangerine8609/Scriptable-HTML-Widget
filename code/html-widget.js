@@ -363,6 +363,6 @@ function size(tag,attribute,value,on) {
   if(!/^\s*\d+\s*,\s*\d+\s*$/.test(value)) {
     throw new Error(`${attribute} Attribute On ${tag} Element Must Have 2 Positive Integers Separated By Commas`)
   }
-  code += `\n${on}.${attribute} = new Size(${value.match(/\d+/g)[0]},${value.match(/\d+/g)[1]})`
+  code += `\n${on}.${attribute.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())} = new Size(${value.match(/\d+/g)[0]},${value.match(/\d+/g)[1]})`
 }
 }
