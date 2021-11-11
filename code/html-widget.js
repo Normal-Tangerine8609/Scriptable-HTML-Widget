@@ -3,14 +3,6 @@ async function htmlWidget(input, debug){
 //https://github.com/henryluki/html-parser
 //Minified using https://www.toptal.com/developers/javascript-minifier/
 const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/,ENDTAG_REX=/^<\/([-A-Za-z0-9_]+)[^>]*>/,ATTR_REX=/([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;function makeMap(t){return t.split(",").reduce((t,e)=>(t[e]=!0,t),{})}const EMPTY_MAKER=makeMap("symbol,img,spacer"),FILLATTRS_MAKER=makeMap("bottom-align-content,center-align-content,top-align-content,layout-vertically,layout-horizontally,container-relative-shape,resizable,apply-filling-content-mode,apply-fitting-content-mode,center-align-image,left-align-image,right-align-image,center-align-text,left-align-text,right-align-text");function isEmptyMaker(t){return!!EMPTY_MAKER[t]}function isFillattrsMaker(t){return!!FILLATTRS_MAKER[t]}class TagStart{constructor(t,e){this.name=t,this.attributes=this.getAttributes(e)}getAttributes(t){let e={};return t.replace(ATTR_REX,function(t,n){const a=Array.prototype.slice.call(arguments),r=a[2]?a[2]:a[3]?a[3]:a[4]?a[4]:isFillattrsMaker(n)?n:"";e[n]=r.replace(/(^|[^\\])"/g,'$1\\"')}),e}}class TagEmpty extends TagStart{constructor(t,e){super(t,e)}}class TagEnd{constructor(t){this.name=t}}class Text{constructor(t){this.text=t}}const ElEMENT_TYPE="Element",TEXT_TYPE="Text";function createElement(t){const e=t.name,n=t.attributes;return t instanceof TagEmpty?{type:ElEMENT_TYPE,tagName:e,attributes:n}:{type:ElEMENT_TYPE,tagName:e,attributes:n,children:[]}}function createText(t){const e=t.text;return{type:TEXT_TYPE,content:e}}function createNodeFactory(t,e){switch(t){case ElEMENT_TYPE:return createElement(e);case TEXT_TYPE:return createText(e)}}function parse(t){let e={tag:"root",children:[]},n=[e];n.last=(()=>n[n.length-1]);for(let e=0;e<t.length;e++){const a=t[e];if(a instanceof TagStart){const t=createNodeFactory(ElEMENT_TYPE,a);t.children?n.push(t):n.last().children.push(t)}else if(a instanceof TagEnd){let t=n[n.length-2],e=n.pop();t.children.push(e)}else a instanceof Text&&n.last().children.push(createNodeFactory(TEXT_TYPE,a))}return e}function tokenize(t){let e=t,n=[];const a=Date.now()+1e3;for(;e;){if(0===e.indexOf("\x3c!--")){const t=e.indexOf("--\x3e")+3;e=e.substring(t);continue}if(0===e.indexOf("</")){const t=e.match(ENDTAG_REX);if(!t)continue;e=e.substring(t[0].length);const a=t[1];if(isEmptyMaker(a))continue;n.push(new TagEnd(a));continue}if(0===e.indexOf("<")){const t=e.match(STARTTAG_REX);if(!t)continue;e=e.substring(t[0].length);const a=t[1],r=t[2],s=isEmptyMaker(a)?new TagEmpty(a,r):new TagStart(a,r);n.push(s);continue}const t=e.indexOf("<"),r=t<0?e:e.substring(0,t);if(e=t<0?"":e.substring(t),n.push(new Text(r)),Date.now()>=a)break}return n}function htmlParser(t){return parse(tokenize(t))}
- 
-//Set up simple methods
-String.prototype.replaceQuotes = function () {  
-    return this.replace(/"/g, "")
-	}
-String.prototype.getNumber = function () {
-    return this.match(/\d/g)?this.match(/\d/g).join(""):0
-    }
 //Set base variables
   let currentStack, stackNumber=-1, imageNumber=-1, textNumber=-1,gradientNumber=-1,code
 //compile only the first widget tag
@@ -32,59 +24,28 @@ String.prototype.getNumber = function () {
         if(value){
         switch(key) {
         case "background-color":
-          if(value.split(",").length != 1) {
-             code+= `\nwidget.backgroundColor = Color.dynamic(new Color("${value.split(",")[0].trim().replaceQuotes()}"),new Color("${value.split(",")[1].trim().replaceQuotes()}"))`
-          } else {
-            code+= `\nwidget.backgroundColor = new Color("${value.replaceQuotes()}")`
-          }
+          colour("widget", "background-color", value, "widget")
         break
         case "background-gradient":
-          let colours = value.match(/(,|^)\s*\(\s*#([a-fA-F0-9]{3}){1,2}\s*,\s*#[a-fA-F0-9]{3,6}\)|(,|^)\s*#([a-fA-F0-9]{3}){1,2}/g).map(e => 
-{
-            e = e.match(/#([a-fA-F0-9]{3}){1,2}/g)
-            if(e.length == 2) {
-              e = `Color.dynamic(new Color("${e[0]}"),new Color("${e[1]}"))`
-            } else {
-              e = `new Color("${e[0]}")`
-            }
-          return e
-        })
-        let gradientLocations=[]
-        for(let i = 0, l = colours.length; i < l; i++) {
-          gradientLocations.push(i/(l-1))
-        }
-        gradientNumber++
-        code+=`\nlet gradient${gradientNumber} = new LinearGradient()\ngradient${gradientNumber}.colors = [${colours}]\ngradient${gradientNumber}.locations= [${gradientLocations}]\nwidget.backgroundGradient = gradient${gradientNumber}`
+          gradient("widget", value, "widget")
         break
         case "background-image":
-          if(value.startsWith("data:image/")) {
-          value = value.replace("data:image/png;base64,","").replace("data:image/jpeg;base64,","")
-          code += `\nwidget.backgroundImage = Image.fromData(Data.fromBase64String("${base.replaceQuotes()}"))`
-        } else {
-          code += `\nwidget.backgroundImage = await new Request("${value.replaceQuotes()}").loadImage()`
-        }
+          bgImage(value, "widget")
         break
         case "refresh-after-date":
-          code += `\nlet date = new Date()\ndate.setMinutes(date.getMinutes() + ${value.getNumber()})\nwidget.refreshAfterDate = date`
+          posInt("widget", key, value, "widget")
         break
         case "spacing":
-          code += `\nwidget.spacing = ${value.getNumber()}`
+          posInt("widget", key, value, "widget")
         break
         case "url":
           code += `\nwidget.url = "${value.replaceQuotes()}"`
         break
         case "padding":
-          let paddingArray = value.split(",").map(function (i){return i.trim().getNumber()})
-           if(paddingArray.length == 1) {
-              paddingArray = [paddingArray[0], paddingArray[0], paddingArray[0], paddingArray[0]]
-           } else if (paddingArray.length == 2) {
-             paddingArray = [paddingArray[0], paddingArray[1], paddingArray[0], paddingArray[1]]
-           } else if (paddingArray.length != 4) {
-throw new Error("padding Attribute On widget Must Have 1, 2 Or 4 Parameters")}
-           code += `\nwidget.setPadding(${paddingArray.join(",")})`
+          padding("widget", value, "widget")
         break
         default:
-        throw new Error(`Unknown Attribute ${key} On Tag ${tag["tagName"]}`)
+        throw new Error(`Unknown Attribute ${key} On ${tag["tagName"]} Element`)
         break
         }}
       }
@@ -104,70 +65,34 @@ throw new Error("padding Attribute On widget Must Have 1, 2 Or 4 Parameters")}
         if(value){
         switch(key) {
         case "background-color":
-          if(value.split(",").length != 1) {
-             code+= `\nstack${stackNumber}.backgroundColor = Color.dynamic(new Color("${value.split(",")[0].trim().replaceQuotes()}"),new Color("${value.split(",")[1].trim().replaceQuotes()}"))`
-          } else {
-            code+= `\nstack${stackNumber}.backgroundColor = new Color("${value.replaceQuotes()}")`
-          }
+          colour("stack", key, value, "stack" + stackNumber)
         break
         case "background-gradient":
-          let colours = value.match(/(,|^)\s*\(\s*#([a-fA-F0-9]{3}){1,2}\s*,\s*#[a-fA-F0-9]{3,6}\)|(,|^)\s*#([a-fA-F0-9]{3}){1,2}/g).map(e => 
-{
-            e = e.match(/#([a-fA-F0-9]{3}){1,2}/g)
-            if(e.length == 2) {
-              e = `Color.dynamic(new Color("${e[0]}"),new Color("${e[1]}"))`
-            } else {
-              e = `new Color("${e[0]}")`
-            }
-          return e
-        })
-        let gradientLocations=[]
-        for(let i = 0, l = colours.length; i < l; i++) {
-          gradientLocations.push(i/(l-1))
-        }
-        gradientNumber++
-        code+=`\nlet gradient${gradientNumber} = new LinearGradient()\ngradient${gradientNumber}.colors = [${colours}]\ngradient${gradientNumber}.locations= [${gradientLocations}]\nstack${stackNumber}.backgroundGradient = gradient${gradientNumber}`
+          gradient("stack", value, "stack" + stackNumber)
         break
         case "background-image":
-          if(value.startsWith("data:image/")) {
-          value = value.replace("data:image/png;base64,","").replace("data:image/jpeg;base64,","")
-          code += `\nwidget.backgroundImage = Image.fromData(Data.fromBase64String("${base.replaceQuotes()}"))`
-        } else {
-          code += `\nwidget.backgroundImage = await new Request("${value.replaceQuotes()}").loadImage()`
-        }
+          bgImage(value, "widget")
         break
         case "border-color":
-          if(value.split(",").length != 1) {
-             code+= `\nstack${stackNumber}.borderColor = Color.dynamic(new Color("${value.split(",")[0].trim().replaceQuotes()}"),new Color("${value.split(",")[1].trim().replaceQuotes()}"))`
-          } else {
-            code+= `\nstack${stackNumber}.borderColor = new Color("${value.replaceQuotes()}")`
-          }
+          colour("stack", key, value, "stack" + stackNumber)
         break
         case "border-width":
-          code += `\nstack${stackNumber}.borderWidth = ${value.getNumber()}`
+          posInt("stack", key, value, "stack" + stackNumber)
         break
         case "corner-radius":
-          code += `\nstack${stackNumber}.cornerRadius = ${value.getNumber()}`
+          posInt("stack", key, value, "stack" + stackNumber)
         break
         case "size":
-          if(value.split(",").length != 2){throw new Error("size Attribute On stack Tag Must Have 2 Parameters")}
-          code += `\nstack${stackNumber}.size = new Size(${value.split(",")[0].getNumber()},${value.split(",")[1].getNumber()})`
+          size("stack", key, value, "stack" + stackNumber)
         break
         case "spacing":
-          code += `\nstack${stackNumber}.spacing = ${value.getNumber()}`
+          posInt("stack", key, value, "stack" + stackNumber)
         break
         case "url":
           code += `\nstack${stackNumber}.url = "${value.replaceQuotes()}"`
         break
         case "padding":
-          let paddingArray = value.split(",").map(function (i){return i.trim().getNumber()})
-           if(paddingArray.length == 1) {
-              paddingArray = [paddingArray[0], paddingArray[0], paddingArray[0], paddingArray[0]]
-           } else if (paddingArray.length == 2) {
-             paddingArray = [paddingArray[0], paddingArray[1], paddingArray[0], paddingArray[1]]
-           } else if (paddingArray.length != 4) {
-throw new Error("padding Attribute On stack Must Have 1, 2 Or 4 Parameters")}
-           code += `\nwidget.setPadding(${paddingArray.join(",")})`
+          padding("stack", value, "stack" + stackNumber)
         break
         case "bottom-align-content":
           code += `\nstack${stackNumber}.bottomAlignContent()`
@@ -185,7 +110,7 @@ throw new Error("padding Attribute On stack Must Have 1, 2 Or 4 Parameters")}
           code += `\nstack${stackNumber}.layoutVertically()`
         break
         default:
-        throw new Error(`Unknown Attribute ${key} On Tag ${tag["tagName"]}`)
+        throw new Error(`Unknown Attribute ${key} On ${tag["tagName"]} Element`)
         break
         }}
 //Compile stack children
@@ -206,63 +131,42 @@ throw new Error("padding Attribute On stack Must Have 1, 2 Or 4 Parameters")}
       if(image) {
         code += `\nlet image${imageNumber} = ${currentStack}.addImage(${image})`
       }else {
-      if(!tag["attributes"]["src"]){throw new Error("image Element Must Have A src Attribute")}
+      if(!tag["attributes"]["src"]){throw new Error("img Element Must Have A src Attribute")}
         if(tag["attributes"]["src"].trim().startsWith("data:image/")) {
           let base = tag["attributes"]["src"].trim()
           base = base.replace("data:image/png;base64,","").replace("data:image/jpeg;base64,","")
-          code += `\nlet image${imageNumber} = ${currentStack}.addImage(Image.fromData(Data.fromBase64String("${base.replaceQuotes()}")))`
+          code += `\nlet image${imageNumber} = ${currentStack}.addImage(Image.fromData(Data.fromBase64String("${base.replace(/"/g,"")}")))`
         } else {
-          code += `\nlet image${imageNumber} = ${currentStack}.addImage(await new Request("${tag["attributes"]["src"].replaceQuotes()}").loadImage())`
+          code += `\nlet image${imageNumber} = ${currentStack}.addImage(await new Request("${tag["attributes"]["src"].replace(/"/g,"")}").loadImage())`
         }
       }
       for(var key of Object.keys(tag["attributes"])){
         let value = tag["attributes"][key].trim()
         if(value){
         switch(key) {
-        case "background-color":
-          if(value.split(",").length != 1) {
-             code+= `\nstack${stackNumber}.backgroundColor = Color.dynamic(new Color("${value.split(",")[0].trim().replaceQuotes()}"),new Color("${value.split(",")[1].trim().replaceQuotes()}"))`
-          } else {
-            code+= `\nstack${stackNumber}.backgroundColor = new Color("${value.replaceQuotes()}")`
-          }
-        break
         case "border-color":
-          if(value.split(",").length != 1) {
-             code+= `\nimage${imageNumber}.borderColor = Color.dynamic(new Color("${value.split(",")[0].trim().replaceQuotes()}"),new Color("${value.split(",")[1].trim().replaceQuotes()}"))`
-          } else {
-            code+= `\nimage${imageNumber}.borderColor = new Color("${value.replaceQuotes()}")`
-          }
+          colour("img", key, value, "image" + imageNumber)
         break
         case "border-width":
-          code += `\nimage${imageNumber}.borderWidth = ${value.getNumber()}`
+          posInt("img", key, value, "image" + imageNumber)
         break
         case "container-relative-shape":
           code += `\nimage${imageNumber}.containerRelativeShape = true`
         break
         case "corner-radius":
-          code += `\nimage${imageNumber}.cornerRadius = ${value.getNumber()}`
+          posInt("img", key, value, "image" + imageNumber)
         break
         case "image-opacity":
-          value = value.match(/\d*(?:\.\d*)?%?/)[0]
-          if(value.endsWith("%")){
-            value = Number(value.replace("%",""))
-            value /= 100
-          }
-          code += `\nimage${imageNumber}.imageOpacity = ${value}`
+          decimal("text", key, value, "text" + textNumber)
         break
         case "image-size":
-          if(value.split(",").length != 2){throw new Error("image-size Attribute On image Tag Must Have 2 Parameters")}
-          code += `\nimage${imageNumber}.imageSize = new Size(${value.split(",")[0].getNumber()},${value.split(",")[1].getNumber()})`
+          size("img", key, value, "image" + imageNumber)
         break
         case "resizable":
           code += `\nimage${imageNumber}.resizable = false`
         break
         case "tint-color":
-          if(value.split(",").length != 1) {
-             code+= `\nimage${imageNumber}.tintColor = Color.dynamic(new Color("${value.split(",")[0].trim().replaceQuotes()}"),new Color("${value.split(",")[1].trim().replaceQuotes()}"))`
-          } else {
-            code+= `\nimage${imageNumber}.tintColor = new Color("${value.replaceQuotes()}")`
-          }
+          colour("img", key, value, "image" + imageNumber)
         break
         case "url":
           code += `\nimage${imageNumber}.url = "${value.replaceQuotes()}"`
@@ -285,7 +189,7 @@ throw new Error("padding Attribute On stack Must Have 1, 2 Or 4 Parameters")}
         case "named": break
         case "src": break
         default:
-        throw new Error(`Unknown Attribute ${key} On Tag ${tag["tagName"]}`)
+        throw new Error(`Unknown Attribute ${key} On ${tag["tagName"]} Element`)
         break
         }}
       }
@@ -302,54 +206,40 @@ throw new Error("padding Attribute On stack Must Have 1, 2 Or 4 Parameters")}
             textArray.push(item["content"])
         }
       }
-      code += `\nlet text${textNumber} = ${currentStack}.addText("${textArray.join(" ").replaceQuotes().replace(/&lt;/g, "<").replace(/&gt/g, ">").replace(/&amp;/g, "&")}")`
+      code += `\nlet text${textNumber} = ${currentStack}.addText("${textArray.join(" ").replace(/"/g,"").replace(/&lt;/g, "<").replace(/&gt/g, ">").replace(/&amp;/g, "&")}")`
 for(var key of Object.keys(tag["attributes"])){
         let value = tag["attributes"][key].trim()
         if(value){
         switch(key) {
         case "font":
-          if(value.split(",").length != 2){throw new Error("font Attribute On text Tag Must Have 2 Parameters")}
-          code += `\ntext${textNumber}.font = new Font("${value.split(",")[0].trim().replaceQuotes()}",${value.split(",")[1].trim().getNumber()})`
+          if(!/^\s*[^,]+,\s*\d+\s*$/.test(value)) {
+    throw new Error(`font Attribute On text Element Must Have 1 font And 1 Positive Integer Separated By Commas`)
+  }
+          code += `\ntext${textNumber}.font = new Font("${value.split(",")[0].replace(/"/g,"")}",${value.split(",")[1].match(/\d+/g)[0]})`
         break
         case "line-limit":
-          code += `\ntext${textNumber}.lineLimit = ${value.getNumber()}`
+          posInt("text", key, value, "text" + textNumber)
         break
         case "minimum-scale-factor":
-          value = value.match(/\d*(?:\.\d*)?%?/)[0]
-          if(value.endsWith("%")){
-            value = Number(value.replace("%",""))
-            value /= 100
-          }
-          code += `\ntext${textNumber}.minimumScaleFactor = ${value}`
+          decimal("text", key, value, "text" + textNumber)
         break
         case "shadow-color":
-          if(value.split(",").length != 1) {
-             code+= `\ntext${textNumber}.shadowColor = Color.dynamic(new Color("${value.split(",")[0].trim().replaceQuotes()}"),new Color("${value.split(",")[1].trim().replaceQuotes()}"))`
-          } else {
-            code+= `\ntext${textNumber}.shadowColor = new Color("${value.replaceQuotes()}")`
-          }
+          colour("text", key, value, "text" + textNumber)
         break
         case "shadow-offset":
-          if(value.split(",").length != 2){throw new Error("shadow-offset Attribute On text Tag Must Have 2 Parameters")}
-          code += `\ntext${textNumber}.shadowOffset = new Point(${value.split(",")[0].trim().match(/-?\d*/)[0]},${value.split(",")[1].trim().match(/-?\d*/)[0]})`
+          if(!/^\s*-?\d+\s*,\s*-?\d+\s*$/.test(value)){
+            throw new Error(`shadow-offset Attribute On text Element Must Have 2 Integers Separated By Commas`)
+          }
+          code += `\ntext${textNumber}.shadowOffset = new Point(${value.split(",")[0].match(/-?\d*/)[0]},${value.split(",")[1].match(/-?\d*/)[0]})`
         break
         case "shadow-radius":
-          code += `\ntext${textNumber}.shadowRadius = ${value.getNumber()}`
+          posInt("text", key, value, "text" + textNumber)
         break
         case "text-color":
-          if(value.split(",").length != 1) {
-             code+= `\ntext${textNumber}.textColor = Color.dynamic(new Color("${value.split(",")[0].trim().replaceQuotes()}"),new Color("${value.split(",")[1].trim().replaceQuotes()}"))`
-          } else {
-            code+= `\ntext${textNumber}.textColor = new Color("${value.replaceQuotes()}")`
-          }
+          colour("text", key, value, "text" + textNumber)
         break
         case "text-opacity":
-          value = value.match(/\d*(?:\.\d*)?%?/)[0]
-          if(value.endsWith("%")){
-            value = Number(value.replace("%",""))
-            value /= 100
-          }
-          code += `\ntext${textNumber}.textOpacity = ${value}`
+          decimal("text", key, value, "text" + textNumber)
         break
         case "url":
           code += `\ntext${textNumber}.url = ${value.replaceQuotes}`
@@ -364,7 +254,7 @@ for(var key of Object.keys(tag["attributes"])){
           code += `\ntext${textNumber}.rightAlignText()`
         break
         default:
-        throw new Error(`Unknown Attribute ${key} On Tag ${tag["tagName"]}`)
+        throw new Error(`Unknown Attribute ${key} On ${tag["tagName"]} Element`)
         break
         }}
       }
@@ -377,7 +267,7 @@ for(var key of Object.keys(tag["attributes"])){
 }
 //Raise error if there is a nestled widget tag or unknown tag
     if(tag["tagName"] == "widget"){ 
-      throw new Error("widget Tags Must Not Be Nestled")
+      throw new Error("widget Element Must Not Be Nestled")
     } else {
       throw new Error("Invalid Tag Name:" + tag["tagName"]) 
     }
@@ -388,4 +278,91 @@ for(var key of Object.keys(tag["attributes"])){
   let AsyncFunction = Object.getPrototypeOf(async function(){}).constructor
   let runCode = new AsyncFunction(code + "\nreturn widget")
   return await runCode()
+
+//Other functions
+
+//Adding a colour
+function colour(tag,attribute,value,on) {
+  if(!/^\s*#([a-fA-F0-9]{3}){1,2}(\s*,\s*#([a-fA-F0-9]{3}){1,2})?\s*$/.test(value)) {
+    throw new Error(`${attribute} Attribute On ${tag} Element Must Be 1 Or 2 Hexes Separated By Commas`)
+  }
+  let colours = value.match(/#([a-fA-F0-9]{3}){1,2}/g)
+  code+= `\n${on}.${attribute.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())} = ${colours.length == 2 ? `Color.dynamic(new Color("${colours[0]}"),new Color("${colours[1]}"))`:`new Color("${colours[0]}")`}`
+}
+
+//Adding a positive integer
+function posInt(tag,attribute,value,on) {
+  if(!/^\s*\d+\s*$/.test(value)) {
+    throw new Error(`${attribute} Attribute On ${tag} Element Must Be A Positive Integer`)
+  }
+  if(attribute == "refresh-after-date") {
+    code += `\nlet date = new Date()\ndate.setMinutes(date.getMinutes() + ${/\d+/.exec(value)})\nwidget.refreshAfterDate = date`
+  } else {
+    code += `\n${on}.${attribute.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())} = ${/\d+/.exec(value)}`
+  }
+}
+
+//Adding a decimal
+function decimal(tag,attribute,value,on) {
+  if(!/^\s*\d*(?:\.\d*)?%?\s*$/.test(value)&&/^\s*\d*(?:\.\d*)?%?\s*$/.exec(value)!== ".") {
+    throw new Error(`${attribute} Attribute On ${tag} Element Must Be A Positive Integer Or Float With An Optional  "%" At The End`)
+  }
+  value = /\d*(?:\.\d*)?%?/.exec(value)[0]
+  if(value.endsWith("%")){
+     value = Number(value.replace("%",""))
+     value /= 100
+   }
+   code += `\n${on}.${attribute.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())} = ${value}`
+}
+//Adding a gradient
+function gradient(tag,value,on) {
+  if(!/(,|^)\s*\(\s*#([a-fA-F0-9]{3}){1,2}\s*,\s*#[a-fA-F0-9]{3,6}\)|(,|^)\s*#([a-fA-F0-9]{3}){1,2}/g.test(value)) {
+    throw new Error(`background-gradient Attribute On ${tag} Element Must Be 1 Or More Hexes Or Hexes Separated By Commas And In Brackets Separated By Commas`)
+  }
+    let colours = value.match(/(,|^)\s*\(\s*#([a-fA-F0-9]{3}){1,2}\s*,\s*#[a-fA-F0-9]{3,6}\)|(,|^)\s*#([a-fA-F0-9]{3}){1,2}/g).map(e => 
+{
+    e = e.match(/#([a-fA-F0-9]{3}){1,2}/g)
+    if(e.length == 2) {
+      e = `Color.dynamic(new Color("${e[0]}"),new Color("${e[1]}"))`
+     } else {
+       e = `new Color("${e[0]}")`
+     }
+        return e
+      })
+      let gradientLocations=[]
+      for(let i = 0, l = colours.length; i < l; i++) {
+        gradientLocations.push(i/(l-1))
+       }
+       gradientNumber++
+       code+=`\nlet gradient${gradientNumber} = new LinearGradient()\ngradient${gradientNumber}.colors = [${colours}]\ngradient${gradientNumber}.locations= [${gradientLocations}]\n${on}.backgroundGradient = gradient${gradientNumber}`
+}
+//Adding padding
+function padding(tag,value,on) {
+  if(!/^\s*\d+((\s*,\s*\d+){3}|(\s*,\s*\d+))?\s*$/g.test(value)) {
+    throw new Error(`padding Attribute On ${tag} Element Must Be 1, 2 Or 4 Positive Integers Separated By Commas`)
+  }
+    paddingArray = value.match(/\d+/g)
+    if(paddingArray.length == 1) {
+      paddingArray = [paddingArray[0], paddingArray[0], paddingArray[0], paddingArray[0]]
+    } else if (paddingArray.length == 2) {
+      paddingArray = [paddingArray[0], paddingArray[1], paddingArray[0], paddingArray[1]]
+    }
+       code += `\n${on}.setPadding(${paddingArray.join(",")})`
+}
+//Adding a background-image
+function bgImage(value,on) {
+  if(value.startsWith("data:image/")) {
+     value = value.replace("data:image/png;base64,","").replace("data:image/jpeg;base64,","")
+     code += `\n${on}.backgroundImage = Image.fromData(Data.fromBase64String("${value.replace(/"/g, "")}"))`
+  } else {
+    code += `\n${on}.backgroundImage = await new Request("${value.replace(/"/g, "")}").loadImage()`
+  }
+}
+//Adding a size
+function size(tag,attribute,value,on) {
+  if(!/^\s*\d+\s*,\s*\d+\s*$/.test(value)) {
+    throw new Error(`${attribute} Attribute On ${tag} Element Must Have 2 Positive Integers Separated By Commas`)
+  }
+  code += `\n${on}.${attribute} = new Size(${value.match(/\d+/g)[0]},${value.match(/\d+/g)[1]})`
+}
 }
