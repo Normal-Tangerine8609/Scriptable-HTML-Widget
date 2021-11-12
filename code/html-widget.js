@@ -284,11 +284,24 @@ for(var key of Object.keys(tag["attributes"])){
 
 //Adding a colour
 function colour(tag,attribute,value,on) {
-  if(!/^\s*#([a-fA-F0-9]{3}){1,2}(\s*,\s*#([a-fA-F0-9]{3}){1,2})?\s*$/.test(value)) {
+  if(!/^\s*#([a-fA-F0-9]{3,4}){1,2}(\s*,\s*#([a-fA-F0-9]{34}){1,2})?\s*$/.test(value)) {
     throw new Error(`${attribute} Attribute On ${tag} Element Must Be 1 Or 2 Hexes Separated By Commas`)
   }
-  let colours = value.match(/#([a-fA-F0-9]{3}){1,2}/g)
-  code+= `\n${on}.${attribute.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())} = ${colours.length == 2 ? `Color.dynamic(new Color("${colours[0]}"),new Color("${colours[1]}"))`:`new Color("${colours[0]}")`}`
+  let colours = value.match(/#([a-fA-F0-9]{3,4}){2}|#([a-fA-F0-9]{3,4}){1}/g).map( c => {
+    let alpha
+    if(c.length == 5) {
+      alpha = parseInt(c[4]+c[4], 16)
+      c = c.slice(0, -1)
+    } else if(c.length == 9) {
+      alpha = parseInt(c[5]+c[6], 16)
+      c = c.slice(0, -2)
+    } else {
+      alpha = 0
+    }
+    return [c,alpha/255]
+   })
+  
+  code+= `\n${on}.${attribute.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())} = ${colours.length == 2 ? `Color.dynamic(new Color("${colours[0][0]}",${colours[0][1]}),new Color("${colours[1][0]}",${colours[1][1]}))`:`new Color("${colours[0][0]}",${colours[0][1]})`}`
 }
 
 //Adding a positive integer
@@ -317,16 +330,29 @@ function decimal(tag,attribute,value,on) {
 }
 //Adding a gradient
 function gradient(tag,value,on) {
-  if(!/(,|^)\s*\(\s*#([a-fA-F0-9]{3}){1,2}\s*,\s*#[a-fA-F0-9]{3,6}\)|(,|^)\s*#([a-fA-F0-9]{3}){1,2}/g.test(value)) {
+  if(!/(,|^)\s*\(\s*#([a-fA-F0-9]{3,4}){1,2}\s*,\s*#([a-fA-F0-9]{3,4}){1,2}\)|(,|^)\s*#([a-fA-F0-9]{3,4}){1,2}/g.test(value)) {
     throw new Error(`background-gradient Attribute On ${tag} Element Must Be 1 Or More Hexes Or Hexes Separated By Commas And In Brackets Separated By Commas`)
   }
-    let colours = value.match(/(,|^)\s*\(\s*#([a-fA-F0-9]{3}){1,2}\s*,\s*#[a-fA-F0-9]{3,6}\)|(,|^)\s*#([a-fA-F0-9]{3}){1,2}/g).map(e => 
+    let colours = value.match(/(,|^)\s*\(\s*#([a-fA-F0-9]{3,4}){1,2}\s*,\s*#([a-fA-F0-9]{3,4}){1,2}\)|(,|^)\s*#([a-fA-F0-9]{3,4}){1,2}/g).map(e => 
 {
-    e = e.match(/#([a-fA-F0-9]{3}){1,2}/g)
+    e = e.match(/#([a-fA-F0-9]{3,4}){1,2}/g).map(c => {
+    let alpha
+    if(c.length == 5) {
+      alpha = parseInt(c[4]+c[4], 16)
+      c = c.slice(0, -1)
+    } else if(c.length == 9) {
+      alpha = parseInt(c[5]+c[6], 16)
+      c = c.slice(0, -2)
+    } else {
+      alpha = 0
+    }
+    return [c,alpha/255]
+})
+console.log(e)
     if(e.length == 2) {
-      e = `Color.dynamic(new Color("${e[0]}"),new Color("${e[1]}"))`
+      e = `Color.dynamic(new Color("${e[0][0]}",${e[0][1]}),new Color("${e[1][0]}",${e[1][1]}))`
      } else {
-       e = `new Color("${e[0]}")`
+       e = `new Color("${e[0][0]}",${e[0][1]})`
      }
         return e
       })
