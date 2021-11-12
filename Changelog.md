@@ -2,5 +2,5 @@
 
 ## 1.00
 
-* 10.5 KB
+* 10.9 KB
 * First release of HTML Widget
