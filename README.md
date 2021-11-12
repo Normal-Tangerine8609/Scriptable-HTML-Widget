@@ -88,7 +88,7 @@ All tags must be nestled in the `widget` element. There must be a parent `widget
 
 **background-color**
 
-Defines the background color. Value must be a hex or two hexes separated by commas. If there are two hexes, the first is the light mode colour and the second is the dark mode colour. Hexes can have an alpha value: #rrggbbaa, #ff00ff00
+Defines the background color. Value must be a hex or two hexes separated by commas. If there are two hexes, the first is the light mode colour and the second is the dark mode colour. Hexes can have an alpha value: #rrggbbaa, #rgba, #rrggbb or #rgb
 
 **background-gradient**
 
