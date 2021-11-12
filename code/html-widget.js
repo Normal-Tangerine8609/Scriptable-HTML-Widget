@@ -296,7 +296,7 @@ function colour(tag,attribute,value,on) {
       alpha = parseInt(c[5]+c[6], 16)
       c = c.slice(0, -2)
     } else {
-      alpha = 1
+      alpha = 255
     }
     return [c,alpha/255]
    })
@@ -344,7 +344,7 @@ function gradient(tag,value,on) {
       alpha = parseInt(c[5]+c[6], 16)
       c = c.slice(0, -2)
     } else {
-      alpha = 1
+      alpha = 255
     }
     return [c,alpha/255]
 })
