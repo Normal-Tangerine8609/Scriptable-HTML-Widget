@@ -1,4 +1,4 @@
-//HTML Widget Version 1.00
+//HTML Widget Version 1.01
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 async function htmlWidget(input, debug){  
 //https://github.com/henryluki/html-parser
@@ -296,7 +296,7 @@ function colour(tag,attribute,value,on) {
       alpha = parseInt(c[5]+c[6], 16)
       c = c.slice(0, -2)
     } else {
-      alpha = 0
+      alpha = 1
     }
     return [c,alpha/255]
    })
@@ -344,7 +344,7 @@ function gradient(tag,value,on) {
       alpha = parseInt(c[5]+c[6], 16)
       c = c.slice(0, -2)
     } else {
-      alpha = 0
+      alpha = 1
     }
     return [c,alpha/255]
 })
