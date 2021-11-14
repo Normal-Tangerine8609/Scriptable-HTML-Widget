@@ -1,4 +1,4 @@
-//HTML Widget Version 1.01
+//HTML Widget Version 1.02
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 async function htmlWidget(input, debug){  
 //https://github.com/henryluki/html-parser
@@ -114,10 +114,11 @@ const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s
         throw new Error(`Unknown Attribute ${key} On ${tag["tagName"]} Element`)
         break
         }}
-//Compile stack children
       }
+//Compile stack children
+      let temp =  "stack" + stackNumber
       for(var item of tag["children"]) {
-        currentStack = "stack" + stackNumber
+        currentStack = temp
         compile(item)
       }
       return
