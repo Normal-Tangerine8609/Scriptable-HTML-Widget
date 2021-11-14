@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.02
+
+* 10.9 KB
+* Fixed issue with stacks nestled in stacks
+
 ## 1.01
 
 * 10.9 KB
