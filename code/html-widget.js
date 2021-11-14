@@ -1,4 +1,4 @@
-//HTML Widget Version 1.02
+//HTML Widget Version 1.10
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 async function htmlWidget(input, debug){  
 //https://github.com/henryluki/html-parser
@@ -217,7 +217,11 @@ for(var key of Object.keys(tag["attributes"])){
           if(!/^\s*[^,]+,\s*\d+\s*$/.test(value)) {
     throw new Error(`font Attribute On text Element Must Have 1 font And 1 Positive Integer Separated By Commas`)
   }
+  if(/^\s*(black|bold|medium|light|heavy|regular|semibold|thin|ultraLight)(MonospacedSystemFont|RoundedSystemFont|SystemFont)\s*,\s*\d+\s*$/.test(value)){
+  code += `\ntext${textNumber}.font = Font.${value.replace(/^\s*(black|bold|medium|light|heavy|regular|semibold|thin|ultraLight)(MonospacedSystemFont|RoundedSystemFont|SystemFont)\s*,\s*(\d+)\s*$/, "$1$2($3)")}`
+} else {
           code += `\ntext${textNumber}.font = new Font("${value.split(",")[0].replace(/"/g,"")}",${value.split(",")[1].match(/\d+/g)[0]})`
+}
         break
         case "line-limit":
           posInt("text", key, value, "text" + textNumber)
