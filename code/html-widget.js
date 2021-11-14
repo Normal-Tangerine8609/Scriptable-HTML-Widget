@@ -7,7 +7,6 @@ const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s
 //Set base variables
   let currentStack, stackNumber=-1, imageNumber=-1, textNumber=-1,gradientNumber=-1,code
 //compile only the first widget tag
-console.log(htmlParser(input))
   compile(htmlParser(input)["children"].filter(element => {
     if(element.tagName == "widget"){return element}
   })[0])
