@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.11
+
+* 11.3 KB
+* Fixed URL setting on text
+
 ## 1.10
 
 * 11.3 KB
