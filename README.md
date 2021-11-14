@@ -323,7 +323,7 @@ The `text` element can have any character as the inner text excluding `<` and `>
 
 **font**
 
-Defines the font family and size of the text. Value  must be a valid font name and then a positive integer separated by commas.
+Defines the font family and size of the text. Value must be a valid font name and then a positive integer separated by commas. The font name can also be a pre-set font such as `boldSystemFont`, `lightMonospacedSystemFont` or `regularRoundedSystemFont` but not `italicSystemFont` or  a font based on its content like `largeTitle`.
 
 **line-limit**
 
@@ -379,7 +379,7 @@ Comments can be created the same way you create comments in HTML. Text in betwee
 
 ## Unsupported Features 
 * Date widget element
-* Applying pre-set fonts (`Font.boldSystemFont(12)`)
+* Applying pre-set fonts based on content (`largeTitle`)
 
 ## Bugs and Feedback 
 
