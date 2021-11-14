@@ -72,6 +72,7 @@ Script.complete()
 * [<img\>](#img)
 * [<symbol\>](#symbol)
 * [<text\>](#text)
+* [Comment](#comment)
 
 ***
 
@@ -367,6 +368,14 @@ Boolean attribute left aligns the text.
 **right-align-text**
 
 Boolean attribute right aligns the text.
+
+### Comment
+
+```html
+<!-- This is a comment -->
+```
+
+Comments can be created the same way you create comments in HTML. Text in between `<!--` and `-->` become a comment.
 
 ## Unsupported Features 
 * Date widget element
