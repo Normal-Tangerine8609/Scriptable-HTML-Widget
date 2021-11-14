@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.10
+
+* 11.3 KB
+* Added in pre-set fonts such as `lightRoundedSystemFont`
+
 ## 1.02
 
 * 10.9 KB
