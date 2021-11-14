@@ -1,4 +1,4 @@
-//HTML Widget Version 1.10
+//HTML Widget Version 1.11
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 async function htmlWidget(input, debug){  
 //https://github.com/henryluki/html-parser
@@ -7,6 +7,7 @@ const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s
 //Set base variables
   let currentStack, stackNumber=-1, imageNumber=-1, textNumber=-1,gradientNumber=-1,code
 //compile only the first widget tag
+console.log(htmlParser(input))
   compile(htmlParser(input)["children"].filter(element => {
     if(element.tagName == "widget"){return element}
   })[0])
@@ -248,7 +249,7 @@ for(var key of Object.keys(tag["attributes"])){
           decimal("text", key, value, "text" + textNumber)
         break
         case "url":
-          code += `\ntext${textNumber}.url = ${value.replace(/"/g,"")}`
+          code += `\ntext${textNumber}.url = "${value.replace(/"/g,"")}"`
         break
         case "center-align-text":
           code += `\ntext${textNumber}.centerAlignText()`
