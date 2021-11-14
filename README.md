@@ -100,7 +100,7 @@ Defines the background image. Value must be a valid url leading to an image or a
 
 **padding**
 
-Defines the widget padding. Value must be 1, 2 or 4 positive integers separated by commas. 1 integer sets all padding. 2 integers sets the top and bottom padding to the first integer and left and right padding to the second. 4 integers sets the top padding to the first integer, right padding to the second, bottom padding to the third and left padding to the fourth integer.
+Defines the widget padding. Value must be 1, 2 or 4 positive integers separated by commas. 1 integer sets all padding. 2 integers sets the top and bottom padding to the first integer and left and right padding to the second. 4 integers sets the top padding to the first integer, left padding to the second, bottom padding to the third and right padding to the fourth integer.
 
 **refresh-after-date**
 
@@ -155,7 +155,7 @@ Defines the corner radius.  Value must be a positive integer.
 
 **padding**
 
-Defines the widget padding. Value must be 1, 2 or 4 positive integers separated by commas. 1 integer sets all padding. 2 integers sets the top and bottom padding to the first integer and left and right padding to the second. 4 integers sets the top padding to the first integer, right padding to the second, bottom padding to the third and left padding to the fourth integer.
+Defines the widget padding. Value must be 1, 2 or 4 positive integers separated by commas. 1 integer sets all padding. 2 integers sets the top and bottom padding to the first integer and left and right padding to the second. 4 integers sets the top padding to the first integer, left padding to the second, bottom padding to the third and right padding to the fourth integer.
 
 **size**
 
