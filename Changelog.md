@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.00
+
+* 14.7 KB
+* Fixed a bug preventing line breaks in the text tag
+* Removed logged text when making a gradient
+* Gradients now support css directions (`to left`)
+* Added a `hr` element
+* Added a `date` element
+
 ## 1.11
 
 * 11.3 KB
