@@ -72,9 +72,11 @@ Script.complete()
 * [<img\>](#img)
 * [<symbol\>](#symbol)
 * [<text\>](#text)
+* [<date\>](#date)
+* [<hr\>](#hr)
 * [Comment](#comment)
 
-***
+- - - -
 
 ### <widget\>
 
@@ -93,7 +95,7 @@ Defines the background color. Value must be a hex or two hexes separated by comm
 
 **background-gradient**
 
-Defines the background gradient. Value must be one or more hexes or hexes separated by commas and in brackets (for light mode and dark mode colours respectively) separated by commas. Example: `#ff00ff, (#ffffff, #000000), #00ff00`
+Defines the background gradient. Value must be one or more hexes or hexes separated by commas and in brackets (for light mode and dark mode colours respectively) separated by commas. Example: `#ff00ff, (#ffffff, #000000), #00ff00`. The value can also have an optional direction as the first parameter. The options are `to top`, `to bottom`, `to right`, `to left`, `to top right`, `to top`, `to top left`, `to bottom right` and `to bottom left`. Example: `to top left, #ff00ff, (#ffffff, #000000), #00ff00`. The default gradient direction is `to bottom`.
 
 **background-image**
 
@@ -115,7 +117,7 @@ Defines the spacing between widget elements. Value must be a positive  integer.
 
 Defines the widget url. Value must be a valid url.
 
-***
+- - - -
 
 ### <stack\>
 
@@ -136,7 +138,7 @@ Defines the background color. Value must be a hex or two hexes separated by comm
 
 **background-gradient**
 
-Defines the background gradient. Value must be one or more hexes or hexes separated by commas and in brackets (for light mode and dark mode colours respectively) separated by commas. Example: `#ff00ff, (#ffffff, #000000), #00ff00`
+Defines the background gradient. Value must be one or more hexes or hexes separated by commas and in brackets (for light mode and dark mode colours respectively) separated by commas. Example: `#ff00ff, (#ffffff, #000000), #00ff00`. The value can also have an optional direction as the first parameter. The options are `to top`, `to bottom`, `to right`, `to left`, `to top right`, `to top`, `to top left`, `to bottom right` and `to bottom left`. Example: `to top left, #ff00ff, (#ffffff, #000000), #00ff00`. The default gradient direction is `to bottom`.
 
 **background-image**
 
@@ -190,7 +192,7 @@ Boolean attribute lays out the stack horizontally.
 
 Boolean attribute lays out the stack vertically.
 
-***
+- - - -
 
 ### <spacer\>
 
@@ -209,7 +211,7 @@ The `spacer` element defines a widget spacer element.
 Defines the space of the spacer. Value must be a valid integer. If the value is empty or not provided, the space automatically sizes.
 
 
-***
+- - - -
 
 ### <img\>
 
@@ -283,7 +285,7 @@ Boolean attribute does not allow image to be resizable.
 
 Boolean attribute right aligns image.
 
-***
+- - - -
 
 ### <symbol\>
 
@@ -303,7 +305,7 @@ Defines the name of the SF symbol. All `symbol` elements must have a `named` att
 
 The `symbol` element has all the attributes of the `img` element except for the `src` attribute.
 
-***
+- - - -
 
 ### <text\>
 
@@ -369,6 +371,136 @@ Boolean attribute left aligns the text.
 
 Boolean attribute right aligns the text.
 
+- - - -
+
+### <date\>
+
+```html
+<widget>
+  <date>Thu Dec 23 2021 17:54:40 GMT-0500 (EST)</date>
+</widget>
+```
+
+The `date` element defines a widget date element.
+
+#### Inner Text 
+
+The `date` element can have any character as the inner text excluding `<` and `>` and trimming white space. `<` must be converted to the `&lt;` entity.  `>` must be converted to the `&gt;` entity.  `&` can optionally be converted to the `&amp;` entity. The inner text should be a date defined by the `Date()` object. The inner text is the date that will be displayed.
+
+#### Attributes
+
+**font**
+
+Defines the font family and size of the text. Value must be a valid font name and then a positive integer separated by commas. The font name can also be a pre-set font such as `boldSystemFont`, `lightMonospacedSystemFont` or `regularRoundedSystemFont` but not `italicSystemFont` or  a font based on its content like `largeTitle`.
+
+**line-limit**
+
+Defines the maximum line limit.  Value must be a positive integer.
+
+**minimum-scale-factor**
+
+Defines the minimum scale factor. Value must be a integer or float with an optional  `%` at the end.
+
+**shadow-color**
+
+Defines the shadow color. Value must be a hex or two hexes separated by commas. If there are two hexes, the first is the light mode colour and the second is the dark mode colour.
+
+**shadow-offset**
+
+Defines the shadow offset. Value must be 2 integers separated by commas. The first integer is the x and the second is the y.
+
+**shadow radius**
+
+Defines the shadow radius. Value must be a positive integer.
+
+**text-color**
+
+Defines the text color. Value must be a hex or two hexes separated by commas. If there are two hexes, the first is the light mode colour and the second is the dark mode colour.
+
+**text-opacity**
+
+Defines the opacity of the text. Value can be a integer or float with an optional  `%` at the end.
+
+**url**
+
+Defines the text url. Value must be a valid url.
+
+**center-align-text**
+
+Boolean attribute center aligns the text.
+
+**left-align-text**
+
+Boolean attribute left aligns the text.
+
+**right-align-text**
+
+Boolean attribute right aligns the text.
+
+**apply-date-style**
+
+Boolean attribute applies date style to the date.
+
+**apply-offset-style**
+
+Boolean attribute applies offset style to the date.
+
+**apply-relative-style**
+
+Boolean attribute applies relative style to the date.
+
+**apply-timer-style**
+
+Boolean attribute applies timer style to the date.
+
+**apply-time-style**
+
+Boolean attribute applies time style to the date.
+
+- - - -
+
+### <hr\>
+
+```html
+<widget>
+  <hr>
+</widget>
+```
+
+The `hr`  element defines a horizontal rule that is mimicked using a widget stack.
+
+#### Attributes
+
+**background-color**
+
+Defines the background color. Value must be a hex or two hexes separated by commas. If there are two hexes, the first is the light mode colour and the second is the dark mode colour.
+
+**background-gradient**
+
+Defines the background gradient. Value must be one or more hexes or hexes separated by commas and in brackets (for light mode and dark mode colours respectively) separated by commas. Example: `#ff00ff, (#ffffff, #000000), #00ff00`. The value can also have an optional direction as the first parameter. The options are `to top`, `to bottom`, `to right`, `to left`, `to top right`, `to top`, `to top left`, `to bottom right` and `to bottom left`. Example: `to top left, #ff00ff, (#ffffff, #000000), #00ff00`. The default gradient direction is `to bottom`.
+
+**corner-radius**
+
+Defines the corner radius.  Value must be a positive integer.
+
+**url**
+
+Defines the stack url. Value must be a valid url.
+
+**width**
+
+Defines the width.  Value must be a positive integer.
+
+**layout-horizontally**
+
+Boolean attribute lays out the hr horizontally.
+
+**layout-vertically**
+
+Boolean attribute lays out the hr vertically.
+
+- - - -
+
 ### Comment
 
 ```html
@@ -376,10 +508,6 @@ Boolean attribute right aligns the text.
 ```
 
 Comments can be created the same way you create comments in HTML. Text in between `<!--` and `-->` become a comment.
-
-## Unsupported Features 
-* Date widget element
-* Applying pre-set fonts based on content (`largeTitle`)
 
 ## Bugs and Feedback 
 
