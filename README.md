@@ -95,7 +95,7 @@ Defines the background color. Value must be one or two HTML supported colours se
 
 **background-gradient**
 
-Defines the background gradient. Value must be one or more HTML supported colour or group of dark mode/light mode colours separated by commas. Dark mode/light mode colour groups are created by splitting the light and dark colour by a hyphen with the light colour as the first colour. Example: `red, white-black, blue`. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. The value can also have an optional direction as the first parameter. The options are `to top`, `to bottom`, `to right`, `to left`, `to top right`, `to top`, `to top left`, `to bottom right` and `to bottom left`. Example: `to top left, #ff00ff, rgb(0,255,0)-rgb(255,0,255), hsl(180, 50%,70%)`. The default gradient direction is `to bottom`.
+Defines the background gradient. Value must be one or more HTML supported colour or group of light mode/dark mode colours separated by commas. Light mode/dark mode colour groups are created by splitting the light and dark colour by a hyphen with the light colour as the first colour. Example: `red, white-black, blue`. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. The value can also have an optional direction as the first parameter. The options are `to top`, `to bottom`, `to right`, `to left`, `to top right`, `to top`, `to top left`, `to bottom right` and `to bottom left`. Example: `to top left, #ff00ff, rgb(0,255,0)-rgb(255,0,255), hsl(180, 50%,70%)`. The default gradient direction is `to bottom`.
 
 **background-image**
 
@@ -138,7 +138,7 @@ Defines the background color. Value must be one or two HTML supported colours se
 
 **background-gradient**
 
-Defines the background gradient. Value must be one or more hexes or hexes separated by commas and in brackets (for light mode and dark mode colours respectively) separated by commas. Example: `#ff00ff, (#ffffff, #000000), #00ff00`. The value can also have an optional direction as the first parameter. The options are `to top`, `to bottom`, `to right`, `to left`, `to top right`, `to top`, `to top left`, `to bottom right` and `to bottom left`. Example: `to top left, #ff00ff, (#ffffff, #000000), #00ff00`. The default gradient direction is `to bottom`.
+Defines the background gradient. Value must be one or more HTML supported colour or group of light mode/dark mode colours separated by commas. Light mode/dark mode colour groups are created by splitting the light and dark colour by a hyphen with the light colour as the first colour. Example: `red, white-black, blue`. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. The value can also have an optional direction as the first parameter. The options are `to top`, `to bottom`, `to right`, `to left`, `to top right`, `to top`, `to top left`, `to bottom right` and `to bottom left`. Example: `to top left, #ff00ff, rgb(0,255,0)-rgb(255,0,255), hsl(180, 50%,70%)`. The default gradient direction is `to bottom`.
 
 **background-image**
 
@@ -477,7 +477,7 @@ Defines the background color. Value must be one or two HTML supported colours se
 
 **background-gradient**
 
-Defines the background gradient. Value must be one or more hexes or hexes separated by commas and in brackets (for light mode and dark mode colours respectively) separated by commas. Example: `#ff00ff, (#ffffff, #000000), #00ff00`. The value can also have an optional direction as the first parameter. The options are `to top`, `to bottom`, `to right`, `to left`, `to top right`, `to top`, `to top left`, `to bottom right` and `to bottom left`. Example: `to top left, #ff00ff, (#ffffff, #000000), #00ff00`. The default gradient direction is `to bottom`.
+Defines the background gradient. Value must be one or more HTML supported colour or group of light mode/dark mode colours separated by commas. Light mode/dark mode colour groups are created by splitting the light and dark colour by a hyphen with the light colour as the first colour. Example: `red, white-black, blue`. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. The value can also have an optional direction as the first parameter. The options are `to top`, `to bottom`, `to right`, `to left`, `to top right`, `to top`, `to top left`, `to bottom right` and `to bottom left`. Example: `to top left, #ff00ff, rgb(0,255,0)-rgb(255,0,255), hsl(180, 50%,70%)`. The default gradient direction is `to bottom`.
 
 **corner-radius**
 
