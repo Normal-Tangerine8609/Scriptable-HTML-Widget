@@ -75,7 +75,7 @@ Script.complete()
 * [<date\>](#date)
 * [<hr\>](#hr)
 * [Comment](#comment)
-
+ 
 - - - -
 
 ### <widget\>
@@ -91,11 +91,11 @@ All tags must be nestled in the `widget` element. There must be a parent `widget
 
 **background-color**
 
-Defines the background color. Value must be a hex or two hexes separated by commas. If there are two hexes, the first is the light mode colour and the second is the dark mode colour. Hexes can have an alpha value: #rrggbbaa, #rgba, #rrggbb or #rgb
+Defines the background color. Value must be one or two HTML supported colours separated by hyphens. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. If there are two colours, the first is the light mode colour and the second is the dark mode colour.
 
 **background-gradient**
 
-Defines the background gradient. Value must be one or more hexes or hexes separated by commas and in brackets (for light mode and dark mode colours respectively) separated by commas. Example: `#ff00ff, (#ffffff, #000000), #00ff00`. The value can also have an optional direction as the first parameter. The options are `to top`, `to bottom`, `to right`, `to left`, `to top right`, `to top`, `to top left`, `to bottom right` and `to bottom left`. Example: `to top left, #ff00ff, (#ffffff, #000000), #00ff00`. The default gradient direction is `to bottom`.
+Defines the background gradient. Value must be one or more HTML supported colour or group of dark mode/light mode colours separated by commas. Dark mode/light mode colour groups are created by splitting the light and dark colour by a hyphen with the light colour as the first colour. Example: `red, white-black, blue`. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. The value can also have an optional direction as the first parameter. The options are `to top`, `to bottom`, `to right`, `to left`, `to top right`, `to top`, `to top left`, `to bottom right` and `to bottom left`. Example: `to top left, #ff00ff, rgb(0,255,0)-rgb(255,0,255), hsl(180, 50%,70%)`. The default gradient direction is `to bottom`.
 
 **background-image**
 
@@ -134,7 +134,7 @@ The `stack`  element defines a widget stack element.
 
 **background-color**
 
-Defines the background color. Value must be a hex or two hexes separated by commas. If there are two hexes, the first is the light mode colour and the second is the dark mode colour.
+Defines the background color. Value must be one or two HTML supported colours separated by hyphens. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. If there are two colours, the first is the light mode colour and the second is the dark mode colour.
 
 **background-gradient**
 
@@ -146,7 +146,7 @@ Defines the background image. Value must be a valid url leading to an image or a
 
 **border-color**
 
-Defines the border color. Value must be a hex or two hexes separated by commas. If there are two hexes, the first is the light mode colour and the second is the dark mode colour.
+Defines the border color. Value must be one or two HTML supported colours separated by hyphens. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. If there are two colours, the first is the light mode colour and the second is the dark mode colour.
 
 **border-width**
 
@@ -231,7 +231,7 @@ Defines the image. All `img` elements must have a `src` attribute. Value must be
 
 **border-color**
 
-Defines the border color. Value must be a hex or two hexes separated by commas. If there are two hexes, the first is the light mode colour and the second is the dark mode colour.
+Defines the border color. Value must be one or two HTML supported colours separated by hyphens. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. If there are two colours, the first is the light mode colour and the second is the dark mode colour.
 
 **border-width**
 
@@ -251,7 +251,7 @@ Defines the size of the image.  Value must be two positive integers separated by
 
 **tint-color**
 
-Defines the tint color. Value must be a hex or two hexes separated by commas. If there are two hexes, the first is the light mode colour and the second is the dark mode colour.
+Defines the tint color. Value must be one or two HTML supported colours separated by hyphens. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. If there are two colours, the first is the light mode colour and the second is the dark mode colour.
 
 **url**
 
@@ -337,7 +337,7 @@ Defines the minimum scale factor. Value must be a integer or float with an optio
 
 **shadow-color**
 
-Defines the shadow color. Value must be a hex or two hexes separated by commas. If there are two hexes, the first is the light mode colour and the second is the dark mode colour.
+Defines the shadow color. Value must be one or two HTML supported colours separated by hyphens. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. If there are two colours, the first is the light mode colour and the second is the dark mode colour.
 
 **shadow-offset**
 
@@ -349,7 +349,7 @@ Defines the shadow radius. Value must be a positive integer.
 
 **text-color**
 
-Defines the text color. Value must be a hex or two hexes separated by commas. If there are two hexes, the first is the light mode colour and the second is the dark mode colour.
+Defines the text color. Value must be one or two HTML supported colours separated by hyphens. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. If there are two colours, the first is the light mode colour and the second is the dark mode colour.
 
 **text-opacity**
 
@@ -403,7 +403,7 @@ Defines the minimum scale factor. Value must be a integer or float with an optio
 
 **shadow-color**
 
-Defines the shadow color. Value must be a hex or two hexes separated by commas. If there are two hexes, the first is the light mode colour and the second is the dark mode colour.
+Defines the shadow color. Value must be one or two HTML supported colours separated by hyphens. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. If there are two colours, the first is the light mode colour and the second is the dark mode colour.
 
 **shadow-offset**
 
@@ -415,7 +415,7 @@ Defines the shadow radius. Value must be a positive integer.
 
 **text-color**
 
-Defines the text color. Value must be a hex or two hexes separated by commas. If there are two hexes, the first is the light mode colour and the second is the dark mode colour.
+Defines the text color. Value must be one or two HTML supported colours separated by hyphens. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. If there are two colours, the first is the light mode colour and the second is the dark mode colour.
 
 **text-opacity**
 
@@ -473,7 +473,7 @@ The `hr`  element defines a horizontal rule that is mimicked using a widget stac
 
 **background-color**
 
-Defines the background color. Value must be a hex or two hexes separated by commas. If there are two hexes, the first is the light mode colour and the second is the dark mode colour.
+Defines the background color. Value must be one or two HTML supported colours separated by hyphens. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. If there are two colours, the first is the light mode colour and the second is the dark mode colour.
 
 **background-gradient**
 
