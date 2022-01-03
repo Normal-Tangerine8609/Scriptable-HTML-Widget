@@ -1,16 +1,16 @@
-//HTML Widget Version 2.00
+//HTML Widget Version 2.10
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
-module.exports = async function htmlWidget(input, debug){
+module.exports = async function htmlWidget(input, debug){  
 //https://github.com/henryluki/html-parser
 //Minified using https://www.toptal.com/developers/javascript-minifier/
 const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/,ENDTAG_REX=/^<\/([-A-Za-z0-9_]+)[^>]*>/,ATTR_REX=/([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;function makeMap(t){return t.split(",").reduce((t,e)=>(t[e]=!0,t),{})}const EMPTY_MAKER=makeMap("symbol,img,spacer,hr"),FILLATTRS_MAKER=makeMap("bottom-align-content,center-align-content,top-align-content,layout-vertically,layout-horizontally,container-relative-shape,resizable,apply-filling-content-mode,apply-fitting-content-mode,center-align-image,left-align-image,right-align-image,center-align-text,left-align-text,right-align-text,apply-date-style,apply-offset-style,apply-relative-style,apply-timer-style,apply-time-style");function isEmptyMaker(t){return!!EMPTY_MAKER[t]}function isFillattrsMaker(t){return!!FILLATTRS_MAKER[t]}class TagStart{constructor(t,e){this.name=t,this.attributes=this.getAttributes(e)}getAttributes(t){let e={};return t.replace(ATTR_REX,function(t,n){const a=Array.prototype.slice.call(arguments),r=a[2]?a[2]:a[3]?a[3]:a[4]?a[4]:isFillattrsMaker(n)?n:"";e[n]=r.replace(/(^|[^\\])"/g,'$1\\"')}),e}}class TagEmpty extends TagStart{constructor(t,e){super(t,e)}}class TagEnd{constructor(t){this.name=t}}class Text{constructor(t){this.text=t}}const ElEMENT_TYPE="Element",TEXT_TYPE="Text";function createElement(t){const e=t.name,n=t.attributes;return t instanceof TagEmpty?{type:ElEMENT_TYPE,tagName:e,attributes:n}:{type:ElEMENT_TYPE,tagName:e,attributes:n,children:[]}}function createText(t){const e=t.text;return{type:TEXT_TYPE,content:e}}function createNodeFactory(t,e){switch(t){case ElEMENT_TYPE:return createElement(e);case TEXT_TYPE:return createText(e)}}function parse(t){let e={tag:"root",children:[]},n=[e];n.last=(()=>n[n.length-1]);for(let e=0;e<t.length;e++){const a=t[e];if(a instanceof TagStart){const t=createNodeFactory(ElEMENT_TYPE,a);t.children?n.push(t):n.last().children.push(t)}else if(a instanceof TagEnd){let t=n[n.length-2],e=n.pop();t.children.push(e)}else a instanceof Text&&n.last().children.push(createNodeFactory(TEXT_TYPE,a))}return e}function tokenize(t){let e=t,n=[];const a=Date.now()+1e3;for(;e;){if(0===e.indexOf("\x3c!--")){const t=e.indexOf("--\x3e")+3;e=e.substring(t);continue}if(0===e.indexOf("</")){const t=e.match(ENDTAG_REX);if(!t)continue;e=e.substring(t[0].length);const a=t[1];if(isEmptyMaker(a))continue;n.push(new TagEnd(a));continue}if(0===e.indexOf("<")){const t=e.match(STARTTAG_REX);if(!t)continue;e=e.substring(t[0].length);const a=t[1],r=t[2],s=isEmptyMaker(a)?new TagEmpty(a,r):new TagStart(a,r);n.push(s);continue}const t=e.indexOf("<"),r=t<0?e:e.substring(0,t);if(e=t<0?"":e.substring(t),n.push(new Text(r)),Date.now()>=a)break}return n}function htmlParser(t){return parse(tokenize(t))}
 //Set base variables
   let currentStack, stackNumber=-1, imageNumber=-1, textNumber=-1,gradientNumber=-1,dateNumber=-1,hrNumber = -1,code
 //compile only the first widget tag
-  compile(htmlParser(input)["children"].filter(element => {
+  await compile(htmlParser(input)["children"].filter(element => {
     if(element.tagName == "widget"){return element}
   })[0])
-  function compile(tag) {
+  async function compile(tag) {
     let image
 //If there were no widget tags raise error
     if(!tag){throw new Error("widget Tag Must Be The Parent Tag")}
@@ -25,10 +25,10 @@ const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s
         if(value){
         switch(key) {
         case "background-color":
-          colour("widget", "background-color", value, "widget")
+          await colour("widget", "background-color", value, "widget")
         break
         case "background-gradient":
-          gradient("widget", value, "widget")
+          await gradient("widget", value, "widget")
         break
         case "background-image":
           bgImage(value, "widget")
@@ -53,7 +53,7 @@ const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s
 //Compile all children
       for(var item of tag["children"]) {
         currentStack = "widget"
-        compile(item)
+        await compile(item)
       }
       return
     }
@@ -66,16 +66,16 @@ const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s
         if(value){
         switch(key) {
         case "background-color":
-          colour("stack", key, value, "stack" + stackNumber)
+          await colour("stack", key, value, "stack" + stackNumber)
         break
         case "background-gradient":
-          gradient("stack", value, "stack" + stackNumber)
+          await gradient("stack", value, "stack" + stackNumber)
         break
         case "background-image":
           bgImage(value, "widget")
         break
         case "border-color":
-          colour("stack", key, value, "stack" + stackNumber)
+          await colour("stack", key, value, "stack" + stackNumber)
         break
         case "border-width":
           posInt("stack", key, value, "stack" + stackNumber)
@@ -147,7 +147,7 @@ const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s
         if(value){
         switch(key) {
         case "border-color":
-          colour("img", key, value, "image" + imageNumber)
+          await colour("img", key, value, "image" + imageNumber)
         break
         case "border-width":
           posInt("img", key, value, "image" + imageNumber)
@@ -168,7 +168,7 @@ const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s
           code += `\nimage${imageNumber}.resizable = false`
         break
         case "tint-color":
-          colour("img", key, value, "image" + imageNumber)
+          await colour("img", key, value, "image" + imageNumber)
         break
         case "url":
           code += `\nimage${imageNumber}.url = "${value.replace(/"/g,"")}"`
@@ -221,7 +221,7 @@ for(var key of Object.keys(tag["attributes"])){
           decimal("text", key, value, "text" + textNumber)
         break
         case "shadow-color":
-          colour("text", key, value, "text" + textNumber)
+          await colour("text", key, value, "text" + textNumber)
         break
         case "shadow-offset":
           shadowOffset("text", value, "text" + textNumber)
@@ -230,7 +230,7 @@ for(var key of Object.keys(tag["attributes"])){
           posInt("text", key, value, "text" + textNumber)
         break
         case "text-color":
-          colour("text", key, value, "text" + textNumber)
+          await colour("text", key, value, "text" + textNumber)
         break
         case "text-opacity":
           decimal("text", key, value, "text" + textNumber)
@@ -279,7 +279,7 @@ for(var key of Object.keys(tag["attributes"])){
           decimal("date", key, value, "date" + dateNumber)
         break
         case "shadow-color":
-          colour("date", key, value, "date" + dateNumber)
+          await colour("date", key, value, "date" + dateNumber)
         break
         case "shadow-offset":
           shadowOffset("date", value, "date" + dateNumber)
@@ -288,7 +288,7 @@ for(var key of Object.keys(tag["attributes"])){
           posInt("date", key, value, "date" + dateNumber)
         break
         case "text-color":
-          colour("date", key, value, "date" + dateNumber)
+          await colour("date", key, value, "date" + dateNumber)
         break
         case "text-opacity":
           decimal("date", key, value, "date" + dateNumber)
@@ -343,7 +343,7 @@ for(var key of Object.keys(tag["attributes"])){
         if(value){
         switch(key) {
         case "background-color":
-          colour("hr", key, value, "hr" + hrNumber)
+          await colour("hr", key, value, "hr" + hrNumber)
         break
         case "background-gradient":
           gradient("hr", value, "hr" + hrNumber)
@@ -389,26 +389,32 @@ for(var key of Object.keys(tag["attributes"])){
 
 //Other functions
 
-//Adding a colour
-function colour(tag,attribute,value,on) {
-  if(!/^\s*#([a-fA-F0-9]{3,4}){1,2}(\s*,\s*#([a-fA-F0-9]{34}){1,2})?\s*$/.test(value)) {
-    throw new Error(`${attribute} Attribute On ${tag} Element Must Be 1 Or 2 Hexes Separated By Commas`)
-  }
-  let colours = value.match(/#([a-fA-F0-9]{3,4}){2}|#([a-fA-F0-9]{3,4}){1}/g).map( c => {
-    let alpha
-    if(c.length == 5) {
-      alpha = parseInt(c[4]+c[4], 16)
-      c = c.slice(0, -1)
-    } else if(c.length == 9) {
-      alpha = parseInt(c[5]+c[6], 16)
-      c = c.slice(0, -2)
+// Get any html supported color
+async function colorFromValue(c){
+  let w = new WebView()
+  await w.loadHTML(`<div id="div"style="color:${c}"></div>`)
+  let result = await w.evaluateJavaScript('window.getComputedStyle(document.getElementById("div")).color')
+  return rgbaToScriptable(...result.match(/\d+(\.\d+)?/g).map(e=>Number(e)))
+  function rgbaToScriptable(r,g,b,a){
+    r=r.toString(16)
+    g=g.toString(16)
+    b=b.toString(16)
+    if(r.length==1){r="0"+r}
+    if(g.length==1){g="0"+g}
+    if(b.length==1){b="0"+b}
+    if(a){
+      if(a.length==1){a=",0"+a}else{a=","+a}
     } else {
-      alpha = 255
+      a=""
     }
-    return [c,alpha/255]
-   })
-  
-  code+= `\n${on}.${attribute.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())} = ${colours.length == 2 ? `Color.dynamic(new Color("${colours[0][0]}",${colours[0][1]}),new Color("${colours[1][0]}",${colours[1][1]}))`:`new Color("${colours[0][0]}",${colours[0][1]})`}`
+      return `new Color("${"#"+r+g+b}"${a})`
+  }
+}
+
+//Adding a colour
+async function colour(tag,attribute,value,on) {
+  colours = value.split("-")
+  code+= `\n${on}.${attribute.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())} = ${colours.length == 2 ? "Color.dynamic("+await colorFromValue(colours[0])+","+await colorFromValue(colours[1])+")":await colorFromValue(colours[0])}`
 }
 
 //Adding a positive integer
@@ -436,13 +442,13 @@ function decimal(tag,attribute,value,on) {
    code += `\n${on}.${attribute.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())} = ${value}`
 }
 //Adding a gradient
-function gradient(tag,value,on) {
-  if(!/(^|,)\s*\(\s*#([a-fA-F0-9]{3,4}){1,2}\s*,\s*#([a-fA-F0-9]{3,4}){1,2}\)|(,|^)\s*#([a-fA-F0-9]{3,4}){1,2}/g.test(value)) {
-    throw new Error(`background-gradient Attribute On ${tag} Element Must Be 1 Or More Hexes Or Hexes Separated By Commas And In Brackets Separated By Commas. The First Parameter Can Be A Gradient Direction`)
-  }
-    let regex = /^\s*(to bottom left|to bottom right|to top left|to top right|to top|to bottom|to right|to left)/
-    let direction = regex.test(value)?value.match(regex)[1]:"to bottom"
-console.log(direction)
+async function gradient(tag,value,on) {
+    value = value.split(/,(?![^(]*\))(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)/).map(e=>e.trim())
+    let regex = /^(to bottom left|to bottom right|to top left|to top right|to top|to bottom|to right|to left)/
+    let direction = "to bottom"
+    if(regex.test(value[0])) {
+      direction = value.shift().match(regex)[1]
+    }
     direction = {"to left":["new Point(1, 0)","new Point(0, 0)"],
 "to right": ["new Point(0, 1)","new Point(1, 1)"],
 "to top": ["new Point(1, 1)","new Point(1, 0)"],
@@ -452,35 +458,19 @@ console.log(direction)
 "to bottom left": ["new Point(1, 0)","new Point(0, 1)"],
 "to bottom right": ["new Point(0, 0)","new Point(1, 1)"],
 }[direction]
-    value = value.replace(/^\s*(to bottom left|to bottom right|to top left|to top right|to top|to bottom|to right|to left)/,"")
-    let colours = value.match(/(,|^)\s*\(\s*#([a-fA-F0-9]{3,4}){1,2}\s*,\s*#([a-fA-F0-9]{3,4}){1,2}\)|(,|^)\s*#([a-fA-F0-9]{3,4}){1,2}/g).map(e => 
-{
-    e = e.match(/#([a-fA-F0-9]{3,4}){1,2}/g).map(c => {
-    let alpha
-    if(c.length == 5) {
-      alpha = parseInt(c[4]+c[4], 16)
-      c = c.slice(0, -1)
-    } else if(c.length == 9) {
-      alpha = parseInt(c[5]+c[6], 16)
-      c = c.slice(0, -2)
-    } else {
-      alpha = 255
+    let colors = []
+    for (var color of value) {
+      color = color.split("-")
+      colors.push(
+        color.length == 2 ? "Color.dynamic("+await colorFromValue(color[0])+","+await colorFromValue(color[1])+")":await colorFromValue(color[0])
+      )
     }
-    return [c,alpha/255]
-})
-    if(e.length == 2) {
-      e = `Color.dynamic(new Color("${e[0][0]}",${e[0][1]}),new Color("${e[1][0]}",${e[1][1]}))`
-     } else {
-       e = `new Color("${e[0][0]}",${e[0][1]})`
-     }
-        return e
-      })
       let gradientLocations=[]
-      for(let i = 0, l = colours.length; i < l; i++) {
+      for(let i = 0, l = colors.length; i < l; i++) {
         gradientLocations.push(i/(l-1))
        }
        gradientNumber++
-       code+=`\nlet gradient${gradientNumber} = new LinearGradient()\ngradient${gradientNumber}.colors = [${colours}]\ngradient${gradientNumber}.locations= [${gradientLocations}]\ngradient${gradientNumber}.startPoint = ${direction[0]}\ngradient${gradientNumber}.endPoint = ${direction[1]}\n${on}.backgroundGradient = gradient${gradientNumber}`
+       code+=`\nlet gradient${gradientNumber} = new LinearGradient()\ngradient${gradientNumber}.colors = [${colors}]\ngradient${gradientNumber}.locations= [${gradientLocations}]\ngradient${gradientNumber}.startPoint = ${direction[0]}\ngradient${gradientNumber}.endPoint = ${direction[1]}\n${on}.backgroundGradient = gradient${gradientNumber}`
 }
 //Adding padding
 function padding(tag,value,on) {
