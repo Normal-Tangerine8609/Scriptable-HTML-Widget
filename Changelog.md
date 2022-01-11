@@ -1,10 +1,19 @@
 # Changelog
+
+## 3.00
+
+* 14.2 KB
+* Fixed image opacity
+* Added the `style` tag witch allows setting default styles for tags with css
+* Added the `class` attribute
+
 ## 2.10
 
 * 14.2 KB
 * Removed loging of text when setting a gradient
 * Colours have now changed to support all HTML colours including hsl, hsla, rgb, rgba, hex and css colour names like `red`
 * Light mode/ dark mode colours have changed to be separated by hyphens instead of commas and do not need to go in brackets when in a gradient
+
 ## 2.00
 
 * 14.7 KB
