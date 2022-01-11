@@ -2,7 +2,7 @@
 
 ## 3.00
 
-* 14.2 KB
+* 16 KB
 * Fixed image opacity
 * Added the `style` tag witch allows setting default styles for tags with css
 * Added the `class` attribute
