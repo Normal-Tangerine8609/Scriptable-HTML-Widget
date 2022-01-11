@@ -642,7 +642,7 @@ text {
 }
 ```
 
-The style tag only supports the simplest css selectors including `*`, tag selectors (`date`) and class selectors (`.title`). Class names must only contain word and hyphen characters. The styles are cascading, meaning that the colour for `text`elements will be green in the following example. 
+The style tag only supports the simplest css selectors including `*`, tag selectors (`date`) and class selectors (`.title`). Class names must only contain word and hyphen characters. The styles are cascading, meaning that the colour for `text` elements will be green in the following example. 
 
 ```css
 text {
