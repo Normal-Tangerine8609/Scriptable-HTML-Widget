@@ -14,7 +14,7 @@ Provide the HTML string as the first parameter. The second parameter is optional
 ```javascript
 let widget = await htmlWidget(`
 <widget>
-  <text>Hello, world!</text>
+  <text>Hello, World!</text>
 </widget>
 `)
 widget.presentSmall()
@@ -40,22 +40,35 @@ let url = post["url"]
 
 let widget = await htmlWidget(`
 <widget refresh-after-date="15" url="${url}">
- <text font="system-ui, 13" center-align-text>Showerthoughts</text>
+  <style>
+    symbol {
+      image-size: 11,11;
+    }
+    .title {
+      font: system-ui, 13;
+      center-align-text: true;
+    }
+    .content {
+      font: system-ui, 11;
+      minimum-scale-factor: 0.3;
+    }
+  </style>
+  <text class="title">Showerthoughts</text>
   <spacer space="5">
-  <text font="system-ui, 11" minimum-scale-factor="0.3">${title}</text>
-  <text font="system-ui, 11" minimum-scale-factor="0.3">${body}</text>
+  <text class="content">${title}</text>
+  <text class="content">${body}</text>
   <stack center-align-content>
-    <symbol named="arrow.up.circle.fill" image-size="11,11">
+    <symbol named="arrow.up.circle.fill">
     <spacer space="2">
-    <text font="system-ui, 11">${ups}</text>
+    <text class="content">${ups}</text>
     <spacer>
-    <symbol named="star.circle.fill" image-size="11,11">
+    <symbol named="star.circle.fill">
     <spacer space="2">
-    <text font="system-ui, 11">${awards}</text>
+    <text class="content">${awards}</text>
     <spacer>
-    <symbol named="message.circle.fill" image-size="11,11">
+    <symbol named="message.circle.fill">
     <spacer space="2">
-    <text font="system-ui, 11">${comments}</text>
+    <text class="content">${comments}</text>
   </stack>
 </widget>
 `)
@@ -74,6 +87,7 @@ Script.complete()
 * [<text\>](#text)
 * [<date\>](#date)
 * [<hr\>](#hr)
+*  [<style\>](#style)
 * [Comment](#comment)
  
 - - - -
@@ -116,6 +130,10 @@ Defines the spacing between widget elements. Value must be a positive  integer.
 **url**
 
 Defines the widget url. Value must be a valid url.
+
+**class**
+
+Defines one or more classes of the tag. Value must be one or more word characters including hyphens separated by spaces.
 
 - - - -
 
@@ -191,6 +209,10 @@ Boolean attribute lays out the stack horizontally.
 **layout-vertically**
 
 Boolean attribute lays out the stack vertically.
+
+**class**
+
+Defines one or more classes of the tag. Value must be one or more word characters including hyphens separated by spaces.
 
 - - - -
 
@@ -281,9 +303,13 @@ Boolean attribute left aligns image.
 
 Boolean attribute does not allow image to be resizable.
 
-**right-align-content**
+**right-align-image**
 
 Boolean attribute right aligns image.
+
+**class**
+
+Defines one or more classes of the tag. Value must be one or more word characters including hyphens separated by spaces.
 
 - - - -
 
@@ -303,7 +329,65 @@ The `symbol` element defines a SF symbol that becomes a widget image element.
 
 Defines the name of the SF symbol. All `symbol` elements must have a `named` attribute. Value  must be a valid SF symbol name.
 
-The `symbol` element has all the attributes of the `img` element except for the `src` attribute.
+**border-color**
+
+Defines the border color. Value must be one or two HTML supported colours separated by hyphens. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. If there are two colours, the first is the light mode colour and the second is the dark mode colour.
+
+**border-width**
+
+Defines the border width.  Value must be a  positive integer.
+
+**corner-radius**
+
+Defines the corner radius.  Value must be a positive integer.
+
+**image-opacity**
+
+Defines the opacity of the image. Value must be a positive integer or float with an optional  `%` at the end.
+
+**image-size**
+
+Defines the size of the symbol.  Value must be two positive integers separated by commas. The first integer is the width and the second is the height.
+
+**tint-color**
+
+Defines the tint color. Value must be one or two HTML supported colours separated by hyphens. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. If there are two colours, the first is the light mode colour and the second is the dark mode colour.
+
+**url**
+
+Defines the symbol url. Value must be a valid url.
+
+**apply-filling-content-mode**
+
+Boolean attribute applies filling content mode to symbol.
+
+**apply-fitting-content-mode**
+
+Boolean attribute applies fitting content mode to symbol.
+
+**center-align-image**
+
+Boolean attribute center aligns symbol.
+
+**container-relative-shape**
+
+Boolean attribute shapes the symbol to the container’s relative shape.
+
+**left-align-image**
+
+Boolean attribute left aligns symbol.
+
+**resizable**
+
+Boolean attribute does not allow symbol to be resizable.
+
+**right-align-image**
+
+Boolean attribute right aligns symbol.
+
+**class**
+
+Defines one or more classes of the tag. Value must be one or more word characters including hyphens separated by spaces.
 
 - - - -
 
@@ -370,6 +454,10 @@ Boolean attribute left aligns the text.
 **right-align-text**
 
 Boolean attribute right aligns the text.
+
+**class**
+
+Defines one or more classes of the tag. Value must be one or more word characters including hyphens separated by spaces.
 
 - - - -
 
@@ -457,6 +545,10 @@ Boolean attribute applies timer style to the date.
 
 Boolean attribute applies time style to the date.
 
+**class**
+
+Defines one or more classes of the tag. Value must be one or more word characters including hyphens separated by spaces.
+
 - - - -
 
 ### <hr\>
@@ -499,6 +591,68 @@ Boolean attribute lays out the hr horizontally.
 
 Boolean attribute lays out the hr vertically.
 
+**class**
+
+Defines one or more classes of the tag. Value must be one or more word characters including hyphens separated by spaces.
+
+- - - -
+
+### <style\>
+
+```html
+<widget>
+  <style>
+    text {
+      text-color: red;
+    }
+  </style>
+  <text>Hello, World!</text>
+</widget>
+```
+
+The `style` element defines default styles for tags.
+
+#### Inner Text 
+
+The inner text in the `style` tag is a simple css syntax, but not exactly the same as css. Properties are not inherited through elements.
+
+The css consists of rules with the selector followed by curly brackets.
+
+```css
+selector {
+}
+```
+
+Within the curly brackets are declarations. Each declaration is made up with a property and value with a colon between, and a semicolon between each declaration. The final declaration has an optional semicolon at the end.
+
+```css
+selector {
+  property: value;
+  property: value;
+}
+```
+
+The valid properties for declarations include all of the attributes for all tags excluding `class`, `src`, `spacer` and `named`. The value must be the valid value of the given attribute/property. The value cannot have line breaks (\n) within itself. The value for boolean attributes must be `true`.
+
+```css
+text {
+  text-color: red;
+  minimum-scale-factor: 50%;
+  center-align-text: true;
+}
+```
+
+The style tag only supports the simplest css selectors including `*`, tag selectors (`date`) and class selectors (`.title`). Class names must only contain word and hyphen characters. The styles are cascading, meaning that the colour for `text`elements will be green in the following example. 
+
+```css
+text {
+  text-color: red;
+}
+* {
+  text-color: green;
+}
+```
+
 - - - -
 
 ### Comment
@@ -507,7 +661,7 @@ Boolean attribute lays out the hr vertically.
 <!-- This is a comment -->
 ```
 
-Comments can be created the same way you create comments in HTML. Text in between `<!--` and `-->` become a comment.
+Comments can be created the same way you create comments in HTML. Text in between `<!--` and `-->` become a comment. Comments are not valid within `style` tags.
 
 ## Bugs and Feedback 
 
