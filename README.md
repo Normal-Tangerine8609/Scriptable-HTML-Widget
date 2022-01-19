@@ -109,7 +109,11 @@ Defines the background color. Value must be one or two HTML supported colours se
 
 **background-gradient**
 
-Defines the background gradient. Value must be one or more HTML supported colour or group of light mode/dark mode colours separated by commas. Light mode/dark mode colour groups are created by splitting the light and dark colour by a hyphen with the light colour as the first colour. Example: `red, white-black, blue`. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. The value can also have an optional direction as the first parameter. The options are `to top`, `to bottom`, `to right`, `to left`, `to top right`, `to top`, `to top left`, `to bottom right` and `to bottom left`. Example: `to top left, #ff00ff, rgb(0,255,0)-rgb(255,0,255), hsl(180, 50%,70%)`. The default gradient direction is `to bottom`.
+Defines the background gradient. Value must be one or more HTML supported colour or group of light mode/dark mode colours separated by commas. Light mode/dark mode colour groups are created by splitting the light and dark colour by a hyphen with the light colour as the first colour. Example: `red, white-black, blue`. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. 
+
+The value can also have an optional direction or degree as the first parameter. The direction options are `to top`, `to bottom`, `to right`, `to left`, `to top right`, `to top left`, `to bottom right`, `to bottom left`., `to left top`, `to left bottom`, `to right top` and `to right bottom`. A degree is a number and the keyword `deg` directly beside (`90deg`). Example: `to top left, #ff00ff, rgb(0,255,0)-rgb(255,0,255), hsl(180, 50%,70%)`. The default gradient direction is `to bottom` (`0deg`).
+
+Beside the colour or colour groups there is an optional location value. The location must be equal to or between 0 and 1 or be a percentage (`50%`). Locations must also go in accessing order. Example: `50deg, red 10%, blue 50%, green 0.7`.
 
 **background-image**
 
@@ -130,6 +134,10 @@ Defines the spacing between widget elements. Value must be a positive  integer.
 **url**
 
 Defines the widget url. Value must be a valid url.
+
+**use-default-padding**
+
+Boolean attribute sets padding to the default.
 
 **class**
 
@@ -156,7 +164,11 @@ Defines the background color. Value must be one or two HTML supported colours se
 
 **background-gradient**
 
-Defines the background gradient. Value must be one or more HTML supported colour or group of light mode/dark mode colours separated by commas. Light mode/dark mode colour groups are created by splitting the light and dark colour by a hyphen with the light colour as the first colour. Example: `red, white-black, blue`. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. The value can also have an optional direction as the first parameter. The options are `to top`, `to bottom`, `to right`, `to left`, `to top right`, `to top`, `to top left`, `to bottom right` and `to bottom left`. Example: `to top left, #ff00ff, rgb(0,255,0)-rgb(255,0,255), hsl(180, 50%,70%)`. The default gradient direction is `to bottom`.
+Defines the background gradient. Value must be one or more HTML supported colour or group of light mode/dark mode colours separated by commas. Light mode/dark mode colour groups are created by splitting the light and dark colour by a hyphen with the light colour as the first colour. Example: `red, white-black, blue`. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. 
+
+The value can also have an optional direction or degree as the first parameter. The direction options are `to top`, `to bottom`, `to right`, `to left`, `to top right`, `to top left`, `to bottom right`, `to bottom left`., `to left top`, `to left bottom`, `to right top` and `to right bottom`. A degree is a number and the keyword `deg` directly beside (`90deg`). Example: `to top left, #ff00ff, rgb(0,255,0)-rgb(255,0,255), hsl(180, 50%,70%)`. The default gradient direction is `to bottom` (`0deg`).
+
+Beside the colour or colour groups there is an optional location value. The location must be equal to or between 0 and 1 or be a percentage (`50%`). Locations must also go in accessing order. Example: `50deg, red 10%, blue 50%, green 0.7`.
 
 **background-image**
 
@@ -189,6 +201,10 @@ Defines the spacing between widget elements. Value must be a positive integer.
 **url**
 
 Defines the stack url. Value must be a valid url.
+
+**use-default-padding**
+
+Boolean attribute sets padding to the default.
 
 **bottom-align-content**
 
@@ -409,7 +425,7 @@ The `text` element can have any character as the inner text excluding `<` and `>
 
 **font**
 
-Defines the font family and size of the text. Value must be a valid font name and then a positive integer separated by commas. The font name can also be a pre-set font such as `boldSystemFont`, `lightMonospacedSystemFont` or `regularRoundedSystemFont` but not `italicSystemFont` or  a font based on its content like `largeTitle`.
+Defines the font family and size of the text. Value must be a valid font name and then a positive integer separated by commas. The font name can also be a pre-set font such as `boldSystemFont`, `lightMonospacedSystemFont` or `regularRoundedSystemFont` . A font based on its content like `largeTitle` must not have a positive integer or comma.
 
 **line-limit**
 
@@ -479,7 +495,7 @@ The `date` element can have any character as the inner text excluding `<` and `>
 
 **font**
 
-Defines the font family and size of the text. Value must be a valid font name and then a positive integer separated by commas. The font name can also be a pre-set font such as `boldSystemFont`, `lightMonospacedSystemFont` or `regularRoundedSystemFont` but not `italicSystemFont` or  a font based on its content like `largeTitle`.
+Defines the font family and size of the text. Value must be a valid font name and then a positive integer separated by commas. The font name can also be a pre-set font such as `boldSystemFont`, `lightMonospacedSystemFont` or `regularRoundedSystemFont` . A font based on its content like `largeTitle` must not have a positive integer or comma.
 
 **line-limit**
 
@@ -569,7 +585,11 @@ Defines the background color. Value must be one or two HTML supported colours se
 
 **background-gradient**
 
-Defines the background gradient. Value must be one or more HTML supported colour or group of light mode/dark mode colours separated by commas. Light mode/dark mode colour groups are created by splitting the light and dark colour by a hyphen with the light colour as the first colour. Example: `red, white-black, blue`. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. The value can also have an optional direction as the first parameter. The options are `to top`, `to bottom`, `to right`, `to left`, `to top right`, `to top`, `to top left`, `to bottom right` and `to bottom left`. Example: `to top left, #ff00ff, rgb(0,255,0)-rgb(255,0,255), hsl(180, 50%,70%)`. The default gradient direction is `to bottom`.
+Defines the background gradient. Value must be one or more HTML supported colour or group of light mode/dark mode colours separated by commas. Light mode/dark mode colour groups are created by splitting the light and dark colour by a hyphen with the light colour as the first colour. Example: `red, white-black, blue`. HTML supported colours include hsl, hsla, rgb, rgba, hex or css colour names like `red`. 
+
+The value can also have an optional direction or degree as the first parameter. The direction options are `to top`, `to bottom`, `to right`, `to left`, `to top right`, `to top left`, `to bottom right`, `to bottom left`., `to left top`, `to left bottom`, `to right top` and `to right bottom`. A degree is a number and the keyword `deg` directly beside (`90deg`). Example: `to top left, #ff00ff, rgb(0,255,0)-rgb(255,0,255), hsl(180, 50%,70%)`. The default gradient direction is `to bottom` (`0deg`).
+
+Beside the colour or colour groups there is an optional location value. The location must be equal to or between 0 and 1 or be a percentage (`50%`). Locations must also go in accessing order. Example: `50deg, red 10%, blue 50%, green 0.7`.
 
 **corner-radius**
 
