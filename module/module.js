@@ -1,14 +1,15 @@
-//HTML Widget Version 3.00
+//HTML Widget Version 3.10
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 module.exports = async function htmlWidget(input, debug){  
 //https://github.com/henryluki/html-parser
+//Added comment support
 //Minified using https://www.toptal.com/developers/javascript-minifier/
-const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/,ENDTAG_REX=/^<\/([-A-Za-z0-9_]+)[^>]*>/,ATTR_REX=/([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;function makeMap(t){return t.split(",").reduce((t,e)=>(t[e]=!0,t),{})}const EMPTY_MAKER=makeMap("symbol,img,spacer,hr"),FILLATTRS_MAKER=makeMap("bottom-align-content,center-align-content,top-align-content,layout-vertically,layout-horizontally,container-relative-shape,resizable,apply-filling-content-mode,apply-fitting-content-mode,center-align-image,left-align-image,right-align-image,center-align-text,left-align-text,right-align-text,apply-date-style,apply-offset-style,apply-relative-style,apply-timer-style,apply-time-style");function isEmptyMaker(t){return!!EMPTY_MAKER[t]}function isFillattrsMaker(t){return!!FILLATTRS_MAKER[t]}class TagStart{constructor(t,e){this.name=t,this.attributes=this.getAttributes(e)}getAttributes(t){let e={};return t.replace(ATTR_REX,function(t,n){const a=Array.prototype.slice.call(arguments),r=a[2]?a[2]:a[3]?a[3]:a[4]?a[4]:isFillattrsMaker(n)?n:"";e[n]=r.replace(/(^|[^\\])"/g,'$1\\"')}),e}}class TagEmpty extends TagStart{constructor(t,e){super(t,e)}}class TagEnd{constructor(t){this.name=t}}class Text{constructor(t){this.text=t}}const ElEMENT_TYPE="Element",TEXT_TYPE="Text";function createElement(t){const e=t.name,n=t.attributes;return t instanceof TagEmpty?{type:ElEMENT_TYPE,tagName:e,attributes:n}:{type:ElEMENT_TYPE,tagName:e,attributes:n,children:[]}}function createText(t){const e=t.text;return{type:TEXT_TYPE,content:e}}function createNodeFactory(t,e){switch(t){case ElEMENT_TYPE:return createElement(e);case TEXT_TYPE:return createText(e)}}function parse(t){let e={tag:"root",children:[]},n=[e];n.last=(()=>n[n.length-1]);for(let e=0;e<t.length;e++){const a=t[e];if(a instanceof TagStart){const t=createNodeFactory(ElEMENT_TYPE,a);t.children?n.push(t):n.last().children.push(t)}else if(a instanceof TagEnd){let t=n[n.length-2],e=n.pop();t.children.push(e)}else a instanceof Text&&n.last().children.push(createNodeFactory(TEXT_TYPE,a))}return e}function tokenize(t){let e=t,n=[];const a=Date.now()+1e3;for(;e;){if(0===e.indexOf("\x3c!--")){const t=e.indexOf("--\x3e")+3;e=e.substring(t);continue}if(0===e.indexOf("</")){const t=e.match(ENDTAG_REX);if(!t)continue;e=e.substring(t[0].length);const a=t[1];if(isEmptyMaker(a))continue;n.push(new TagEnd(a));continue}if(0===e.indexOf("<")){const t=e.match(STARTTAG_REX);if(!t)continue;e=e.substring(t[0].length);const a=t[1],r=t[2],s=isEmptyMaker(a)?new TagEmpty(a,r):new TagStart(a,r);n.push(s);continue}const t=e.indexOf("<"),r=t<0?e:e.substring(0,t);if(e=t<0?"":e.substring(t),n.push(new Text(r)),Date.now()>=a)break}return n}function htmlParser(t){return parse(tokenize(t))}
+const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/,ENDTAG_REX=/^<\/([-A-Za-z0-9_]+)[^>]*>/,ATTR_REX=/([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;function makeMap(t){return t.split(",").reduce((t,e)=>(t[e]=!0,t),{})}const EMPTY_MAKER=makeMap("symbol,img,spacer,hr"),FILLATTRS_MAKER=makeMap("bottom-align-content,center-align-content,top-align-content,layout-vertically,layout-horizontally,container-relative-shape,resizable,apply-filling-content-mode,apply-fitting-content-mode,center-align-image,left-align-image,right-align-image,center-align-text,left-align-text,right-align-text,apply-date-style,apply-offset-style,apply-relative-style,apply-timer-style,apply-time-style");function isEmptyMaker(t){return!!EMPTY_MAKER[t]}function isFillattrsMaker(t){return!!FILLATTRS_MAKER[t]}class TagStart{constructor(t,e){this.name=t,this.attributes=this.getAttributes(e)}getAttributes(t){let e={};return t.replace(ATTR_REX,function(t,n){const s=Array.prototype.slice.call(arguments),r=s[2]?s[2]:s[3]?s[3]:s[4]?s[4]:isFillattrsMaker(n)?n:"";e[n]=r.replace(/(^|[^\\])"/g,'$1\\"')}),e}}class TagEmpty extends TagStart{constructor(t,e){super(t,e)}}class TagEnd{constructor(t){this.name=t}}class Text{constructor(t){this.text=t}}const ElEMENT_TYPE="Element",TEXT_TYPE="Text";function createElement(t){const e=t.name,n=t.attributes;return t instanceof TagEmpty?{type:ElEMENT_TYPE,tagName:e,attributes:n}:{type:ElEMENT_TYPE,tagName:e,attributes:n,children:[]}}function createText(t){const e=t.text;return{type:TEXT_TYPE,content:e}}function createNodeFactory(t,e){switch(t){case ElEMENT_TYPE:return createElement(e);case TEXT_TYPE:return createText(e)}}function parse(t){let e={tag:"root",children:[]},n=[e];n.last=(()=>n[n.length-1]);for(let e=0;e<t.length;e++){const s=t[e];if(s instanceof TagStart){const t=createNodeFactory(ElEMENT_TYPE,s);t.children?n.push(t):n.last().children.push(t)}else if(s instanceof TagEnd){let t=n[n.length-2],e=n.pop();t.children.push(e)}else s instanceof Text?n.last().children.push(createNodeFactory(TEXT_TYPE,s)):"Comment"!=s.type||n.last().children.push(s)}return e}function tokenize(t){let e=t,n=[];const s=Date.now()+1e3;for(;e;){if(0===e.indexOf("\x3c!--")){const t=e.indexOf("--\x3e")+3;n.push({type:"Comment",text:e.substring(4,t-3)}),e=e.substring(t);continue}if(0===e.indexOf("</")){const t=e.match(ENDTAG_REX);if(!t)continue;e=e.substring(t[0].length);const s=t[1];if(isEmptyMaker(s))continue;n.push(new TagEnd(s));continue}if(0===e.indexOf("<")){const t=e.match(STARTTAG_REX);if(!t)continue;e=e.substring(t[0].length);const s=t[1],r=t[2],a=isEmptyMaker(s)?new TagEmpty(s,r):new TagStart(s,r);n.push(a);continue}const t=e.indexOf("<"),r=t<0?e:e.substring(0,t);if(e=t<0?"":e.substring(t),n.push(new Text(r)),Date.now()>=s)break}return n}function htmlParser(t){return parse(tokenize(t))}
 //Set base variables
   let currentStack, stackNumber=-1, imageNumber=-1, textNumber=-1,gradientNumber=-1,dateNumber=-1,hrNumber = -1,symbolNumber = -1,code;
 const validAttributes = {
-  "widget":["background-color","background-gradient","background-image","refresh-after-date","spacing","url","padding","class"],
-  "stack":["background-color","background-gradient","background-image","spacing","url","padding","class","border-color","border-width","corner-radius","size","bottom-align-content","center-align-content","top-align-content","layout-horizontally","layout-vertically"],
+  "widget":["background-color","background-gradient","background-image","refresh-after-date","spacing","url","padding","class","use-default-padding"],
+  "stack":["background-color","background-gradient","background-image","spacing","url","padding","class","border-color","border-width","corner-radius","size","bottom-align-content","center-align-content","top-align-content","layout-horizontally","layout-vertically","use-default-padding"],
   "hr":["background-color","background-gradient","corner-radius","class","url","layout-horizontally","layout-vertically","width"],
   "img":["border-color","border-width","container-relative-shape","corner-radius","image-opacity","image-size","resizable","tint-color","url","apply-filling-content-mode","apply-fitting-content-mode","center-align-image","left-align-image","right-align-image","src","class"],
   "symbol":["border-color","border-width","container-relative-shape","corner-radius","image-opacity","image-size","resizable","tint-color","url","apply-filling-content-mode","apply-fitting-content-mode","center-align-image","left-align-image","right-align-image","named","class"],
@@ -77,7 +78,7 @@ const validAttributes = {
             availableCss.push("."+item)
           }
         }else{
-          attributeCss[key] = value
+          attributeCss[key] = value || true
         }
       }
         await applyCss("widget","widget",availableCss,attributeCss)
@@ -105,7 +106,7 @@ const validAttributes = {
             availableCss.push("."+item)
           }
         }else{
-          attributeCss[key] = value
+          attributeCss[key] = value || true
         }
       }
         await applyCss("stack","stack"+stackNumber,availableCss,attributeCss)
@@ -134,7 +135,7 @@ const validAttributes = {
             availableCss.push("."+item)
           }
         } else if(key != "named"){
-          attributeCss[key] = value
+          attributeCss[key] = value || true
         }
       }
       await applyCss("symbol","symbol"+symbolNumber,availableCss,attributeCss)
@@ -164,7 +165,7 @@ const validAttributes = {
             availableCss.push("."+item)
           }
         } else if(key != "src"){
-          attributeCss[key] = value
+          attributeCss[key] = value || true
         }
       }
       await applyCss("img","image"+imageNumber,availableCss,attributeCss)
@@ -193,7 +194,7 @@ const validAttributes = {
             availableCss.push("."+item)
           }
         } else {
-          attributeCss[key] = value
+          attributeCss[key] = value || true
         }
       }
       await applyCss("text","text"+textNumber,availableCss,attributeCss)
@@ -223,7 +224,7 @@ const validAttributes = {
             availableCss.push("."+item)
           }
         } else {
-          attributeCss[key] = value
+          attributeCss[key] = value || true
         }
       }
       await applyCss("date","date"+dateNumber,availableCss,attributeCss)
@@ -246,7 +247,7 @@ if(tag["tagName"] == "hr") {
             availableCss.push("."+item)
           }
         } else {
-          attributeCss[key] = value
+          attributeCss[key] = value || true
         }
       }
       await applyCss("hr","hr"+hrNumber,availableCss,attributeCss)
@@ -256,6 +257,15 @@ if(tag["tagName"] == "hr") {
     if(tag["tagName"] == "spacer") {
     code += `\n${currentStack}.addSpacer(${/\d+/.exec(tag["attributes"]["space"])?/\d+/.exec(tag["attributes"]["space"]):""})`
     return
+}
+//Compile for comment
+    if(tag["type"] == "Comment") {
+      if(!tag["text"].match(/\n/g)) {
+        code += `\n// ${tag["text"]}`
+      } else {
+        code += `\n/*\n${tag["text"]}\n*/`
+      }
+      return
 }
 //Raise error if there is a nestled widget tag or unknown tag
     if(tag["tagName"] == "widget"){ 
@@ -280,7 +290,7 @@ async function applyCss(tag,on,availableCss,attributeCss) {
     finalCss[key] = attributeCss[key]
   }
   for(let key of Object.keys(finalCss)) {
-    let value = finalCss[key]
+    let value = finalCss[key]=="true"?true:finalCss[key]
     switch(key) {
       case "background-color":
         await colour(tag, "background-color", value, on)
@@ -314,6 +324,11 @@ async function applyCss(tag,on,availableCss,attributeCss) {
       break
       case "size":
         size(tag, key, value, on)
+      break
+      case "use-default-padding":
+        if(value == true) {
+          code += `\n${on}.useDefaultPadding()`
+        }
       break
       case "bottom-align-content":
         if(value == true) {
@@ -498,7 +513,7 @@ async function colour(tag,attribute,value,on) {
 //Adding a positive integer
 function posInt(tag,attribute,value,on) {
   if(!/^\s*\d+\s*$/.test(value)) {
-    throw new Error(`${attribute} Attribute On ${tag} Element Must Be A Positive Integer`)
+    throw new Error(`${attribute} Propery Or Attribute Must Be A Positive Integer: ${value}`)
   }
   if(attribute == "refresh-after-date") {
     code += `\nlet date = new Date()\ndate.setMinutes(date.getMinutes() + ${/\d+/.exec(value)})\nwidget.refreshAfterDate = date`
@@ -510,7 +525,7 @@ function posInt(tag,attribute,value,on) {
 //Adding a decimal
 function decimal(tag,attribute,value,on) {
   if(!/^\s*\d*(?:\.\d*)?%?\s*$/.test(value)&&/^\s*\d*(?:\.\d*)?%?\s*$/.exec(value)!== ".") {
-    throw new Error(`${attribute} Attribute On ${tag} Element Must Be A Positive Integer Or Float With An Optional  "%" At The End`)
+    throw new Error(`${attribute} Propery Or Attribute Must Be A Positive Integer Or Float With An Optional  "%" At The End: ${value}`)
   }
   value = /\d*(?:\.\d*)?%?/.exec(value)[0]
   if(value.endsWith("%")){
@@ -521,39 +536,82 @@ function decimal(tag,attribute,value,on) {
 }
 //Adding a gradient
 async function gradient(tag,value,on) {
-    value = value.split(/,(?![^(]*\))(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)/).map(e=>e.trim())
-    let regex = /^(to bottom left|to bottom right|to top left|to top right|to top|to bottom|to right|to left)/
-    let direction = "to bottom"
-    if(regex.test(value[0])) {
-      direction = value.shift().match(regex)[1]
+  gradientNumber ++
+  let gradient = value
+  //split gradient in parts
+  gradient = gradient.split(/,(?![^(]*\))(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)/).map((e) => e.trim())
+  let gradientDirection
+  const wordDirections = {"to left": 90,"to right": 270,"to top": 180,"to bottom": 0,"to top left": 135,"to top right": 225,"to bottom left": 45,"to bottom right": 315,"to left top": 135,"to right top": 225,"to left bottom": 45,"to right bottom": 315}
+  //set gradient direction
+  if(Object.keys(wordDirections).includes(gradient[0])) {
+    gradientDirection = wordDirections[gradient.shift()]
+  } else if(/\d+\s*deg/.test(gradient[0])) {
+    gradientDirection = Number(gradient.shift().match(/(\d+)\s*deg/)[1])
+  } else {
+    gradientDirection = 0
+  }
+  //get colours
+  let colours = []
+  for(let colour of gradient) {
+    colour = colour.replace(/\d*(\.\d+)?%?$/, "")
+    colour = colour.split("-")
+    if (colour.length == 2) {
+      colours.push(Color.dynamic(await colorFromValue(colour[0]), await colorFromValue(colour[1])))
+    } else {
+      colours.push(await colorFromValue(colour[0]))
     }
-    direction = {"to left":["new Point(1, 0)","new Point(0, 0)"],
-"to right": ["new Point(0, 1)","new Point(1, 1)"],
-"to top": ["new Point(1, 1)","new Point(1, 0)"],
-"to bottom": ["new Point(0, 0)","new Point(0, 1)"],
-"to top left": ["new Point(1, 1)","new Point(0, 0)"],
-"to top right": ["new Point(0, 1)","new Point(1, 0)"],
-"to bottom left": ["new Point(1, 0)","new Point(0, 1)"],
-"to bottom right": ["new Point(0, 0)","new Point(1, 1)"],
-}[direction]
-    let colors = []
-    for (let color of value) {
-      color = color.split("-")
-      colors.push(
-        color.length == 2 ? "Color.dynamic("+await colorFromValue(color[0])+","+await colorFromValue(color[1])+")":await colorFromValue(color[0])
-      )
+  }
+  //get locations
+  let locations = gradient.map((e) =>
+      /\d*(\.\d+)?%?$/.test(e) ? e.match(/\d*(\.\d+)?%?$/)[0] : null
+    ).map((e) => {
+      if(e) {
+        if(e.endsWith("%")) {
+          e = Number(e.replace("%", "")) / 100
+        }
+      }
+      return (!isNaN(e) && !isNaN(parseFloat(e))) || typeof e == "number" ? Number(e) : null
+    })
+  if(!locations[0]) {
+    locations[0] = 0
+  }
+  if(!locations[locations.length - 1]) {
+    locations[locations.length - 1] = 1
+  }
+  let minLocation = 0
+  //set not specified locations
+  for(let i = 0; i < locations.length; i++) {
+    let currentLocation = locations[i]
+    if(currentLocation) {
+      if(minLocation > currentLocation) {
+        throw new Error(`background-gradient Propery Or Attribute Locations Must Be In Ascending Order: ${value}`)
+      }
+      if(currentLocation < 0) {
+        throw new Error(`background-gradient Propery Or Attribute Locations Must Be Equal Or Greater Than 0: ${value}`)
+      }
+      if(currentLocation > 1) {
+        throw new Error(`background-gradient Propery Or Attribute Locations Must Be Equal Or Less Than 1: ${value}`)
+      }
+      minLocation = currentLocation
+    } else {
+      let counter = 0
+      let index = i
+      while(locations[index] === null) {
+        counter++
+        index++
+      }
+      let difference = (locations[index] - locations[i - 1]) / (counter + 1)
+      for(let count = 0; count < counter; count++) {
+        locations[count + i] = difference * (count + 1) + locations[i - 1]
+      }
     }
-      let gradientLocations=[]
-      for(let i = 0, l = colors.length; i < l; i++) {
-        gradientLocations.push(i/(l-1))
-       }
-       gradientNumber++
-       code+=`\nlet gradient${gradientNumber} = new LinearGradient()\ngradient${gradientNumber}.colors = [${colors}]\ngradient${gradientNumber}.locations= [${gradientLocations}]\ngradient${gradientNumber}.startPoint = ${direction[0]}\ngradient${gradientNumber}.endPoint = ${direction[1]}\n${on}.backgroundGradient = gradient${gradientNumber}`
+  }
+  code += `\nlet gradient${gradientNumber} = new LinearGradient()\ngradient${gradientNumber}.colors = [${colours}]\ngradient${gradientNumber}.locations = [${locations}]\ngradient${gradientNumber}.startPoint = ${`new Point(${1-(0.5+0.5*Math.cos((Math.PI*(gradientDirection+90))/180.0))}, ${1-(0.5+0.5*Math.sin((Math.PI*(gradientDirection+90))/180.0))})`}\ngradient${gradientNumber}.endPoint = ${`new Point(${0.5+0.5*Math.cos((Math.PI*(gradientDirection+90))/180.0)}, ${0.5+0.5*Math.sin((Math.PI*(gradientDirection+90))/180.0)})`}\n${on}.backgroundGradient = gradient${gradientNumber}`
 }
 //Adding padding
 function padding(tag,value,on) {
   if(!/^\s*\d+((\s*,\s*\d+){3}|(\s*,\s*\d+))?\s*$/g.test(value)) {
-    throw new Error(`padding Attribute On ${tag} Element Must Be 1, 2 Or 4 Positive Integers Separated By Commas`)
+    throw new Error(`padding Propery Or Attribute Must Be 1, 2 Or 4 Positive Integers Separated By Commas: ${value}`)
   }
     paddingArray = value.match(/\d+/g)
     if(paddingArray.length == 1) {
@@ -575,24 +633,25 @@ function bgImage(value,on) {
 //Adding a size
 function size(tag,attribute,value,on) {
   if(!/^\s*\d+\s*,\s*\d+\s*$/.test(value)) {
-    throw new Error(`${attribute} Attribute On ${tag} Element Must Have 2 Positive Integers Separated By Commas`)
+    throw new Error(`${attribute} Propery Or Attribute Must Have 2 Positive Integers Separated By Commas: ${value}`)
   }
   code += `\n${on}.${attribute.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())} = new Size(${value.match(/\d+/g)[0]},${value.match(/\d+/g)[1]})`
 }
 //Adding a font
 function font(tag,value,on) {
-  if(!/^\s*[^,]+,\s*\d+\s*$/.test(value)) {
-    throw new Error(`font Attribute On ${tag} Element Must Have 1 font And 1 Positive Integer Separated By Commas`)
+  if(!/^\s*[^,]+,\s*\d+\s*$/.test(value) && !["body","callout","caption1","caption2","footnote","subheadline","headline","italicSystemFont","largeTitle","title1","title2","title3"].includes(value)) {
+    throw new Error(`font Propery Or Attribute Must Be 1 font And 1 Positive Integer Separated By Commas Or A Content-Based Font: ${value}`)
   }
-  if(/^\s*(black|bold|medium|light|heavy|regular|semibold|thin|ultraLight)(MonospacedSystemFont|RoundedSystemFont|SystemFont)\s*,\s*\d+\s*$/.test(value)){
-  code += `\n${on}.font = Font.${value.replace(/^\s*(black|bold|medium|light|heavy|regular|semibold|thin|ultraLight)(MonospacedSystemFont|RoundedSystemFont|SystemFont)\s*,\s*(\d+)\s*$/, "$1$2($3)")}`
+  let regex = /^\s*(((black|bold|medium|light|heavy|regular|semibold|thin|ultraLight)(MonospacedSystemFont|RoundedSystemFont|SystemFont)\s*,\s*(\d+))|(body|callout|caption1|caption2|footnote|subheadline|headline|largeTitle|title1|title2|title3)|((italicSystemFont)\s*,\s*(\d+)))\s*$/
+  if(regex.test(value)){
+  code += `\n${on}.font = Font.${value.replace(regex, "$3$4$6$8($5$9)")}`
 } else {
           code += `\n${on}.font = new Font("${value.split(",")[0].replace(/"/g,"")}",${value.split(",")[1].match(/\d+/g)[0]})`
 }}
 //Adding a shadow offset
 function shadowOffset(tag,value,on) {
   if(!/^\s*-?\d+\s*,\s*-?\d+\s*$/.test(value)){
-            throw new Error(`shadow-offset Attribute On ${tag} Element Must Have 2 Integers Separated By Commas`)
+            throw new Error(`shadow-offset Propery Or Attribute Element Must Have 2 Integers Separated By Commas: ${value}`)
           }
           code += `\n${on}.shadowOffset = new Point(${value.split(",")[0].match(/-?\d*/)[0]},${value.split(",")[1].match(/-?\d*/)[0]})`}
 }
