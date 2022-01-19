@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.10
+* 17.2 KB
+* Fixed error messages to encompass properties as well as the attributes
+* Fixed boolean attributes and css boolean properties
+* Comments are now parsed into the debug code
+* Added support for pre-set fonts based on its contents like `caption1`
+* Added support for the `use-default-padding` attribute
+* Added degree directions and colour locations to the `background-gradient` attribute
+
 ## 3.00
 
 * 16 KB
