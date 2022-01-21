@@ -1,7 +1,7 @@
 # HTML Widget
 ![Logo](/images/logo.jpeg) 
 
-HTML Widget allows you to create [Scriptable](https://scriptable.app/) widgets in HTML-like syntax. HTML Widget is easy to use and supports most widget features.
+HTML Widget allows you to create [Scriptable](https://scriptable.app/) widgets in HTML-like syntax. HTML Widget is easy to use and supports all widget features.
 
 ## The Function
 
