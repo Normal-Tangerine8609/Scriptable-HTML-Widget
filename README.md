@@ -11,7 +11,7 @@ HTML Widget allows you to create [Scriptable](https://scriptable.app/) widgets i
 
 ![Small Reddit Widget](/images/RedditWidget.jpeg)
 
-```javascriptt {
+```javascriptt
 const htmlWidget = importModule("html-widget")
 const symbol = importModule("html-widget-symbol")
 
