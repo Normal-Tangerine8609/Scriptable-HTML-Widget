@@ -1,6 +1,15 @@
 # Changelog
 
+## 4.0
+
+* 17.6 KB (html-widget.min.js file)
+* Removed `symbol` and `hr` tag from normal script
+* Now allows custom tags (also called add-ons)
+* `symbol` and `hr` custom tag syntax can be found in their separate modules. All base tags and add-ons combined in the same code can be found in the (html-widget-expanded.js)[] file.
+* `symbol` `named` attributes changes to inner text 
+
 ## 3.10
+
 * 17.2 KB
 * Fixed error messages to encompass properties as well as the attributes
 * Fixed boolean attributes and css boolean properties
