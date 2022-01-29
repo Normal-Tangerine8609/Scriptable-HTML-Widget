@@ -61,10 +61,6 @@ let widget = await htmlWidget(`
 Script.setWidget(widget)
 widget.presentSmall()
 Script.complete()
-`)
-Script.setWidget(widget)
-widget.presentSmall()
-Script.complete()
 ```
 
 ## Bugs and Feedback 
