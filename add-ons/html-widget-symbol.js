@@ -1,7 +1,11 @@
+/*
+HTML Widget symbol 1.0
+https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget/blob/main/add-ons/html-widget-symbol.js
+*/
 module.exports = {
   symbol: {
     isSelfClosing: false,
-    constructer: (incrementor, innerText, children, attrs, currentStack) =>
+    constructer: (incrementor, innerText, children, attrs, currentStack, finalCss) =>
       `\nlet symbol${incrementor} = ${currentStack}.addImage(SFSymbol.named("${
         innerText || "questionmark.circle"
       }").image)`,
