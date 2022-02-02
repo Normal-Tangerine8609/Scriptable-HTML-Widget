@@ -1,11 +1,17 @@
-//HTML Widget Version 4.0
+//HTML Widget Version 4.01
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 module.exports = async function htmlWidget(input, debug, addons) {
   let tagInfo = {
     spacer: {
       isSelfClosing: true,
-      constructer: (incrementor, innerText, children, attrs, currentStack) =>
-        `\n${currentStack}.addSpacer(${/\d+/.exec(attrs["space"] || "")})`,
+      constructer: (
+        incrementor,
+        innerText,
+        children,
+        attrs,
+        currentStack,
+        finalCss
+      ) => `\n${currentStack}.addSpacer(${/\d+/.exec(attrs["space"] || "")})`,
       attr: {
         space: {
           isBoolean: false,
@@ -15,8 +21,14 @@ module.exports = async function htmlWidget(input, debug, addons) {
     },
     widget: {
       isSelfClosing: false,
-      constructer: (incrementor, innerText, children, attrs, currentStack) =>
-        "let widget = new ListWidget()",
+      constructer: (
+        incrementor,
+        innerText,
+        children,
+        attrs,
+        currentStack,
+        finalCss
+      ) => "let widget = new ListWidget()",
       attr: {
         "background-color": {
           isBoolean: false,
@@ -28,7 +40,7 @@ module.exports = async function htmlWidget(input, debug, addons) {
           isBoolean: false,
           isOnlyAttr: false,
           func: async (value, incrementor, finalCss, Base) =>
-            await Base.gradient(value, "widget"),
+            await Base.gradient("background-gradient", value, "widget"),
         },
         "background-image": {
           isBoolean: false,
@@ -84,7 +96,11 @@ module.exports = async function htmlWidget(input, debug, addons) {
           isBoolean: false,
           isOnlyAttr: false,
           func: async (value, incrementor, finalCss, Base) =>
-            await Base.gradient(value, "stack" + incrementor),
+            await Base.gradient(
+              "background-gradient",
+              value,
+              "stack" + incrementor
+            ),
         },
         "background-image": {
           isBoolean: false,
@@ -175,7 +191,14 @@ module.exports = async function htmlWidget(input, debug, addons) {
     },
     img: {
       isSelfClosing: true,
-      constructer: (incrementor, innerText, children, attrs, currentStack) => {
+      constructer: (
+        incrementor,
+        innerText,
+        children,
+        attrs,
+        currentStack,
+        finalCss
+      ) => {
         if (!attrs["src"]) {
           throw new Error("img Element Must Have A src Attribute")
         }
@@ -286,7 +309,14 @@ module.exports = async function htmlWidget(input, debug, addons) {
     },
     text: {
       isSelfClosing: false,
-      constructer: (incrementor, innerText, children, attrs, currentStack) =>
+      constructer: (
+        incrementor,
+        innerText,
+        children,
+        attrs,
+        currentStack,
+        finalCss
+      ) =>
         `\nlet text${incrementor} = ${currentStack}.addText("${innerText.replace(
           /"/g,
           '"'
@@ -368,7 +398,14 @@ module.exports = async function htmlWidget(input, debug, addons) {
     },
     date: {
       isSelfClosing: false,
-      constructer: (incrementor, innerText, children, attrs, currentStack) =>
+      constructer: (
+        incrementor,
+        innerText,
+        children,
+        attrs,
+        currentStack,
+        finalCss
+      ) =>
         `\nlet date${incrementor} = ${currentStack}.addDate(new Date("${innerText.replace(
           /"/g,
           '"'
@@ -467,13 +504,8 @@ module.exports = async function htmlWidget(input, debug, addons) {
         "apply-relative-style": {
           isBoolean: true,
           isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) => {
-            if (value == true) {
-              return `\ndate${incrementor}.applyRelativeStyle()`
-            } else {
-              return ""
-            }
-          },
+          func: (value, incrementor, finalCss, Base) =>
+            Base.bool("apply--style", value, "date" + incrementor),
         },
         "apply-timer-style": {
           isBoolean: true,
@@ -487,11 +519,9 @@ module.exports = async function htmlWidget(input, debug, addons) {
 
   // Primitive types
   const Base = {
-    colour: async (attribute, value, on) => {
+    colour: async (attribute, value, on, raw) => {
       colours = value.split("-")
-      return `\n${on}.${attribute
-        .toLowerCase()
-        .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())} = ${
+      let colour =
         colours.length == 2
           ? "Color.dynamic(" +
             (await colorFromValue(colours[0])) +
@@ -499,13 +529,23 @@ module.exports = async function htmlWidget(input, debug, addons) {
             (await colorFromValue(colours[1])) +
             ")"
           : await colorFromValue(colours[0])
-      }`
+      if (raw) {
+        return colour
+      }
+      return `\n${on}.${attribute
+        .toLowerCase()
+        .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) =>
+          chr.toUpperCase()
+        )} = ${colour}`
     },
-    posInt: (attribute, value, on) => {
+    posInt: (attribute, value, on, raw) => {
       if (!/^\s*\d+\s*$/.test(value)) {
         throw new Error(
           `${attribute} Propery Or Attribute Must Be A Positive Integer: ${value}`
         )
+      }
+      if (raw) {
+        return /\d+/.exec(value)
       }
       if (attribute == "refresh-after-date") {
         return `\nlet date = new Date()\ndate.setMinutes(date.getMinutes() + ${/\d+/.exec(
@@ -519,7 +559,7 @@ module.exports = async function htmlWidget(input, debug, addons) {
           )} = ${/\d+/.exec(value)}`
       }
     },
-    decimal: (attribute, value, on) => {
+    decimal: (attribute, value, on, raw) => {
       if (
         !/^\s*\d*(?:\.\d*)?%?\s*$/.test(value) &&
         /^\s*\d*(?:\.\d*)?%?\s*$/.exec(value) !== "."
@@ -533,14 +573,19 @@ module.exports = async function htmlWidget(input, debug, addons) {
         value = Number(value.replace("%", ""))
         value /= 100
       }
+      if (raw) {
+        return value
+      }
       return `\n${on}.${attribute
         .toLowerCase()
         .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) =>
           chr.toUpperCase()
         )} = ${value}`
     },
-    gradient: async (value, on) => {
-      gradientNumber++
+    gradient: async (attribute, value, on, raw) => {
+      if (!raw) {
+        gradientNumber++
+      }
       let gradient = value
       // Split gradient in parts
       gradient = gradient
@@ -613,17 +658,17 @@ module.exports = async function htmlWidget(input, debug, addons) {
         if (currentLocation) {
           if (minLocation > currentLocation) {
             throw new Error(
-              `background-gradient Propery Or Attribute Locations Must Be In Ascending Order: ${value}`
+              `${attribute} Propery Or Attribute Locations Must Be In Ascending Order: ${value}`
             )
           }
           if (currentLocation < 0) {
             throw new Error(
-              `background-gradient Propery Or Attribute Locations Must Be Equal Or Greater Than 0: ${value}`
+              `${attribute} Propery Or Attribute Locations Must Be Equal Or Greater Than 0: ${value}`
             )
           }
           if (currentLocation > 1) {
             throw new Error(
-              `background-gradient Propery Or Attribute Locations Must Be Equal Or Less Than 1: ${value}`
+              `${attribute} Propery Or Attribute Locations Must Be Equal Or Less Than 1: ${value}`
             )
           }
           minLocation = currentLocation
@@ -638,6 +683,13 @@ module.exports = async function htmlWidget(input, debug, addons) {
           for (let count = 0; count < counter; count++) {
             locations[count + i] = difference * (count + 1) + locations[i - 1]
           }
+        }
+      }
+      if (raw) {
+        return {
+          colors: colours,
+          locations: locations,
+          direction: gradientDirection,
         }
       }
       return `\nlet gradient${gradientNumber} = new LinearGradient()\ngradient${gradientNumber}.colors = [${colours}]\ngradient${gradientNumber}.locations = [${locations}]\ngradient${gradientNumber}.startPoint = ${`new Point(${
@@ -791,7 +843,8 @@ module.exports = async function htmlWidget(input, debug, addons) {
   let currentStack,
     code = "",
     incrementors = {},
-    gradientNumber = -1
+    gradientNumber = -1,
+    canvas = false
 
   // Get only the first widget tag
   let widgetBody = htmlParser(input)["children"].filter((element) => {
@@ -860,7 +913,14 @@ module.exports = async function htmlWidget(input, debug, addons) {
     if (tag["tagName"] == "widget" && code) {
       throw new Error("widget Tag Must Not Be Nestled")
     }
+
     if (Object.keys(tagInfo).includes(tag["tagName"])) {
+      // Add light/dark mode helper function if a tag uses a DrawContext/canvas
+      if (tagInfo[tag["tagName"]]["useCanvas"] && canvas == false) {
+        code +=
+          "\nasync function isUsingDarkAppearance(){return !(Color.dynamic(Color.white(),Color.black()).red) }"
+      }
+
       // Increment incrementor
       if (incrementors[tag["tagName"]] || incrementors[tag["tagName"]] == 0) {
         incrementors[tag["tagName"]]++
@@ -882,15 +942,6 @@ module.exports = async function htmlWidget(input, debug, addons) {
         .replace(/&gt/g, ">")
         .replace(/&amp;/g, "&")
         .replace(/\n\s+/g, "\\n")
-
-      // Construct component
-      code += await tagInfo[tag["tagName"]]["constructer"](
-        incrementor,
-        innerText,
-        tag["children"],
-        tag["attributes"],
-        currentStack
-      )
 
       // Get valid attributes
       let cssAttr = []
@@ -928,19 +979,31 @@ module.exports = async function htmlWidget(input, debug, addons) {
       // Add or reset all selected css values
       let customeCss = tagInfo[tag["tagName"]]["customeAttr"]
       let customInfo = tagInfo[tag["tagName"]]["attr"]
-      let finalCss = {}
+      let finalCss = tagInfo[tag["tagName"]]["defaultCss"] || {}
       for (let rule of mainCss) {
         if (availableCss.includes(rule["selector"])) {
           for (let key of Object.keys(rule["css"])) {
             if (cssAttr.includes(key)) {
+              delete finalCss[key]
               finalCss[key] = rule["css"][key]
             }
           }
         }
       }
       for (let key of Object.keys(attributeCss)) {
+        delete finalCss[key]
         finalCss[key] = attributeCss[key]
       }
+
+      // Construct component
+      code += await tagInfo[tag["tagName"]]["constructer"](
+        incrementor,
+        innerText,
+        tag["children"],
+        tag["attributes"],
+        currentStack,
+        finalCss
+      )
 
       // Add the css
       for (let key of Object.keys(finalCss)) {
