@@ -1,5 +1,12 @@
 # Changelog
 
+## 4.1
+
+* 17.9 KB
+* Improvments for the posibility of adding more add-ons (mostly those that use a canvas/DrawContext)
+* Improvements to other aspects of add-ons
+* Fixed a bug that would create an impropor css/attribute order
+
 ## 4.0
 
 * 17.6 KB (html-widget.min.js file)
