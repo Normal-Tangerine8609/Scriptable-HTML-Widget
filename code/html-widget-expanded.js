@@ -1,73 +1,85 @@
-//HTML Widget Version 4.0
+//HTML Widget Version 4.01
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
-module.exports = async function htmlWidget(input, debug, addons) {
+async function htmlWidget(input, debug, addons) {
   let tagInfo = {
     spacer: {
       isSelfClosing: true,
-      constructer: (incrementor, innerText, children, attrs, currentStack) =>
-        `\n${currentStack}.addSpacer(${/\d+/.exec(attrs["space"] || "")})`,
+      constructer: (
+        incrementor,
+        innerText,
+        children,
+        attrs,
+        currentStack,
+        finalCss
+      ) => `\n${currentStack}.addSpacer(${/\d+/.exec(attrs["space"] || "")})`,
       attr: {
         space: {
           isBoolean: false,
-          isOnlyAttr: true,
-        },
-      },
+          isOnlyAttr: true
+        }
+      }
     },
     widget: {
       isSelfClosing: false,
-      constructer: (incrementor, innerText, children, attrs, currentStack) =>
-        "let widget = new ListWidget()",
+      constructer: (
+        incrementor,
+        innerText,
+        children,
+        attrs,
+        currentStack,
+        finalCss
+      ) => "let widget = new ListWidget()",
       attr: {
         "background-color": {
           isBoolean: false,
           isOnlyAttr: false,
           func: async (value, incrementor, finalCss) =>
-            await Base.colour("background-color", value, "widget"),
+            await Base.colour("background-color", value, "widget")
         },
         "background-gradient": {
           isBoolean: false,
           isOnlyAttr: false,
           func: async (value, incrementor, finalCss, Base) =>
-            await Base.gradient(value, "widget"),
+            await Base.gradient("background-gradient", value, "widget")
         },
         "background-image": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bgImage(value, "widget"),
+            Base.bgImage(value, "widget")
         },
         "refresh-after-date": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("refresh-after-date", value, "widget"),
+            Base.posInt("refresh-after-date", value, "widget")
         },
         "spacing": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("spacing", value, "widget"),
+            Base.posInt("spacing", value, "widget")
         },
         "url": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            `\nwidget.url = "${value.replace(/"/g, "")}"`,
+            `\nwidget.url = "${value.replace(/"/g, "")}"`
         },
         "padding": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.padding(value, "widget"),
+            Base.padding(value, "widget")
         },
         "use-default-padding": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("use-default-padding", value, "widget"),
-        },
+            Base.bool("use-default-padding", value, "widget")
+        }
       },
-      compile: (incrementor) => "widget",
+      compile: (incrementor) => "widget"
     },
     stack: {
       isSelfClosing: false,
@@ -78,104 +90,115 @@ module.exports = async function htmlWidget(input, debug, addons) {
           isBoolean: false,
           isOnlyAttr: false,
           func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("background-color", value, "stack" + incrementor),
+            await Base.colour("background-color", value, "stack" + incrementor)
         },
         "background-gradient": {
           isBoolean: false,
           isOnlyAttr: false,
           func: async (value, incrementor, finalCss, Base) =>
-            await Base.gradient(value, "stack" + incrementor),
+            await Base.gradient(
+              "background-gradient",
+              value,
+              "stack" + incrementor
+            )
         },
         "background-image": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bgImage(value, "stack" + incrementor),
+            Base.bgImage(value, "stack" + incrementor)
         },
         "spacing": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("spacing", value, "stack" + incrementor),
+            Base.posInt("spacing", value, "stack" + incrementor)
         },
         "url": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            `\nstack${incrementor}.url = "${value.replace(/"/g, "")}"`,
+            `\nstack${incrementor}.url = "${value.replace(/"/g, "")}"`
         },
         "padding": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.padding(value, "stack" + incrementor),
+            Base.padding(value, "stack" + incrementor)
         },
         "border-color": {
           isBoolean: false,
           isOnlyAttr: false,
           func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("border-color", value, "stack" + incrementor),
+            await Base.colour("border-color", value, "stack" + incrementor)
         },
         "border-width": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("border-Width", value, "stack" + incrementor),
+            Base.posInt("border-Width", value, "stack" + incrementor)
         },
         "corner-radius": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("corner-radius", value, "stack" + incrementor),
+            Base.posInt("corner-radius", value, "stack" + incrementor)
         },
         "size": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.size("size", value, "stack" + incrementor),
+            Base.size("size", value, "stack" + incrementor)
         },
         "bottom-align-content": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("bottom-align-content", value, "stack" + incrementor),
+            Base.bool("bottom-align-content", value, "stack" + incrementor)
         },
         "center-align-content": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("center-align-content", value, "stack" + incrementor),
+            Base.bool("center-align-content", value, "stack" + incrementor)
         },
         "top-align-content": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("top-align-content", value, "stack" + incrementor),
+            Base.bool("top-align-content", value, "stack" + incrementor)
         },
         "layout-horizontally": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("layout-horizontally", value, "stack" + incrementor),
+            Base.bool("layout-horizontally", value, "stack" + incrementor)
         },
         "layout-vertically": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("layout-vertically", value, "stack" + incrementor),
+            Base.bool("layout-vertically", value, "stack" + incrementor)
         },
         "use-default-padding": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("use-default-padding", value, "stack" + incrementor),
-        },
+            Base.bool("use-default-padding", value, "stack" + incrementor)
+        }
       },
-      compile: (incrementor) => "stack" + incrementor,
+      compile: (incrementor) => "stack" + incrementor
     },
     img: {
       isSelfClosing: true,
-      constructer: (incrementor, innerText, children, attrs, currentStack) => {
+      constructer: (
+        incrementor,
+        innerText,
+        children,
+        attrs,
+        currentStack,
+        finalCss
+      ) => {
         if (!attrs["src"]) {
           throw new Error("img Element Must Have A src Attribute")
         }
@@ -198,95 +221,102 @@ module.exports = async function htmlWidget(input, debug, addons) {
           isBoolean: false,
           isOnlyAttr: false,
           func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("border-color", value, "img" + incrementor),
+            await Base.colour("border-color", value, "img" + incrementor)
         },
         "border-width": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("border-width", value, "img" + incrementor),
+            Base.posInt("border-width", value, "img" + incrementor)
         },
         "corner-radius": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("corner-radius", value, "img" + incrementor),
+            Base.posInt("corner-radius", value, "img" + incrementor)
         },
         "image-opacity": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.decimal("image-opacity", value, "img" + incrementor),
+            Base.decimal("image-opacity", value, "img" + incrementor)
         },
         "image-size": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.size("image-size", value, "img" + incrementor),
+            Base.size("image-size", value, "img" + incrementor)
         },
         "tint-color": {
           isBoolean: false,
           isOnlyAttr: false,
           func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("tint-color", value, "img" + incrementor),
+            await Base.colour("tint-color", value, "img" + incrementor)
         },
         "url": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            `\nimg${incrementor}.url = "${value.replace(/"/g, "")}"`,
+            `\nimg${incrementor}.url = "${value.replace(/"/g, "")}"`
         },
         "src": {
           isBoolean: false,
-          isOnlyAttr: true,
+          isOnlyAttr: true
         },
         "container-relative-shape": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("container-relative-shape", value, "img" + incrementor),
+            Base.bool("container-relative-shape", value, "img" + incrementor)
         },
         "resizable": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("resizable", value, "img" + incrementor),
+            Base.bool("resizable", value, "img" + incrementor)
         },
         "apply-filling-content-mode": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("apply-filling-content-mode", value, "img" + incrementor),
+            Base.bool("apply-filling-content-mode", value, "img" + incrementor)
         },
         "apply-fitting-content-mode": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("apply-fitting-content-mode", value, "img" + incrementor),
+            Base.bool("apply-fitting-content-mode", value, "img" + incrementor)
         },
         "center-align-image": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("center-align-image", value, "img" + incrementor),
+            Base.bool("center-align-image", value, "img" + incrementor)
         },
         "left-align-image": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("left-align-image", value, "img" + incrementor),
+            Base.bool("left-align-image", value, "img" + incrementor)
         },
         "right-align-image": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("right-align-image", value, "img" + incrementor),
-        },
-      },
+            Base.bool("right-align-image", value, "img" + incrementor)
+        }
+      }
     },
     text: {
       isSelfClosing: false,
-      constructer: (incrementor, innerText, children, attrs, currentStack) =>
+      constructer: (
+        incrementor,
+        innerText,
+        children,
+        attrs,
+        currentStack,
+        finalCss
+      ) =>
         `\nlet text${incrementor} = ${currentStack}.addText("${innerText.replace(
           /"/g,
           '"'
@@ -296,79 +326,86 @@ module.exports = async function htmlWidget(input, debug, addons) {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.font(value, "text" + incrementor),
+            Base.font(value, "text" + incrementor)
         },
         "line-limit": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("line-limit", value, "text" + incrementor),
+            Base.posInt("line-limit", value, "text" + incrementor)
         },
         "minimum-scale-factor": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.decimal("minnimim-scale-factor", value, "text" + incrementor),
+            Base.decimal("minnimim-scale-factor", value, "text" + incrementor)
         },
         "shadow-color": {
           isBoolean: false,
           isOnlyAttr: false,
           func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("shadow-color", value, "text" + incrementor),
+            await Base.colour("shadow-color", value, "text" + incrementor)
         },
         "shadow-offset": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.shadowOffset(value, "text" + incrementor),
+            Base.shadowOffset(value, "text" + incrementor)
         },
         "shadow-radius": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("shadow-radius", value, "text" + incrementor),
+            Base.posInt("shadow-radius", value, "text" + incrementor)
         },
         "text-color": {
           isBoolean: false,
           isOnlyAttr: false,
           func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("text-color", value, "text" + incrementor),
+            await Base.colour("text-color", value, "text" + incrementor)
         },
         "text-opacity": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.decimal("text-opacity", value, "text" + incrementor),
+            Base.decimal("text-opacity", value, "text" + incrementor)
         },
         "url": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            `\ntext${incrementor}.url = "${value.replace(/"/g, "")}"`,
+            `\ntext${incrementor}.url = "${value.replace(/"/g, "")}"`
         },
         "center-align-text": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("center-align-text", value, "text" + incrementor),
+            Base.bool("center-align-text", value, "text" + incrementor)
         },
         "left-align-text": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("left-align-text", value, "text" + incrementor),
+            Base.bool("left-align-text", value, "text" + incrementor)
         },
         "right-align-text": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("right-align-text", value, "text" + incrementor),
-        },
-      },
+            Base.bool("right-align-text", value, "text" + incrementor)
+        }
+      }
     },
     date: {
       isSelfClosing: false,
-      constructer: (incrementor, innerText, children, attrs, currentStack) =>
+      constructer: (
+        incrementor,
+        innerText,
+        children,
+        attrs,
+        currentStack,
+        finalCss
+      ) =>
         `\nlet date${incrementor} = ${currentStack}.addDate(new Date("${innerText.replace(
           /"/g,
           '"'
@@ -378,175 +415,116 @@ module.exports = async function htmlWidget(input, debug, addons) {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.font(value, "date" + incrementor),
+            Base.font(value, "date" + incrementor)
         },
         "line-limit": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("line-limit", value, "date" + incrementor),
+            Base.posInt("line-limit", value, "date" + incrementor)
         },
         "minimum-scale-factor": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.decimal("minnimim-scale-factor", value, "date" + incrementor),
+            Base.decimal("minnimim-scale-factor", value, "date" + incrementor)
         },
         "shadow-color": {
           isBoolean: false,
           isOnlyAttr: false,
           func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("shadow-color", value, "date" + incrementor),
+            await Base.colour("shadow-color", value, "date" + incrementor)
         },
         "shadow-offset": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.shadowOffset(value, "date" + incrementor),
+            Base.shadowOffset(value, "date" + incrementor)
         },
         "shadow-radius": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("shadow-radius", value, "date" + incrementor),
+            Base.posInt("shadow-radius", value, "date" + incrementor)
         },
         "text-color": {
           isBoolean: false,
           isOnlyAttr: false,
           func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("text-color", value, "date" + incrementor),
+            await Base.colour("text-color", value, "date" + incrementor)
         },
         "text-opacity": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.decimal("text-opacity", value, "date" + incrementor),
+            Base.decimal("text-opacity", value, "date" + incrementor)
         },
         "url": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            `\ndate${incrementor}.url = "${value.replace(/"/g, "")}"`,
+            `\ndate${incrementor}.url = "${value.replace(/"/g, "")}"`
         },
         "center-align-text": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("center-align-text", value, "date" + incrementor),
+            Base.bool("center-align-text", value, "date" + incrementor)
         },
         "left-align-text": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("left-align-text", value, "date" + incrementor),
+            Base.bool("left-align-text", value, "date" + incrementor)
         },
         "right-align-text": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("right-align-text", value, "date" + incrementor),
+            Base.bool("right-align-text", value, "date" + incrementor)
         },
         "apply-time-style": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("apply-time-style", value, "date" + incrementor),
+            Base.bool("apply-time-style", value, "date" + incrementor)
         },
         "apply-date-style": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("apply-date-style", value, "date" + incrementor),
+            Base.bool("apply-date-style", value, "date" + incrementor)
         },
         "apply-offset-style": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("apply-offset-style", value, "date" + incrementor),
+            Base.bool("apply-offset-style", value, "date" + incrementor)
         },
         "apply-relative-style": {
           isBoolean: true,
           isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) => {
-            if (value == true) {
-              return `\ndate${incrementor}.applyRelativeStyle()`
-            } else {
-              return ""
-            }
-          },
+          func: (value, incrementor, finalCss, Base) =>
+            Base.bool("apply--style", value, "date" + incrementor)
         },
         "apply-timer-style": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("apply-timer-style", value, "date" + incrementor),
-        },
-      },
-    },
-    hr: {
-      isSelfClosing: true,
-      constructer: (incrementor, innerText, children, attrs, currentStack) =>
-        `\nlet hr${incrementor} = ${currentStack}.addStack()\nhr${incrementor}.addSpacer()\nlet hrImage${incrementor} = hr${incrementor}.addImage(Image.fromData(Data.fromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=")))\nhrImage${incrementor}.imageSize = new Size(1,1)\nhr${incrementor}.addSpacer()\nhr${incrementor}.backgroundColor = Color.dynamic(Color.black(), Color.white())`,
-      attr: {
-        "background-color": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("background-color", value, "hr" + incrementor),
-        },
-        "background-gradient": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.gradient(value, "hr" + incrementor),
-        },
-        "url": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            `\nhr${incrementor}.url = "${value.replace(/"/g, "")}"`,
-        },
-        "corner-radius": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("corner-radius", value, "hr" + incrementor),
-        },
-        "layout-horizontally": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            value == true
-              ? `\nhr${incrementor}.layoutHorizontally()\nhrImage${incrementor}.imageSize = new Size(1,${
-                  finalCss["width"] ? finalCss["width"] : 1
-                })`
-              : "",
-        },
-        "layout-vertically": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            value == true
-              ? `\nhr${incrementor}.layoutVertically()\nhrImage${incrementor}.imageSize = new Size(${
-                  finalCss["width"] ? finalCss["width"] : 1
-                },1)`
-              : "",
-        },
-        "width": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            `\nhrImage${incrementor}.imageSize = new Size(${
-              finalCss["layout-vertically"] == true
-                ? `1,${value}`
-                : `${value},1`
-            })`,
-        },
-      },
+            Base.bool("apply-timer-style", value, "date" + incrementor)
+        }
+      }
     },
     symbol: {
       isSelfClosing: false,
-      constructer: (incrementor, innerText, children, attrs, currentStack) =>
+      constructer: (
+        incrementor,
+        innerText,
+        children,
+        attrs,
+        currentStack,
+        finalCss
+      ) =>
         `\nlet symbol${incrementor} = ${currentStack}.addImage(SFSymbol.named("${
           innerText || "questionmark.circle"
         }").image)`,
@@ -555,63 +533,59 @@ module.exports = async function htmlWidget(input, debug, addons) {
           isBoolean: false,
           isOnlyAttr: false,
           func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("border-color", value, "symbol" + incrementor),
+            await Base.colour("border-color", value, "symbol" + incrementor)
         },
         "border-width": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("border-width", value, "symbol" + incrementor),
+            Base.posInt("border-width", value, "symbol" + incrementor)
         },
         "corner-radius": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("corner-radius", value, "symbol" + incrementor),
+            Base.posInt("corner-radius", value, "symbol" + incrementor)
         },
         "image-opacity": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.decimal("image-opacity", value, "symbol" + incrementor),
+            Base.decimal("image-opacity", value, "symbol" + incrementor)
         },
         "image-size": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.size("image-size", value, "symbol" + incrementor),
+            Base.size("image-size", value, "symbol" + incrementor)
         },
         "tint-color": {
           isBoolean: false,
           isOnlyAttr: false,
           func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("tint-color", value, "symbol" + incrementor),
+            await Base.colour("tint-color", value, "symbol" + incrementor)
         },
         "url": {
           isBoolean: false,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            `\nsymbol${incrementor}.url = "${value.replace(/"/g, "")}"`,
+            `\nsymbol${incrementor}.url = "${value.replace(/"/g, "")}"`
         },
         "src": {
           isBoolean: false,
-          isOnlyAttr: true,
+          isOnlyAttr: true
         },
         "container-relative-shape": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool(
-              "container-relative-shape",
-              value,
-              "symbol" + incrementor
-            ),
+            Base.bool("container-relative-shape", value, "symbol" + incrementor)
         },
         "resizable": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("resizable", value, "symbol" + incrementor),
+            Base.bool("resizable", value, "symbol" + incrementor)
         },
         "apply-filling-content-mode": {
           isBoolean: true,
@@ -621,7 +595,7 @@ module.exports = async function htmlWidget(input, debug, addons) {
               "apply-filling-content-mode",
               value,
               "symbol" + incrementor
-            ),
+            )
         },
         "apply-fitting-content-mode": {
           isBoolean: true,
@@ -631,37 +605,122 @@ module.exports = async function htmlWidget(input, debug, addons) {
               "apply-fitting-content-mode",
               value,
               "symbol" + incrementor
-            ),
+            )
         },
         "center-align-image": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("center-align-image", value, "symbol" + incrementor),
+            Base.bool("center-align-image", value, "symbol" + incrementor)
         },
         "left-align-image": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("left-align-image", value, "symbol" + incrementor),
+            Base.bool("left-align-image", value, "symbol" + incrementor)
         },
         "right-align-image": {
           isBoolean: true,
           isOnlyAttr: false,
           func: (value, incrementor, finalCss, Base) =>
-            Base.bool("right-align-image", value, "symbol" + incrementor),
-        },
-      },
+            Base.bool("right-align-image", value, "symbol" + incrementor)
+        }
+      }
     },
+    hr: {
+      isSelfClosing: true,
+      constructer: (
+        incrementor,
+        innerText,
+        children,
+        attrs,
+        currentStack,
+        finalCss
+      ) => {
+        let isHorizontal = true
+        for (let item of Object.keys(finalCss)) {
+          if (item == "layout-vertically") {
+            isHorizontal = false
+          } else if (item == "layout-horizontally") {
+            isHorizontal = true
+          }
+        }
+        let auto =
+          !finalCss["length"] && finalCss["length"] != 0
+            ? `\nhr${incrementor}.addSpacer()`
+            : ""
+        let width = finalCss["width"] || 1
+        let length = finalCss["length"] || 1
+        return `\nlet hr${incrementor} = ${currentStack}.addStack()${
+          isHorizontal ? "" : `\nhr${incrementor}.layoutVertically()`
+        }${auto}\nlet hrImage${incrementor} = hr${incrementor}.addImage(Image.fromData(Data.fromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=")))\nhrImage${incrementor}.imageSize = new Size(${
+          isHorizontal ? `${length},${width}` : `${width},${length}`
+        })${auto}\nhr${incrementor}.backgroundColor = Color.dynamic(Color.black(), Color.white())`
+      },
+      attr: {
+        "background-color": {
+          isBoolean: false,
+          isOnlyAttr: false,
+          func: async (value, incrementor, finalCss, Base) =>
+            await Base.colour("background-color", value, "hr" + incrementor)
+        },
+        "background-gradient": {
+          isBoolean: false,
+          isOnlyAttr: false,
+          func: async (value, incrementor, finalCss, Base) =>
+            await Base.gradient(
+              "background-gradient",
+              value,
+              "hr" + incrementor
+            )
+        },
+        "url": {
+          isBoolean: false,
+          isOnlyAttr: false,
+          func: (value, incrementor, finalCss, Base) =>
+            `\nhr${incrementor}.url = "${value.replace(/"/g, "")}"`
+        },
+        "corner-radius": {
+          isBoolean: false,
+          isOnlyAttr: false,
+          func: (value, incrementor, finalCss, Base) =>
+            Base.posInt("corner-radius", value, "hr" + incrementor)
+        },
+        "layout-horizontally": {
+          isBoolean: true,
+          isOnlyAttr: false,
+          func: (value, incrementor, finalCss, Base) => ""
+        },
+        "layout-vertically": {
+          isBoolean: true,
+          isOnlyAttr: false,
+          func: (value, incrementor, finalCss, Base) => ""
+        },
+        "width": {
+          isBoolean: false,
+          isOnlyAttr: false,
+          func: (value, incrementor, finalCss, Base) => {
+            Base.posInt("width", value, "null", true)
+            return ""
+          }
+        },
+        "length": {
+          isBoolean: false,
+          isOnlyAttr: false,
+          func: (value, incrementor, finalCss, Base) => {
+            Base.posInt("length", value, "null", true)
+            return ""
+          }
+        }
+      }
+    }
   }
 
   // Primitive types
   const Base = {
-    colour: async (attribute, value, on) => {
+    colour: async (attribute, value, on, raw) => {
       colours = value.split("-")
-      return `\n${on}.${attribute
-        .toLowerCase()
-        .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())} = ${
+      let colour =
         colours.length == 2
           ? "Color.dynamic(" +
             (await colorFromValue(colours[0])) +
@@ -669,13 +728,23 @@ module.exports = async function htmlWidget(input, debug, addons) {
             (await colorFromValue(colours[1])) +
             ")"
           : await colorFromValue(colours[0])
-      }`
+      if (raw) {
+        return colour
+      }
+      return `\n${on}.${attribute
+        .toLowerCase()
+        .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) =>
+          chr.toUpperCase()
+        )} = ${colour}`
     },
-    posInt: (attribute, value, on) => {
+    posInt: (attribute, value, on, raw) => {
       if (!/^\s*\d+\s*$/.test(value)) {
         throw new Error(
           `${attribute} Propery Or Attribute Must Be A Positive Integer: ${value}`
         )
+      }
+      if (raw) {
+        return /\d+/.exec(value)
       }
       if (attribute == "refresh-after-date") {
         return `\nlet date = new Date()\ndate.setMinutes(date.getMinutes() + ${/\d+/.exec(
@@ -689,7 +758,7 @@ module.exports = async function htmlWidget(input, debug, addons) {
           )} = ${/\d+/.exec(value)}`
       }
     },
-    decimal: (attribute, value, on) => {
+    decimal: (attribute, value, on, raw) => {
       if (
         !/^\s*\d*(?:\.\d*)?%?\s*$/.test(value) &&
         /^\s*\d*(?:\.\d*)?%?\s*$/.exec(value) !== "."
@@ -703,14 +772,19 @@ module.exports = async function htmlWidget(input, debug, addons) {
         value = Number(value.replace("%", ""))
         value /= 100
       }
+      if (raw) {
+        return value
+      }
       return `\n${on}.${attribute
         .toLowerCase()
         .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) =>
           chr.toUpperCase()
         )} = ${value}`
     },
-    gradient: async (value, on) => {
-      gradientNumber++
+    gradient: async (attribute, value, on, raw) => {
+      if (!raw) {
+        gradientNumber++
+      }
       let gradient = value
       // Split gradient in parts
       gradient = gradient
@@ -729,7 +803,7 @@ module.exports = async function htmlWidget(input, debug, addons) {
         "to left top": 135,
         "to right top": 225,
         "to left bottom": 45,
-        "to right bottom": 315,
+        "to right bottom": 315
       }
       // Set gradient direction
       if (Object.keys(wordDirections).includes(gradient[0])) {
@@ -783,17 +857,17 @@ module.exports = async function htmlWidget(input, debug, addons) {
         if (currentLocation) {
           if (minLocation > currentLocation) {
             throw new Error(
-              `background-gradient Propery Or Attribute Locations Must Be In Ascending Order: ${value}`
+              `${attribute} Propery Or Attribute Locations Must Be In Ascending Order: ${value}`
             )
           }
           if (currentLocation < 0) {
             throw new Error(
-              `background-gradient Propery Or Attribute Locations Must Be Equal Or Greater Than 0: ${value}`
+              `${attribute} Propery Or Attribute Locations Must Be Equal Or Greater Than 0: ${value}`
             )
           }
           if (currentLocation > 1) {
             throw new Error(
-              `background-gradient Propery Or Attribute Locations Must Be Equal Or Less Than 1: ${value}`
+              `${attribute} Propery Or Attribute Locations Must Be Equal Or Less Than 1: ${value}`
             )
           }
           minLocation = currentLocation
@@ -808,6 +882,13 @@ module.exports = async function htmlWidget(input, debug, addons) {
           for (let count = 0; count < counter; count++) {
             locations[count + i] = difference * (count + 1) + locations[i - 1]
           }
+        }
+      }
+      if (raw) {
+        return {
+          colors: colours,
+          locations: locations,
+          direction: gradientDirection
         }
       }
       return `\nlet gradient${gradientNumber} = new LinearGradient()\ngradient${gradientNumber}.colors = [${colours}]\ngradient${gradientNumber}.locations = [${locations}]\ngradient${gradientNumber}.startPoint = ${`new Point(${
@@ -832,14 +913,14 @@ module.exports = async function htmlWidget(input, debug, addons) {
           paddingArray[0],
           paddingArray[0],
           paddingArray[0],
-          paddingArray[0],
+          paddingArray[0]
         ]
       } else if (paddingArray.length == 2) {
         paddingArray = [
           paddingArray[0],
           paddingArray[1],
           paddingArray[0],
-          paddingArray[1],
+          paddingArray[1]
         ]
       }
       return `\n${on}.setPadding(${paddingArray.join(",")})`
@@ -887,7 +968,7 @@ module.exports = async function htmlWidget(input, debug, addons) {
           "largeTitle",
           "title1",
           "title2",
-          "title3",
+          "title3"
         ].includes(value)
       ) {
         throw new Error(
@@ -934,7 +1015,7 @@ module.exports = async function htmlWidget(input, debug, addons) {
       } else {
         return ""
       }
-    },
+    }
   }
 
   // Combine default components with addons
@@ -961,7 +1042,8 @@ module.exports = async function htmlWidget(input, debug, addons) {
   let currentStack,
     code = "",
     incrementors = {},
-    gradientNumber = -1
+    gradientNumber = -1,
+    canvas = false
 
   // Get only the first widget tag
   let widgetBody = htmlParser(input)["children"].filter((element) => {
@@ -1030,7 +1112,14 @@ module.exports = async function htmlWidget(input, debug, addons) {
     if (tag["tagName"] == "widget" && code) {
       throw new Error("widget Tag Must Not Be Nestled")
     }
+
     if (Object.keys(tagInfo).includes(tag["tagName"])) {
+      // Add light/dark mode helper function if a tag uses a DrawContext/canvas
+      if (tagInfo[tag["tagName"]]["useCanvas"] && canvas == false) {
+        code +=
+          "\nasync function isUsingDarkAppearance(){return !(Color.dynamic(Color.white(),Color.black()).red) }"
+      }
+
       // Increment incrementor
       if (incrementors[tag["tagName"]] || incrementors[tag["tagName"]] == 0) {
         incrementors[tag["tagName"]]++
@@ -1052,15 +1141,6 @@ module.exports = async function htmlWidget(input, debug, addons) {
         .replace(/&gt/g, ">")
         .replace(/&amp;/g, "&")
         .replace(/\n\s+/g, "\\n")
-
-      // Construct component
-      code += await tagInfo[tag["tagName"]]["constructer"](
-        incrementor,
-        innerText,
-        tag["children"],
-        tag["attributes"],
-        currentStack
-      )
 
       // Get valid attributes
       let cssAttr = []
@@ -1098,19 +1178,31 @@ module.exports = async function htmlWidget(input, debug, addons) {
       // Add or reset all selected css values
       let customeCss = tagInfo[tag["tagName"]]["customeAttr"]
       let customInfo = tagInfo[tag["tagName"]]["attr"]
-      let finalCss = {}
+      let finalCss = tagInfo[tag["tagName"]]["defaultCss"] || {}
       for (let rule of mainCss) {
         if (availableCss.includes(rule["selector"])) {
           for (let key of Object.keys(rule["css"])) {
             if (cssAttr.includes(key)) {
+              delete finalCss[key]
               finalCss[key] = rule["css"][key]
             }
           }
         }
       }
       for (let key of Object.keys(attributeCss)) {
+        delete finalCss[key]
         finalCss[key] = attributeCss[key]
       }
+
+      // Construct component
+      code += await tagInfo[tag["tagName"]]["constructer"](
+        incrementor,
+        innerText,
+        tag["children"],
+        tag["attributes"],
+        currentStack,
+        finalCss
+      )
 
       // Add the css
       for (let key of Object.keys(finalCss)) {
