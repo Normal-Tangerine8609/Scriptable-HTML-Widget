@@ -5,6 +5,8 @@ HTML Widget allows you to create [Scriptable](https://scriptable.app/) widgets i
 
 ## Documentation
 
+Note: This is currently in the process of being updated for version 5.00 of HTML Widget
+
 [Link](https://normal-tangerine8609.gitbook.io/html-widget/)
 
 ## Example
