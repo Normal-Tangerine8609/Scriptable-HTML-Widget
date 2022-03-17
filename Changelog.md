@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.00
+
+- 21.1 KB
+- Many improvements and bug fixes
+- Errors display more information 
+- Users can make tag templates
+- Most tag boolean attributes change
+
 ## 4.1
 
 * 17.9 KB
