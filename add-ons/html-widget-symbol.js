@@ -1,111 +1,50 @@
 /*
-HTML Widget symbol 1.0
+HTML Widget symbol 2.0
 https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget/blob/main/add-ons/html-widget-symbol.js
+
+- Compatible with HTML Widget 5.00
 */
-module.exports = {
-  symbol: {
-    isSelfClosing: false,
-    constructer: (incrementor, innerText, children, attrs, currentStack, finalCss) =>
-      `\nlet symbol${incrementor} = ${currentStack}.addImage(SFSymbol.named("${
-        innerText || "questionmark.circle"
-      }").image)`,
-    attr: {
-      "border-color": {
-        isBoolean: false,
-        isOnlyAttr: false,
-        func: async (value, incrementor, finalCss, Base) =>
-          await Base.colour("border-color", value, "symbol" + incrementor),
-      },
-      "border-width": {
-        isBoolean: false,
-        isOnlyAttr: false,
-        func: (value, incrementor, finalCss, Base) =>
-          Base.posInt("border-width", value, "symbol" + incrementor),
-      },
-      "corner-radius": {
-        isBoolean: false,
-        isOnlyAttr: false,
-        func: (value, incrementor, finalCss, Base) =>
-          Base.posInt("corner-radius", value, "symbol" + incrementor),
-      },
-      "image-opacity": {
-        isBoolean: false,
-        isOnlyAttr: false,
-        func: (value, incrementor, finalCss, Base) =>
-          Base.decimal("image-opacity", value, "symbol" + incrementor),
-      },
-      "image-size": {
-        isBoolean: false,
-        isOnlyAttr: false,
-        func: (value, incrementor, finalCss, Base) =>
-          Base.size("image-size", value, "symbol" + incrementor),
-      },
-      "tint-color": {
-        isBoolean: false,
-        isOnlyAttr: false,
-        func: async (value, incrementor, finalCss, Base) =>
-          await Base.colour("tint-color", value, "symbol" + incrementor),
-      },
-      "url": {
-        isBoolean: false,
-        isOnlyAttr: false,
-        func: (value, incrementor, finalCss, Base) =>
-          `\nsymbol${incrementor}.url = "${value.replace(/"/g, "")}"`,
-      },
-      "src": {
-        isBoolean: false,
-        isOnlyAttr: true,
-      },
-      "container-relative-shape": {
-        isBoolean: true,
-        isOnlyAttr: false,
-        func: (value, incrementor, finalCss, Base) =>
-          Base.bool("container-relative-shape", value, "symbol" + incrementor),
-      },
-      "resizable": {
-        isBoolean: true,
-        isOnlyAttr: false,
-        func: (value, incrementor, finalCss, Base) =>
-          Base.bool("resizable", value, "symbol" + incrementor),
-      },
-      "apply-filling-content-mode": {
-        isBoolean: true,
-        isOnlyAttr: false,
-        func: (value, incrementor, finalCss, Base) =>
-          Base.bool(
-            "apply-filling-content-mode",
-            value,
-            "symbol" + incrementor
-          ),
-      },
-      "apply-fitting-content-mode": {
-        isBoolean: true,
-        isOnlyAttr: false,
-        func: (value, incrementor, finalCss, Base) =>
-          Base.bool(
-            "apply-fitting-content-mode",
-            value,
-            "symbol" + incrementor
-          ),
-      },
-      "center-align-image": {
-        isBoolean: true,
-        isOnlyAttr: false,
-        func: (value, incrementor, finalCss, Base) =>
-          Base.bool("center-align-image", value, "symbol" + incrementor),
-      },
-      "left-align-image": {
-        isBoolean: true,
-        isOnlyAttr: false,
-        func: (value, incrementor, finalCss, Base) =>
-          Base.bool("left-align-image", value, "symbol" + incrementor),
-      },
-      "right-align-image": {
-        isBoolean: true,
-        isOnlyAttr: false,
-        func: (value, incrementor, finalCss, Base) =>
-          Base.bool("right-align-image", value, "symbol" + incrementor),
-      },
-    },
-  },
+module.exports = async (
+  validate,
+  template,
+  update,
+  styles,
+  attrs,
+  innerText
+) => {
+  const mapping = {
+    "url": "url",
+    "border-color": "colour",
+    "border-width": "posInt",
+    "corner-radius": "posInt",
+    "image-size": "size",
+    "image-opacity": "decimal",
+    "tint-color": "colour",
+    "resizable": "bool",
+    "container-relative-shape": "bool",
+    "content-mode": "contentMode",
+    "align-image": "alignImage"
+  }
+
+  validate(attrs, styles, mapping)
+  update(styles, mapping)
+
+  await template(`
+<img 
+  src="data:image/png;base64,${Data.fromPNG(
+    SFSymbol.named(innerText || "questionmark.circle").image
+  ).toBase64String()}" 
+  url="${styles.url}" 
+  border-color="${styles["border-color"]}"
+  border-width="${styles["border-width"]}" 
+  corner-radius="${styles["corner-radius"]}" 
+  image-size="${styles["image-size"]}" 
+  image-opacity="${styles["image-opacity"]}" 
+  tint-color="${styles["tint-color"]}" 
+  content-mode="${styles["content-mode"]}" 
+  align-image="${styles["align-image"]}" 
+  container-relative-shape="${styles["container-relative-shape"]}" 
+  resizable="${styles["resizable"]}"
+>
+  `)
 }
