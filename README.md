@@ -5,8 +5,6 @@ HTML Widget allows you to create [Scriptable](https://scriptable.app/) widgets i
 
 ## Documentation
 
-Note: This is currently in the process of being updated for version 5.00 of HTML Widget
-
 [Link](https://normal-tangerine8609.gitbook.io/html-widget/)
 
 ## Example
@@ -14,8 +12,10 @@ Note: This is currently in the process of being updated for version 5.00 of HTML
 ![Small Reddit Widget](/images/RedditWidget.jpeg)
 
 ```javascript
+
 const htmlWidget = importModule("html-widget")
 const symbol = importModule("html-widget-symbol")
+const addons = {symbol}
 
 let json = await new Request("https://www.reddit.com/r/Showerthoughts.json").loadJSON()
 let post = json["data"]["children"][Math.floor((Math.random() * 10) + 2)]["data"]
@@ -25,7 +25,6 @@ let ups = post["ups"]
 let awards = post["all_awardings"].length
 let comments = post["num_comments"]
 let url = post["url"]
-
 let widget = await htmlWidget(`
 <widget refresh-after-date="15" url="${url}">
   <style>
@@ -34,7 +33,7 @@ let widget = await htmlWidget(`
     }
     .title {
       font: system-ui, 13;
-      center-align-text: true;
+      align-text: center;
     }
     .content {
       font: system-ui, 11;
@@ -45,7 +44,7 @@ let widget = await htmlWidget(`
   <spacer space="5">
   <text class="content">${title}</text>
   <text class="content">${body}</text>
-  <stack center-align-content>
+  <stack align-content="center">
     <symbol>arrow.up.circle.fill</symbol>
     <spacer space="2">
     <text class="content">${ups}</text>
@@ -59,7 +58,7 @@ let widget = await htmlWidget(`
     <text class="content">${comments}</text>
   </stack>
 </widget>
-`, true, symbol)
+`, true, addons)
 Script.setWidget(widget)
 widget.presentSmall()
 Script.complete()
