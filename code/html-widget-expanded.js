@@ -1,1227 +1,667 @@
-//HTML Widget Version 4.01
+//HTML Widget Version 5.00
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
+
 async function htmlWidget(input, debug, addons) {
-  let tagInfo = {
-    spacer: {
-      isSelfClosing: true,
-      constructer: (
-        incrementor,
-        innerText,
-        children,
-        attrs,
-        currentStack,
-        finalCss
-      ) => `\n${currentStack}.addSpacer(${/\d+/.exec(attrs["space"] || "")})`,
-      attr: {
-        space: {
-          isBoolean: false,
-          isOnlyAttr: true
-        }
-      }
-    },
-    widget: {
-      isSelfClosing: false,
-      constructer: (
-        incrementor,
-        innerText,
-        children,
-        attrs,
-        currentStack,
-        finalCss
-      ) => "let widget = new ListWidget()",
-      attr: {
-        "background-color": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss) =>
-            await Base.colour("background-color", value, "widget")
-        },
-        "background-gradient": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.gradient("background-gradient", value, "widget")
-        },
-        "background-image": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bgImage(value, "widget")
-        },
-        "refresh-after-date": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("refresh-after-date", value, "widget")
-        },
-        "spacing": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("spacing", value, "widget")
-        },
-        "url": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            `\nwidget.url = "${value.replace(/"/g, "")}"`
-        },
-        "padding": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.padding(value, "widget")
-        },
-        "use-default-padding": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("use-default-padding", value, "widget")
-        }
+  const progress = {
+  isSelfClosing: true,
+  func: async (validate, template, update, styles, attrs, innerText) => {
+    const mapping = {
+      "url": "url",
+      "background": ["colour", "gradient"],
+      "progress-background": ["colour", "gradient"],
+      "border-color": "colour",
+      "border-width": "posInt",
+      "corner-radius": "posInt",
+      "progress-corner-radius": "posInt",
+      "width": "posInt",
+      "length": "posInt",
+      "value": "decimal"
+    }
+    validate(attrs, styles, mapping)
+    let value = /\d*(?:\.\d*)?%?/.exec(attrs.value)[0]
+    if (value.endsWith("%")) {
+      value = Number(value.replace("%", ""))
+      value /= 100
+    }
+    if (!attrs.value) {
+      throw new Error("progress Element Must Have A value Attribute")
+    }
+    if (value < 0) {
+      throw new Error(`value Attribute Must Be Above 0: ${attrs.value}`)
+    }
+    if (value > 1) {
+      throw new Error(`value Attribute Must Be Below 1: ${attrs.value}`)
+    }
+
+    await template(`
+    <stack url="${styles.url || "null"}" 
+      background="${styles.background || "black-white"}" 
+      border-color="${styles["border-color"] || "null"}" 
+      border-width="${styles["border-width"] || "null"}" 
+      corner-radius="${styles["corner-radius"] || "null"}" 
+      size="${attrs.length || 100}, ${attrs.width || 1}"
+    >
+      <stack background="${styles["progress-background"] || "gray"}" 
+        corner-radius="${styles["progress-corner-radius"] || "null"}" 
+        size="${attrs.width || 1}" size="${
+      Number(attrs.length || 100) * Number(value)
+    }, ${attrs.width || 1}">
+      </stack>
+      <stack size="${Number(attrs.length || 100) * (1 - Number(value))}, ${
+      attrs.width || 1
+    }"></stack>
+    </stack>
+  `)
+  }
+}
+
+
+  const symbol = async (
+  validate,
+  template,
+  update,
+  styles,
+  attrs,
+  innerText
+) => {
+  const mapping = {
+    "url": "url",
+    "border-color": "colour",
+    "border-width": "posInt",
+    "corner-radius": "posInt",
+    "image-size": "size",
+    "image-opacity": "decimal",
+    "tint-color": "colour",
+    "resizable": "bool",
+    "container-relative-shape": "bool",
+    "content-mode": "contentMode",
+    "align-image": "alignImage"
+  }
+
+  validate(attrs, styles, mapping)
+  update(styles, mapping)
+
+  await template(`
+<img 
+  src="data:image/png;base64,${Data.fromPNG(
+    SFSymbol.named(innerText || "questionmark.circle").image
+  ).toBase64String()}" 
+  url="${styles.url}" 
+  border-color="${styles["border-color"]}"
+  border-width="${styles["border-width"]}" 
+  corner-radius="${styles["corner-radius"]}" 
+  image-size="${styles["image-size"]}" 
+  image-opacity="${styles["image-opacity"]}" 
+  tint-color="${styles["tint-color"]}" 
+  content-mode="${styles["content-mode"]}" 
+  align-image="${styles["align-image"]}" 
+  container-relative-shape="${styles["container-relative-shape"]}" 
+  resizable="${styles["resizable"]}"
+>
+  `)
+}
+
+const hr = {
+  isSelfClosing: true,
+  func: async (validate, template, update, styles, attrs, innerText) => {
+    const mapping = {
+      "background": ["colour", "gradient", "image"],
+      "url": "url",
+      "corner-radius": "posInt",
+      "width": "posInt",
+      "hight": "posIng"
+    }
+
+    validate(attrs, styles, mapping)
+
+    await template(`
+    <stack background="${styles.background || "black-white"}" url="${
+      styles.url || "null"
+    }" corner-radius="${styles["corner-radius"] || "null"}">
+      ${styles.width ? "" : "<spacer>"}
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" image-size="${
+        styles.width || 100
+      },${styles.hight || 1}">
+      ${styles.width ? "" : "<spacer>"}
+    </stack>
+  `)
+  }
+}
+  
+  Object.assign(addons, {hr,symbol,progress})
+
+  // Primitive types for adding and validating
+  const types = {
+    colour: {
+      add: async (attribute, value, on) => {
+        const colours = value.split("-")
+        const colour =
+          colours.length == 2
+            ? "Color.dynamic(" +
+              (await colorFromValue(colours[0])) +
+              "," +
+              (await colorFromValue(colours[1])) +
+              ")"
+            : await colorFromValue(colours[0])
+        code += `\n${on}.${attribute
+          .toLowerCase()
+          .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) =>
+            chr.toUpperCase()
+          )} = ${colour}`
       },
-      compile: (incrementor) => "widget"
+      validate: () => {}
     },
-    stack: {
-      isSelfClosing: false,
-      constructer: (incrementor, innerText, children, attrs, currentStack) =>
-        `\nlet stack${incrementor} = ${currentStack}.addStack()`,
-      attr: {
-        "background-color": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("background-color", value, "stack" + incrementor)
-        },
-        "background-gradient": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.gradient(
-              "background-gradient",
-              value,
-              "stack" + incrementor
-            )
-        },
-        "background-image": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bgImage(value, "stack" + incrementor)
-        },
-        "spacing": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("spacing", value, "stack" + incrementor)
-        },
-        "url": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            `\nstack${incrementor}.url = "${value.replace(/"/g, "")}"`
-        },
-        "padding": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.padding(value, "stack" + incrementor)
-        },
-        "border-color": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("border-color", value, "stack" + incrementor)
-        },
-        "border-width": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("border-Width", value, "stack" + incrementor)
-        },
-        "corner-radius": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("corner-radius", value, "stack" + incrementor)
-        },
-        "size": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.size("size", value, "stack" + incrementor)
-        },
-        "bottom-align-content": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("bottom-align-content", value, "stack" + incrementor)
-        },
-        "center-align-content": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("center-align-content", value, "stack" + incrementor)
-        },
-        "top-align-content": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("top-align-content", value, "stack" + incrementor)
-        },
-        "layout-horizontally": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("layout-horizontally", value, "stack" + incrementor)
-        },
-        "layout-vertically": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("layout-vertically", value, "stack" + incrementor)
-        },
-        "use-default-padding": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("use-default-padding", value, "stack" + incrementor)
-        }
-      },
-      compile: (incrementor) => "stack" + incrementor
-    },
-    img: {
-      isSelfClosing: true,
-      constructer: (
-        incrementor,
-        innerText,
-        children,
-        attrs,
-        currentStack,
-        finalCss
-      ) => {
-        if (!attrs["src"]) {
-          throw new Error("img Element Must Have A src Attribute")
-        }
-        if (attrs["src"].trim().startsWith("data:image/")) {
-          return `\nlet img${incrementor} = ${currentStack}.addImage(Image.fromData(Data.fromBase64String("${attrs[
-            "src"
-          ]
-            .trim()
-            .replace("data:image/png;base64,", "")
-            .replace("data:image/jpeg;base64,", "")
-            .replace(/"/g, "")}")))`
+    posInt: {
+      add: (attribute, value, on) => {
+        if (attribute == "refresh-after-date") {
+          code += `\nlet date = new Date()\ndate.setMinutes(date.getMinutes() + ${/\d+/.exec(
+            value
+          )})\nwidget.refreshAfterDate = date`
         } else {
-          return `\nlet img${incrementor} = ${currentStack}.addImage(await new Request("${attrs[
-            "src"
-          ].replace(/"/g, "")}").loadImage())`
+          code += `\n${on}.${attribute
+            .toLowerCase()
+            .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) =>
+              chr.toUpperCase()
+            )} = ${/\d+/.exec(value)}`
         }
       },
-      attr: {
-        "border-color": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("border-color", value, "img" + incrementor)
-        },
-        "border-width": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("border-width", value, "img" + incrementor)
-        },
-        "corner-radius": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("corner-radius", value, "img" + incrementor)
-        },
-        "image-opacity": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.decimal("image-opacity", value, "img" + incrementor)
-        },
-        "image-size": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.size("image-size", value, "img" + incrementor)
-        },
-        "tint-color": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("tint-color", value, "img" + incrementor)
-        },
-        "url": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            `\nimg${incrementor}.url = "${value.replace(/"/g, "")}"`
-        },
-        "src": {
-          isBoolean: false,
-          isOnlyAttr: true
-        },
-        "container-relative-shape": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("container-relative-shape", value, "img" + incrementor)
-        },
-        "resizable": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("resizable", value, "img" + incrementor)
-        },
-        "apply-filling-content-mode": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("apply-filling-content-mode", value, "img" + incrementor)
-        },
-        "apply-fitting-content-mode": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("apply-fitting-content-mode", value, "img" + incrementor)
-        },
-        "center-align-image": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("center-align-image", value, "img" + incrementor)
-        },
-        "left-align-image": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("left-align-image", value, "img" + incrementor)
-        },
-        "right-align-image": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("right-align-image", value, "img" + incrementor)
+      validate: (attribute, isAttribute, value) => {
+        if (!/^\s*\d+\s*$/.test(value)) {
+          throw new Error(
+            `${attribute} ${
+              isAttribute ? "Attribute" : "Property"
+            } Must Be A Positive Integer: ${value}`
+          )
         }
       }
     },
-    text: {
-      isSelfClosing: false,
-      constructer: (
-        incrementor,
-        innerText,
-        children,
-        attrs,
-        currentStack,
-        finalCss
-      ) =>
-        `\nlet text${incrementor} = ${currentStack}.addText("${innerText.replace(
-          /"/g,
-          '"'
-        )}")`,
-      attr: {
-        "font": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.font(value, "text" + incrementor)
-        },
-        "line-limit": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("line-limit", value, "text" + incrementor)
-        },
-        "minimum-scale-factor": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.decimal("minnimim-scale-factor", value, "text" + incrementor)
-        },
-        "shadow-color": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("shadow-color", value, "text" + incrementor)
-        },
-        "shadow-offset": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.shadowOffset(value, "text" + incrementor)
-        },
-        "shadow-radius": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("shadow-radius", value, "text" + incrementor)
-        },
-        "text-color": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("text-color", value, "text" + incrementor)
-        },
-        "text-opacity": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.decimal("text-opacity", value, "text" + incrementor)
-        },
-        "url": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            `\ntext${incrementor}.url = "${value.replace(/"/g, "")}"`
-        },
-        "center-align-text": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("center-align-text", value, "text" + incrementor)
-        },
-        "left-align-text": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("left-align-text", value, "text" + incrementor)
-        },
-        "right-align-text": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("right-align-text", value, "text" + incrementor)
-        }
-      }
-    },
-    date: {
-      isSelfClosing: false,
-      constructer: (
-        incrementor,
-        innerText,
-        children,
-        attrs,
-        currentStack,
-        finalCss
-      ) =>
-        `\nlet date${incrementor} = ${currentStack}.addDate(new Date("${innerText.replace(
-          /"/g,
-          '"'
-        )}"))`,
-      attr: {
-        "font": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.font(value, "date" + incrementor)
-        },
-        "line-limit": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("line-limit", value, "date" + incrementor)
-        },
-        "minimum-scale-factor": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.decimal("minnimim-scale-factor", value, "date" + incrementor)
-        },
-        "shadow-color": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("shadow-color", value, "date" + incrementor)
-        },
-        "shadow-offset": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.shadowOffset(value, "date" + incrementor)
-        },
-        "shadow-radius": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("shadow-radius", value, "date" + incrementor)
-        },
-        "text-color": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("text-color", value, "date" + incrementor)
-        },
-        "text-opacity": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.decimal("text-opacity", value, "date" + incrementor)
-        },
-        "url": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            `\ndate${incrementor}.url = "${value.replace(/"/g, "")}"`
-        },
-        "center-align-text": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("center-align-text", value, "date" + incrementor)
-        },
-        "left-align-text": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("left-align-text", value, "date" + incrementor)
-        },
-        "right-align-text": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("right-align-text", value, "date" + incrementor)
-        },
-        "apply-time-style": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("apply-time-style", value, "date" + incrementor)
-        },
-        "apply-date-style": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("apply-date-style", value, "date" + incrementor)
-        },
-        "apply-offset-style": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("apply-offset-style", value, "date" + incrementor)
-        },
-        "apply-relative-style": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("apply--style", value, "date" + incrementor)
-        },
-        "apply-timer-style": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("apply-timer-style", value, "date" + incrementor)
-        }
-      }
-    },
-    symbol: {
-      isSelfClosing: false,
-      constructer: (
-        incrementor,
-        innerText,
-        children,
-        attrs,
-        currentStack,
-        finalCss
-      ) =>
-        `\nlet symbol${incrementor} = ${currentStack}.addImage(SFSymbol.named("${
-          innerText || "questionmark.circle"
-        }").image)`,
-      attr: {
-        "border-color": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("border-color", value, "symbol" + incrementor)
-        },
-        "border-width": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("border-width", value, "symbol" + incrementor)
-        },
-        "corner-radius": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("corner-radius", value, "symbol" + incrementor)
-        },
-        "image-opacity": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.decimal("image-opacity", value, "symbol" + incrementor)
-        },
-        "image-size": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.size("image-size", value, "symbol" + incrementor)
-        },
-        "tint-color": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("tint-color", value, "symbol" + incrementor)
-        },
-        "url": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            `\nsymbol${incrementor}.url = "${value.replace(/"/g, "")}"`
-        },
-        "src": {
-          isBoolean: false,
-          isOnlyAttr: true
-        },
-        "container-relative-shape": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("container-relative-shape", value, "symbol" + incrementor)
-        },
-        "resizable": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("resizable", value, "symbol" + incrementor)
-        },
-        "apply-filling-content-mode": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool(
-              "apply-filling-content-mode",
-              value,
-              "symbol" + incrementor
-            )
-        },
-        "apply-fitting-content-mode": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool(
-              "apply-fitting-content-mode",
-              value,
-              "symbol" + incrementor
-            )
-        },
-        "center-align-image": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("center-align-image", value, "symbol" + incrementor)
-        },
-        "left-align-image": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("left-align-image", value, "symbol" + incrementor)
-        },
-        "right-align-image": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.bool("right-align-image", value, "symbol" + incrementor)
-        }
-      }
-    },
-    hr: {
-      isSelfClosing: true,
-      constructer: (
-        incrementor,
-        innerText,
-        children,
-        attrs,
-        currentStack,
-        finalCss
-      ) => {
-        let isHorizontal = true
-        for (let item of Object.keys(finalCss)) {
-          if (item == "layout-vertically") {
-            isHorizontal = false
-          } else if (item == "layout-horizontally") {
-            isHorizontal = true
-          }
-        }
-        let auto =
-          !finalCss["length"] && finalCss["length"] != 0
-            ? `\nhr${incrementor}.addSpacer()`
-            : ""
-        let width = finalCss["width"] || 1
-        let length = finalCss["length"] || 1
-        return `\nlet hr${incrementor} = ${currentStack}.addStack()${
-          isHorizontal ? "" : `\nhr${incrementor}.layoutVertically()`
-        }${auto}\nlet hrImage${incrementor} = hr${incrementor}.addImage(Image.fromData(Data.fromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=")))\nhrImage${incrementor}.imageSize = new Size(${
-          isHorizontal ? `${length},${width}` : `${width},${length}`
-        })${auto}\nhr${incrementor}.backgroundColor = Color.dynamic(Color.black(), Color.white())`
-      },
-      attr: {
-        "background-color": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour("background-color", value, "hr" + incrementor)
-        },
-        "background-gradient": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.gradient(
-              "background-gradient",
-              value,
-              "hr" + incrementor
-            )
-        },
-        "url": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            `\nhr${incrementor}.url = "${value.replace(/"/g, "")}"`
-        },
-        "corner-radius": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("corner-radius", value, "hr" + incrementor)
-        },
-        "layout-horizontally": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) => ""
-        },
-        "layout-vertically": {
-          isBoolean: true,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) => ""
-        },
-        "width": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) => {
-            Base.posInt("width", value, "null", true)
-            return ""
-          }
-        },
-        "length": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) => {
-            Base.posInt("length", value, "null", true)
-            return ""
-          }
-        }
-      }
-    },
-    progress: {
-      isSelfClosing: true,
-      constructer: (
-        incrementor,
-        innerText,
-        children,
-        attrs,
-        currentStack,
-        finalCss
-      ) => {
-        let value = attrs["value"] || 0
-        if (/^\s*\d*(?:\.\d*)?%?\s*$/.exec(value) !== ".") {
-          ;`value Attribute Must Be A Positive Integer Or Float With An Optional "%" At The End: ${value}`
-        }
+    decimal: {
+      add: (attribute, value, on) => {
         value = /\d*(?:\.\d*)?%?/.exec(value)[0]
         if (value.endsWith("%")) {
           value = Number(value.replace("%", ""))
           value /= 100
         }
-        log(finalCss)
-        let width = finalCss["width"] || 1
-        let length = finalCss["length"] || 100
-        return `\nlet progressContainer${incrementor} = ${currentStack}.addStack()\nprogressContainer${incrementor}.size = new Size(${length}, ${width})\nprogressContainer${incrementor}.backgroundColor = Color.dynamic(Color.black(), Color.white())\nlet progressBar${incrementor} = progressContainer${incrementor}.addStack()\nprogressBar${incrementor}.size = new Size(${length} * ${value}, ${width})\nprogressBar${incrementor}.backgroundColor = Color.gray()\nlet progressBarBalence${incrementor} = progressContainer${incrementor}.addStack()\nprogressBarBalence${incrementor}.size = new Size(${length} * (1-${value}), ${width})`
-      },
-      attr: {
-        "value": {
-          isBoolean: false,
-          isOnlyAttr: true
-        },
-        "background-color": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour(
-              "background-color",
-              value,
-              "progressContainer" + incrementor
-            )
-        },
-        "background-gradient": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.gradient(
-              "background-gradient",
-              value,
-              "progressContainer" + incrementor
-            )
-        },
-        "progress-color": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            `\nprogressBar${incrementor}.backgroundColor = ${await Base.colour(
-              "progress-color",
-              value,
-              "progressBar" + incrementor,
-              true
-            )}`
-        },
-        "progress-gradient": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) => {
-            const data = await Base.gradient(
-              "progress-gradient",
-              value,
-              "progressBar" + incrementor,
-              true
-            )
-            return `\nlet progressGradient${incrementor} = new LinearGradient()\nprogressGradient${incrementor}.colors = [${
-              data.colors
-            }]\nprogressGradient${incrementor}.locations = [${
-              data.locations
-            }]\nprogressGradient${incrementor}.startPoint = ${`new Point(${
-              1 -
-              (0.5 + 0.5 * Math.cos((Math.PI * (data.direction + 90)) / 180.0))
-            }, ${
-              1 -
-              (0.5 + 0.5 * Math.sin((Math.PI * (data.direction + 90)) / 180.0))
-            })`}\nprogressGradient${incrementor}.endPoint = ${`new Point(${
-              0.5 + 0.5 * Math.cos((Math.PI * (data.direction + 90)) / 180.0)
-            }, ${
-              0.5 + 0.5 * Math.sin((Math.PI * (data.direction + 90)) / 180.0)
-            })`}\nprogressBar${incrementor}.backgroundGradient = progressGradient${incrementor}`
-          }
-        },
-        "border-color": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: async (value, incrementor, finalCss, Base) =>
-            await Base.colour(
-              "border-color",
-              value,
-              "progressContainer" + incrementor
-            )
-        },
-        "border-width": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.posInt(
-              "border-Width",
-              value,
-              "progressContainer" + incrementor
-            )
-        },
-        "url": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            `\nprogressContainer${incrementor}.url = "${value.replace(
-              /"/g,
-              ""
-            )}"`
-        },
-        "corner-radius": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.posInt(
-              "corner-radius",
-              value,
-              "progressContainer" + incrementor
-            )
-        },
-        "progress-corner-radius": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            Base.posInt("corner-radius", value, "progressBar" + incrementor)
-        },
-        "url": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) =>
-            `\nprogressContainer${incrementor}.url = "${value.replace(
-              /"/g,
-              ""
-            )}"`
-        },
-        "width": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) => {
-            Base.posInt("width", value, "null", true)
-            return ""
-          }
-        },
-        "length": {
-          isBoolean: false,
-          isOnlyAttr: false,
-          func: (value, incrementor, finalCss, Base) => {
-            Base.posInt("length", value, "null", true)
-            return ""
-          }
-        }
-      }
-    }
-  }
-
-  // Primitive types
-  const Base = {
-    colour: async (attribute, value, on, raw) => {
-      colours = value.split("-")
-      let colour =
-        colours.length == 2
-          ? "Color.dynamic(" +
-            (await colorFromValue(colours[0])) +
-            "," +
-            (await colorFromValue(colours[1])) +
-            ")"
-          : await colorFromValue(colours[0])
-      if (raw) {
-        return colour
-      }
-      return `\n${on}.${attribute
-        .toLowerCase()
-        .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) =>
-          chr.toUpperCase()
-        )} = ${colour}`
-    },
-    posInt: (attribute, value, on, raw) => {
-      if (!/^\s*\d+\s*$/.test(value)) {
-        throw new Error(
-          `${attribute} Propery Or Attribute Must Be A Positive Integer: ${value}`
-        )
-      }
-      if (raw) {
-        return /\d+/.exec(value)
-      }
-      if (attribute == "refresh-after-date") {
-        return `\nlet date = new Date()\ndate.setMinutes(date.getMinutes() + ${/\d+/.exec(
-          value
-        )})\nwidget.refreshAfterDate = date`
-      } else {
-        return `\n${on}.${attribute
+        code += `\n${on}.${attribute
           .toLowerCase()
           .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) =>
             chr.toUpperCase()
-          )} = ${/\d+/.exec(value)}`
-      }
-    },
-    decimal: (attribute, value, on, raw) => {
-      if (
-        !/^\s*\d*(?:\.\d*)?%?\s*$/.test(value) &&
-        /^\s*\d*(?:\.\d*)?%?\s*$/.exec(value) !== "."
-      ) {
-        throw new Error(
-          `${attribute} Propery Or Attribute Must Be A Positive Integer Or Float With An Optional  "%" At The End: ${value}`
-        )
-      }
-      value = /\d*(?:\.\d*)?%?/.exec(value)[0]
-      if (value.endsWith("%")) {
-        value = Number(value.replace("%", ""))
-        value /= 100
-      }
-      if (raw) {
-        return value
-      }
-      return `\n${on}.${attribute
-        .toLowerCase()
-        .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) =>
-          chr.toUpperCase()
-        )} = ${value}`
-    },
-    gradient: async (attribute, value, on, raw) => {
-      if (!raw) {
-        gradientNumber++
-      }
-      let gradient = value
-      // Split gradient in parts
-      gradient = gradient
-        .split(/,(?![^(]*\))(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)/)
-        .map((e) => e.trim())
-      let gradientDirection
-      const wordDirections = {
-        "to left": 90,
-        "to right": 270,
-        "to top": 180,
-        "to bottom": 0,
-        "to top left": 135,
-        "to top right": 225,
-        "to bottom left": 45,
-        "to bottom right": 315,
-        "to left top": 135,
-        "to right top": 225,
-        "to left bottom": 45,
-        "to right bottom": 315
-      }
-      // Set gradient direction
-      if (Object.keys(wordDirections).includes(gradient[0])) {
-        gradientDirection = wordDirections[gradient.shift()]
-      } else if (/\d+\s*deg/.test(gradient[0])) {
-        gradientDirection = Number(gradient.shift().match(/(\d+)\s*deg/)[1])
-      } else {
-        gradientDirection = 0
-      }
-      // Get colours
-      let colours = []
-      for (let colour of gradient) {
-        colour = colour.replace(/\d*(\.\d+)?%?$/, "")
-        colour = colour.split("-")
-        if (colour.length == 2) {
-          colours.push(
-            Color.dynamic(
-              await colorFromValue(colour[0]),
-              await colorFromValue(colour[1])
-            )
+          )} = ${value}`
+      },
+      validate: (attribute, isAttribute, value) => {
+        let regex = /^\s*(\d*(?:\.\d*)?)%?\s*$/
+        if (
+        !value.match(regex) ||
+        value.match(regex) &&
+        ["","."].includes(value.match(regex)[1])
+        ) {
+          throw new Error(
+            `${attribute} ${
+              isAttribute ? "Attribute" : "Property"
+            } Must Be A Positive Integer Or Float With An Optional "%" At The End: ${value}`
           )
-        } else {
-          colours.push(await colorFromValue(colour[0]))
         }
       }
-      // Get locations
-      let locations = gradient
-        .map((e) =>
-          /\d*(\.\d+)?%?$/.test(e) ? e.match(/\d*(\.\d+)?%?$/)[0] : null
-        )
-        .map((e) => {
-          if (e) {
-            if (e.endsWith("%")) {
-              e = Number(e.replace("%", "")) / 100
+    },
+    gradient: {
+      add: async (attribute, value, on) => {
+        gradientNumber++
+        let gradient = value
+        // Split gradient in parts
+        gradient = gradient
+          .split(/,(?![^(]*\))(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)/)
+          .map((e) => e.trim())
+        let gradientDirection
+        const wordDirections = {
+          "to left": 90,
+          "to right": 270,
+          "to top": 180,
+          "to bottom": 0,
+          "to top left": 135,
+          "to top right": 225,
+          "to bottom left": 45,
+          "to bottom right": 315,
+          "to left top": 135,
+          "to right top": 225,
+          "to left bottom": 45,
+          "to right bottom": 315
+        }
+        // Set gradient direction
+        if (Object.keys(wordDirections).includes(gradient[0])) {
+          gradientDirection = wordDirections[gradient.shift()]
+        } else if (/\d+\s*deg/.test(gradient[0])) {
+          gradientDirection = Number(gradient.shift().match(/(\d+)\s*deg/)[1])
+        } else {
+          gradientDirection = 0
+        }
+        // Get colours
+        let colours = []
+        for (let colour of gradient) {
+          colour = colour.replace(/\d*(\.\d+)?%?$/, "")
+          colour = colour.split("-")
+          if (colour.length == 2) {
+            colours.push(
+              Color.dynamic(
+                await colorFromValue(colour[0]),
+                await colorFromValue(colour[1])
+              )
+            )
+          } else {
+            colours.push(await colorFromValue(colour[0]))
+          }
+        }
+        // Get locations
+        let locations = gradient
+          .map((e) =>
+            /\d*(\.\d+)?%?$/.test(e) ? e.match(/\d*(\.\d+)?%?$/)[0] : null
+          )
+          .map((e) => {
+            if (e) {
+              if (e.endsWith("%")) {
+                e = Number(e.replace("%", "")) / 100
+              }
+            }
+            return (!isNaN(e) && !isNaN(parseFloat(e))) || typeof e == "number"
+              ? Number(e)
+              : null
+          })
+        if (!locations[0]) {
+          locations[0] = 0
+        }
+        if (!locations[locations.length - 1]) {
+          locations[locations.length - 1] = 1
+        }
+        let minLocation = 0
+        // Set not specified locations
+        for (let i = 0; i < locations.length; i++) {
+          let currentLocation = locations[i]
+          if (currentLocation) {
+            let counter = 0
+            let index = i
+            while (locations[index] === null) {
+              counter++
+              index++
+            }
+            let difference =
+              (locations[index] - locations[i - 1]) / (counter + 1)
+            for (let count = 0; count < counter; count++) {
+              locations[count + i] = difference * (count + 1) + locations[i - 1]
             }
           }
-          return (!isNaN(e) && !isNaN(parseFloat(e))) || typeof e == "number"
-            ? Number(e)
-            : null
-        })
-      if (!locations[0]) {
-        locations[0] = 0
+        }
+        code += `\nlet gradient${gradientNumber} = new LinearGradient()\ngradient${gradientNumber}.colors = [${colours}]\ngradient${gradientNumber}.locations = [${locations}]\ngradient${gradientNumber}.startPoint = ${`new Point(${
+          1 -
+          (0.5 + 0.5 * Math.cos((Math.PI * (gradientDirection + 90)) / 180.0))
+        }, ${
+          1 -
+          (0.5 + 0.5 * Math.sin((Math.PI * (gradientDirection + 90)) / 180.0))
+        })`}\ngradient${gradientNumber}.endPoint = ${`new Point(${
+          0.5 + 0.5 * Math.cos((Math.PI * (gradientDirection + 90)) / 180.0)
+        }, ${
+          0.5 + 0.5 * Math.sin((Math.PI * (gradientDirection + 90)) / 180.0)
+        })`}\n${on}.backgroundGradient = gradient${gradientNumber}`
+      },
+      validate: (attribute, isAttribute, value) => {
+        let gradient = value
+        // Split gradient in parts
+        gradient = gradient
+          .split(/,(?![^(]*\))(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)/)
+          .map((e) => e.trim())
+        const wordDirections = [
+          "to left",
+          "to right",
+          "to top",
+          "to bottom",
+          "to top left",
+          "to top right",
+          "to bottom left",
+          "to bottom right",
+          "to left top",
+          "to right top",
+          "to left bottom",
+          "to right bottom"
+        ]
+        if (wordDirections.includes(gradient[0])) {
+          gradient.shift()
+        } else if (/\d+\s*deg/.test(gradient[0])) {
+          gradient.shift()
+        }
+        // Get locations
+        let locations = gradient
+          .map((e) =>
+            /\d*(\.\d+)?%?$/.test(e) ? e.match(/\d*(\.\d+)?%?$/)[0] : null
+          )
+          .map((e) => {
+            if (e) {
+              if (e.endsWith("%")) {
+                e = Number(e.replace("%", "")) / 100
+              }
+            }
+            return (!isNaN(e) && !isNaN(parseFloat(e))) || typeof e == "number"
+              ? Number(e)
+              : null
+          })
+        if (!locations[0]) {
+          locations[0] = 0
+        }
+        if (!locations[locations.length - 1]) {
+          locations[locations.length - 1] = 1
+        }
+        let minLocation = 0
+        for (let i = 0; i < locations.length; i++) {
+          let currentLocation = locations[i]
+          if (currentLocation) {
+            if (minLocation > currentLocation) {
+              throw new Error(
+                `${attribute} ${
+                  isAttribute ? "Attribute" : "Property"
+                } Locations Must Be In Ascending Order: ${value}`
+              )
+            }
+            if (currentLocation < 0) {
+              throw new Error(
+                `${attribute} ${
+                  isAttribute ? "Attribute" : "Property"
+                } Locations Must Be Equal Or Greater Than 0: ${value}`
+              )
+            }
+            if (currentLocation > 1) {
+              throw new Error(
+                `${attribute} ${
+                  isAttribute ? "Attribute" : "Property"
+                } Locations Must Be Equal Or Less Than 1: ${value}`
+              )
+            }
+            minLocation = currentLocation
+          }
+        }
       }
-      if (!locations[locations.length - 1]) {
-        locations[locations.length - 1] = 1
-      }
-      let minLocation = 0
-      // Set not specified locations
-      for (let i = 0; i < locations.length; i++) {
-        let currentLocation = locations[i]
-        if (currentLocation) {
-          if (minLocation > currentLocation) {
-            throw new Error(
-              `${attribute} Propery Or Attribute Locations Must Be In Ascending Order: ${value}`
-            )
-          }
-          if (currentLocation < 0) {
-            throw new Error(
-              `${attribute} Propery Or Attribute Locations Must Be Equal Or Greater Than 0: ${value}`
-            )
-          }
-          if (currentLocation > 1) {
-            throw new Error(
-              `${attribute} Propery Or Attribute Locations Must Be Equal Or Less Than 1: ${value}`
-            )
-          }
-          minLocation = currentLocation
+    },
+    padding: {
+      add: (attribute, value, on) => {
+        if (value == "default") {
+          code += `\n${on}.useDefaultPadding()`
         } else {
-          let counter = 0
-          let index = i
-          while (locations[index] === null) {
-            counter++
-            index++
+          paddingArray = value.match(/\d+/g)
+          if (paddingArray.length == 1) {
+            paddingArray = [
+              paddingArray[0],
+              paddingArray[0],
+              paddingArray[0],
+              paddingArray[0]
+            ]
+          } else if (paddingArray.length == 2) {
+            paddingArray = [
+              paddingArray[0],
+              paddingArray[1],
+              paddingArray[0],
+              paddingArray[1]
+            ]
           }
-          let difference = (locations[index] - locations[i - 1]) / (counter + 1)
-          for (let count = 0; count < counter; count++) {
-            locations[count + i] = difference * (count + 1) + locations[i - 1]
-          }
+          code += `\n${on}.setPadding(${paddingArray.join(",")})`
+        }
+      },
+      validate: (attribute, isAttribute, value) => {
+        if (
+          !/^\s*\d+((\s*,\s*\d+){3}|(\s*,\s*\d+))?\s*$|default/g.test(value)
+        ) {
+          throw new Error(
+            `padding ${
+              isAttribute ? "Attribute" : "Property"
+            } Must Be 1, 2 Or 4 Positive Integers Separated By Commas Or default: ${value}`
+          )
         }
       }
-      if (raw) {
-        return {
-          colors: colours,
-          locations: locations,
-          direction: gradientDirection
-        }
-      }
-      return `\nlet gradient${gradientNumber} = new LinearGradient()\ngradient${gradientNumber}.colors = [${colours}]\ngradient${gradientNumber}.locations = [${locations}]\ngradient${gradientNumber}.startPoint = ${`new Point(${
-        1 - (0.5 + 0.5 * Math.cos((Math.PI * (gradientDirection + 90)) / 180.0))
-      }, ${
-        1 - (0.5 + 0.5 * Math.sin((Math.PI * (gradientDirection + 90)) / 180.0))
-      })`}\ngradient${gradientNumber}.endPoint = ${`new Point(${
-        0.5 + 0.5 * Math.cos((Math.PI * (gradientDirection + 90)) / 180.0)
-      }, ${
-        0.5 + 0.5 * Math.sin((Math.PI * (gradientDirection + 90)) / 180.0)
-      })`}\n${on}.backgroundGradient = gradient${gradientNumber}`
     },
-    padding: (value, on) => {
-      if (!/^\s*\d+((\s*,\s*\d+){3}|(\s*,\s*\d+))?\s*$/g.test(value)) {
-        throw new Error(
-          `padding Propery Or Attribute Must Be 1, 2 Or 4 Positive Integers Separated By Commas: ${value}`
-        )
-      }
-      paddingArray = value.match(/\d+/g)
-      if (paddingArray.length == 1) {
-        paddingArray = [
-          paddingArray[0],
-          paddingArray[0],
-          paddingArray[0],
-          paddingArray[0]
-        ]
-      } else if (paddingArray.length == 2) {
-        paddingArray = [
-          paddingArray[0],
-          paddingArray[1],
-          paddingArray[0],
-          paddingArray[1]
-        ]
-      }
-      return `\n${on}.setPadding(${paddingArray.join(",")})`
-    },
-    bgImage: (value, on) => {
-      if (value.startsWith("data:image/")) {
-        value = value
-          .replace("data:image/png;base64,", "")
-          .replace("data:image/jpeg;base64,", "")
-        return `\n${on}.backgroundImage = Image.fromData(Data.fromBase64String("${value.replace(
-          /"/g,
-          ""
-        )}"))`
-      } else {
-        return `\n${on}.backgroundImage = await new Request("${value.replace(
-          /"/g,
-          ""
-        )}").loadImage()`
-      }
-    },
-    size: (attribute, value, on) => {
-      if (!/^\s*\d+\s*,\s*\d+\s*$/.test(value)) {
-        throw new Error(
-          `${attribute} Propery Or Attribute Must Have 2 Positive Integers Separated By Commas: ${value}`
-        )
-      }
-      return `\n${on}.${attribute
-        .toLowerCase()
-        .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) =>
-          chr.toUpperCase()
-        )} = new Size(${value.match(/\d+/g)[0]},${value.match(/\d+/g)[1]})`
-    },
-    font: (value, on) => {
-      if (
-        !/^\s*[^,]+,\s*\d+\s*$/.test(value) &&
-        ![
-          "body",
-          "callout",
-          "caption1",
-          "caption2",
-          "footnote",
-          "subheadline",
-          "headline",
-          "italicSystemFont",
-          "largeTitle",
-          "title1",
-          "title2",
-          "title3"
-        ].includes(value)
-      ) {
-        throw new Error(
-          `font Propery Or Attribute Must Be 1 font And 1 Positive Integer Separated By Commas Or A Content-Based Font: ${value}`
-        )
-      }
-      let regex =
-        /^\s*(((black|bold|medium|light|heavy|regular|semibold|thin|ultraLight)(MonospacedSystemFont|RoundedSystemFont|SystemFont)\s*,\s*(\d+))|(body|callout|caption1|caption2|footnote|subheadline|headline|largeTitle|title1|title2|title3)|((italicSystemFont)\s*,\s*(\d+)))\s*$/
-      if (regex.test(value)) {
-        return `\n${on}.font = Font.${value.replace(regex, "$3$4$6$8($5$9)")}`
-      } else {
-        return `\n${on}.font = new Font("${value
-          .split(",")[0]
-          .replace(/"/g, "")}",${value.split(",")[1].match(/\d+/g)[0]})`
-      }
-    },
-    shadowOffset: (value, on) => {
-      if (!/^\s*-?\d+\s*,\s*-?\d+\s*$/.test(value)) {
-        throw new Error(
-          `shadow-offset Propery Or Attribute Element Must Have 2 Integers Separated By Commas: ${value}`
-        )
-      }
-      return `\n${on}.shadowOffset = new Point(${
-        value.split(",")[0].match(/-?\d*/)[0]
-      },${value.split(",")[1].match(/-?\d*/)[0]})`
-    },
-    bool: (attribute, value, on) => {
-      if (value == true) {
-        if (attribute == "resizable") {
-          return `\n${on}.resizable = false`
-        }
-        if (attribute == "apply-filling-content-mode") {
-          return `\n${on}.applyFillingContentMode = true`
-        }
-        if (attribute == "apply-fitting-content-mode") {
-          return `\n${on}.applyFittingContentMode = true`
-        }
-        if (attribute == "container-relative-shape") {
-          return `\n${on}.containerRelativeShape = true`
-        }
-        return `\n${on}.${attribute
+    size: {
+      add: (attribute, value, on) => {
+        code += `\n${on}.${attribute
           .toLowerCase()
-          .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())}()`
-      } else {
-        return ""
+          .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) =>
+            chr.toUpperCase()
+          )} = new Size(${value.match(/\d+/g)[0]},${value.match(/\d+/g)[1]})`
+      },
+      validate: (attribute, isAttribute, value) => {
+        if (!/^\s*\d+\s*,\s*\d+\s*$/.test(value)) {
+          throw new Error(
+            `${attribute} ${
+              isAttribute ? "Attribute" : "Property"
+            } Must Have 2 Positive Integers Separated By Commas: ${value}`
+          )
+        }
+      }
+    },
+    font: {
+      add: (attribute, value, on) => {
+        let regex =
+          /^\s*(((black|bold|medium|light|heavy|regular|semibold|thin|ultraLight)(MonospacedSystemFont|RoundedSystemFont|SystemFont)\s*,\s*(\d+))|(body|callout|caption1|caption2|footnote|subheadline|headline|largeTitle|title1|title2|title3)|((italicSystemFont)\s*,\s*(\d+)))\s*$/
+        if (regex.test(value)) {
+          code += `\n${on}.font = Font.${value.replace(
+            regex,
+            "$3$4$6$8($5$9)"
+          )}`
+        } else {
+          code += `\n${on}.font = new Font("${value
+            .split(",")[0]
+            .replace(/"/g, "")}",${value.split(",")[1].match(/\d+/g)[0]})`
+        }
+      },
+      validate: (attribute, isAttribute, value) => {
+        if (
+          !/^\s*[^,]+,\s*\d+\s*$/.test(value) &&
+          ![
+            "body",
+            "callout",
+            "caption1",
+            "caption2",
+            "footnote",
+            "subheadline",
+            "headline",
+            "italicSystemFont",
+            "largeTitle",
+            "title1",
+            "title2",
+            "title3"
+          ].includes(value)
+        ) {
+          throw new Error(
+            `font ${
+              isAttribute ? "Attribute" : "Property"
+            } Must Be 1 font And 1 Positive Integer Separated By Commas Or A Content-Based Font: ${value}`
+          )
+        }
+      }
+    },
+    point: {
+      add: (attribute, value, on) => {
+        code += `\n${on}.shadowOffset = new Point(${
+          value.split(",")[0].match(/-?\d+/)[0]
+        },${value.split(",")[1].match(/-?\d+/)[0]})`
+      },
+      validate: (attribute, isAttribute, value) => {
+        if (!/^\s*-?\d+\s*,\s*-?\d+\s*$/.test(value)) {
+          throw new Error(
+            `${attribute} ${
+              isAttribute ? "Attribute" : "Property"
+            } Must Have 2 Integers Separated By Commas: ${value}`
+          )
+        }
+      }
+    },
+    bool: {
+      add: (attribute, value, on) => {
+        if (attribute == "resizable" && value !== "false") {
+          code += `\n${on}.resizable = false`
+        }
+        if (attribute == "container-relative-shape" && value !== "false") {
+          code += `\n${on}.containerRelativeShape = true`
+        }
+      },
+      validate: () => {}
+    },
+    url: {
+      add: (attribute, value, on) => {
+        code += `\n${on}.url = "${value.replace(/"/g, "")}"`
+      },
+      validate: (attribute, isAttribute, value) => {
+        if (
+          !/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/.test(
+            value
+          )
+        ) {
+          throw new Error(
+            `${attribute} ${
+              isAttribute ? "Attribute" : "Property"
+            } Must Be A Valid URL: ${value}`
+          )
+        }
+      }
+    },
+    image: {
+      add: (attribute, value, on) => {
+        if (value.startsWith("data:image/")) {
+          code += `\n${on}.backgroundImage = Image.fromData(Data.fromBase64String("${value
+            .replace("data:image/png;base64,", "")
+            .replace("data:image/jpeg;base64,", "")
+            .replace(/"/g, "")}"))`
+        } else {
+          code += `\n${on}.backgroundImage = await new Request("${value.replace(
+            /"/g,
+            ""
+          )}").loadImage()`
+        }
+      },
+      validate: (attribute, isAttribute, value) => {}
+    },
+    layout: {
+      add: (attribute, value, on) => {
+        code += `\n${on}.layout${
+          value == "vertically" ? "Vertically" : "Horizontally"
+        }()`
+      },
+      validate: (attribute, isAttribute, value) => {
+        if (value != "vertically" && value != "horizontally") {
+          throw new Error(
+            `${attribute} ${
+              isAttribute ? "Attribute" : "Property"
+            } Must Be vertically Or horizontally: ${value}`
+          )
+        }
+      }
+    },
+    alignText: {
+      add: (attribute, value, on) => {
+        code += `\n${on}.${value}AlignText()`
+      },
+      validate: (attribute, isAttribute, value) => {
+        if (!["center", "left", "right"].includes(value)) {
+          throw new Error(
+            `${attribute} ${
+              isAttribute ? "Attribute" : "Property"
+            } Must Be left, right Or center: ${value}`
+          )
+        }
+      }
+    },
+    alignImage: {
+      add: (attribute, value, on) => {
+        code += `\n${on}.${value}AlignImage()`
+      },
+      validate: (attribute, isAttribute, value) => {
+        if (!["center", "left", "right"].includes(value)) {
+          throw new Error(
+            `${attribute} ${
+              isAttribute ? "Attribute" : "Property"
+            } Must Be left, right Or center: ${value}`
+          )
+        }
+      }
+    },
+    alignContent: {
+      add: (attribute, value, on) => {
+        code += `\n${on}.${value}AlignContent()`
+      },
+      validate: (attribute, isAttribute, value) => {
+        if (!["center", "top", "bottom"].includes(value)) {
+          throw new Error(
+            `${attribute} ${
+              isAttribute ? "Attribute" : "Property"
+            } Must Be top, bottom Or center: ${value}`
+          )
+        }
+      }
+    },
+    applyStyle: {
+      add: (attribute, value, on) => {
+        code += `\n${on}.apply${value[0].toUpperCase() + value.slice(1)}Style()`
+      },
+      validate: (attribute, isAttribute, value) => {
+        if (!["date", "timer", "offset", "relative", "time"].includes(value)) {
+          throw new Error(
+            `${attribute} ${
+              isAttribute ? "Attribute" : "Property"
+            } Must Be date, timer , relative, time, Or offset: ${value}`
+          )
+        }
+      }
+    },
+    contentMode: {
+      add: (attribute, value, on) => {
+        code += `\n${on}.apply${
+          value[0].toUpperCase() + value.slice(1)
+        }ContentMode()`
+      },
+      validate: (attribute, isAttribute, value) => {
+        if (!["filling", "fitting"].includes(value)) {
+          throw new Error(
+            `${attribute} ${
+              isAttribute ? "Attribute" : "Property"
+            } Must Be filling Or fitting: ${value}`
+          )
+        }
       }
     }
   }
-
-  // Combine default components with addons
-  if (addons) {
-    Object.assign(tagInfo, addons)
-  }
-  // Figure out self closing tags and boolean attributes for parsing
-  let selfClosers = []
-  let booleanAttr = []
-  for (let component of Object.keys(tagInfo)) {
-    if (tagInfo[component]["isSelfClosing"]) {
-      selfClosers.push(component)
-    }
-    for (let attr of Object.keys(tagInfo[component]["attr"])) {
-      if (tagInfo[component]["attr"][attr]["isBoolean"]) {
-        booleanAttr.push(tagInfo[component]["attr"][attr]["name"])
+  
+  // Format addons to only the functions and find if they are self closing
+  let selfClosers = ["img", "spacer"]
+  for (let addon of Object.keys(addons)) {
+    if (typeof addons[addon] == "object") {
+      if (addons[addon].isSelfClosing) {
+        selfClosers.push(addon)
       }
+      addons[addon] = addons[addon].func
     }
   }
+  
   // https://github.com/henryluki/html-parser
   // Added comment support
-  const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/,ENDTAG_REX=/^<\/([-A-Za-z0-9_]+)[^>]*>/,ATTR_REX=/([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;function makeMap(t){return t.split(",").reduce((t,e)=>(t[e]=!0,t),{})}const EMPTY_MAKER=makeMap(selfClosers.join(",")),FILLATTRS_MAKER=makeMap(booleanAttr.join(","));function isEmptyMaker(t){return!!EMPTY_MAKER[t]}function isFillattrsMaker(t){return!!FILLATTRS_MAKER[t]}class TagStart{constructor(t,e){this.name=t,this.attributes=this.getAttributes(e)}getAttributes(t){let e={};return t.replace(ATTR_REX,function(t,n){const s=Array.prototype.slice.call(arguments),r=s[2]?s[2]:s[3]?s[3]:s[4]?s[4]:isFillattrsMaker(n)?n:"";e[n]=r.replace(/(^|[^\\])"/g,'$1\\"')}),e}}class TagEmpty extends TagStart{constructor(t,e){super(t,e)}}class TagEnd{constructor(t){this.name=t}}class Text{constructor(t){this.text=t}}const ElEMENT_TYPE="Element",TEXT_TYPE="Text";function createElement(t){const e=t.name,n=t.attributes;return t instanceof TagEmpty?{type:ElEMENT_TYPE,tagName:e,attributes:n}:{type:ElEMENT_TYPE,tagName:e,attributes:n,children:[]}}function createText(t){const e=t.text;return{type:TEXT_TYPE,content:e}}function createNodeFactory(t,e){switch(t){case ElEMENT_TYPE:return createElement(e);case TEXT_TYPE:return createText(e)}}function parse(t){let e={tag:"root",children:[]},n=[e];n.last=(()=>n[n.length-1]);for(let e=0;e<t.length;e++){const s=t[e];if(s instanceof TagStart){const t=createNodeFactory(ElEMENT_TYPE,s);t.children?n.push(t):n.last().children.push(t)}else if(s instanceof TagEnd){let t=n[n.length-2],e=n.pop();t.children.push(e)}else s instanceof Text?n.last().children.push(createNodeFactory(TEXT_TYPE,s)):"Comment"!=s.type||n.last().children.push(s)}return e}function tokenize(t){let e=t,n=[];const s=Date.now()+1e3;for(;e;){if(0===e.indexOf("\x3c!--")){const t=e.indexOf("--\x3e")+3;n.push({type:"Comment",text:e.substring(4,t-3)}),e=e.substring(t);continue}if(0===e.indexOf("</")){const t=e.match(ENDTAG_REX);if(!t)continue;e=e.substring(t[0].length);const s=t[1];if(isEmptyMaker(s))continue;n.push(new TagEnd(s));continue}if(0===e.indexOf("<")){const t=e.match(STARTTAG_REX);if(!t)continue;e=e.substring(t[0].length);const s=t[1],r=t[2],a=isEmptyMaker(s)?new TagEmpty(s,r):new TagStart(s,r);n.push(a);continue}const t=e.indexOf("<"),r=t<0?e:e.substring(0,t);if(e=t<0?"":e.substring(t),n.push(new Text(r)),Date.now()>=s)break}return n}function htmlParser(t){return parse(tokenize(t))}
+  const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/,ENDTAG_REX=/^<\/([-A-Za-z0-9_]+)[^>]*>/,ATTR_REX=/([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;function makeMap(t){return t.split(",").reduce((t,e)=>(t[e]=!0,t),{})}const EMPTY_MAKER=makeMap(selfClosers.join(",")),FILLATTRS_MAKER=makeMap("no-css,children");function isEmptyMaker(t){return!!EMPTY_MAKER[t]}function isFillattrsMaker(t){return!!FILLATTRS_MAKER[t]}class TagStart{constructor(t,e){this.name=t,this.attributes=this.getAttributes(e)}getAttributes(t){let e={};return t.replace(ATTR_REX,function(t,n){const s=Array.prototype.slice.call(arguments),r=s[2]?s[2]:s[3]?s[3]:s[4]?s[4]:isFillattrsMaker(n)?n:"";e[n]=r.replace(/(^|[^\\])"/g,'$1\\"')}),e}}class TagEmpty extends TagStart{constructor(t,e){super(t,e)}}class TagEnd{constructor(t){this.name=t}}class Text{constructor(t){this.text=t}}const ElEMENT_TYPE="Element",TEXT_TYPE="Text";function createElement(t){const e=t.name,n=t.attributes;return t instanceof TagEmpty?{type:ElEMENT_TYPE,tagName:e,attributes:n}:{type:ElEMENT_TYPE,tagName:e,attributes:n,children:[]}}function createText(t){const e=t.text;return{type:TEXT_TYPE,content:e}}function createNodeFactory(t,e){switch(t){case ElEMENT_TYPE:return createElement(e);case TEXT_TYPE:return createText(e)}}function parse(t){let e={tag:"root",children:[]},n=[e];n.last=(()=>n[n.length-1]);for(let e=0;e<t.length;e++){const s=t[e];if(s instanceof TagStart){const t=createNodeFactory(ElEMENT_TYPE,s);t.children?n.push(t):n.last().children.push(t)}else if(s instanceof TagEnd){let t=n[n.length-2],e=n.pop();t.children.push(e)}else s instanceof Text?n.last().children.push(createNodeFactory(TEXT_TYPE,s)):"Comment"!=s.type||n.last().children.push(s)}return e}function tokenize(t){let e=t,n=[];const s=Date.now()+1e3;for(;e;){if(0===e.indexOf("\x3c!--")){const t=e.indexOf("--\x3e")+3;n.push({type:"Comment",text:e.substring(4,t-3)}),e=e.substring(t);continue}if(0===e.indexOf("</")){const t=e.match(ENDTAG_REX);if(!t)continue;e=e.substring(t[0].length);const s=t[1];if(isEmptyMaker(s))continue;n.push(new TagEnd(s));continue}if(0===e.indexOf("<")){const t=e.match(STARTTAG_REX);if(!t)continue;e=e.substring(t[0].length);const s=t[1],r=t[2],a=isEmptyMaker(s)?new TagEmpty(s,r):new TagStart(s,r);n.push(a);continue}const t=e.indexOf("<"),r=t<0?e:e.substring(0,t);if(e=t<0?"":e.substring(t),n.push(new Text(r)),Date.now()>=s)break}return n}function htmlParser(t){return parse(tokenize(t))}
+  
   // Set base variables
   let currentStack,
     code = "",
     incrementors = {},
-    gradientNumber = -1,
-    canvas = false
+    gradientNumber = -1
 
   // Get only the first widget tag
-  let widgetBody = htmlParser(input)["children"].filter((element) => {
+  let widgetBody = htmlParser(input).children.filter((element) => {
     if (element.tagName == "widget") {
       return element
     }
   })[0]
   // If there were no widget tags raise error
   if (!widgetBody) {
-    throw new Error("widget Tag Must Be The Parent Tag")
+    throw new Error("widget Tag Must Be The Root Tag")
   }
   // Get all direct style tags
-  let styleTags = widgetBody["children"].filter((e) => e.tagName == "style")
+  let styleTags = widgetBody.children.filter((e) => e.tagName == "style")
   let cssTexts = ""
   for (let styleTag of styleTags) {
     // Get all text children
-    for (let item of styleTag["children"]) {
+    for (let item of styleTag.children) {
       if (item.type == "Text") {
-        cssTexts += "\n" + item["content"].trim()
+        cssTexts += "\n" + item.content.trim()
       }
     }
   }
@@ -1235,7 +675,7 @@ async function htmlWidget(input, debug, addons) {
         rule
       )
     ) {
-      throw new Error(`Invalid CSS Rule\n${rule.trim()}`)
+      throw new Error(`Invalid CSS Rule:\n${rule.trim()}`)
     }
     // Set rules into the mainCss JSON
     let selector = rule.match(/\.?[\w\-]+|\*/)[0]
@@ -1268,120 +708,329 @@ async function htmlWidget(input, debug, addons) {
       return
     }
     // Throw an error if there is a nestled widget tag
-    if (tag["tagName"] == "widget" && code) {
+    if (tag.tagName == "widget" && code) {
       throw new Error("widget Tag Must Not Be Nestled")
     }
-
-    if (Object.keys(tagInfo).includes(tag["tagName"])) {
-      // Add light/dark mode helper function if a tag uses a DrawContext/canvas
-      if (tagInfo[tag["tagName"]]["useCanvas"] && canvas == false) {
-        code +=
-          "\nasync function isUsingDarkAppearance(){return !(Color.dynamic(Color.white(),Color.black()).red) }"
+    // Increment incrementor
+    if (incrementors[tag.tagName] || incrementors[tag.tagName] == 0) {
+      incrementors[tag.tagName]++
+    } else {
+      incrementors[tag.tagName] = 0
+    }
+    let incrementor = incrementors[tag.tagName]
+    // Get innerText
+    let textArray = []
+    tag.children = tag.children || []
+    for (let item of tag.children) {
+      if (item.type == "Text") {
+        textArray.push(item.content.trim())
       }
+    }
+    let innerText = textArray
+      .join(" ")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt/g, ">")
+      .replace(/&amp;/g, "&")
+      .replace(/\n\s+/g, "\\n")
 
-      // Increment incrementor
-      if (incrementors[tag["tagName"]] || incrementors[tag["tagName"]] == 0) {
-        incrementors[tag["tagName"]]++
+    let availableCss = ["*", tag["tagName"]]
+    let attributeCss = {}
+
+    // Add attributes to css or compile for class
+    for (let key of Object.keys(tag.attributes)) {
+      let value = tag.attributes[key].trim()
+      if (key == "class") {
+        value = value.trim().split(" ")
+        for (let item of value) {
+          availableCss.push("." + item)
+        }
       } else {
-        incrementors[tag["tagName"]] = 0
+        attributeCss[key] = value
       }
-      let incrementor = incrementors[tag["tagName"]]
-      // Get innerText
-      let textArray = []
-      tag["children"] = tag["children"] || []
-      for (let item of tag["children"]) {
-        if (item.type == "Text") {
-          textArray.push(item["content"].trim())
+    }
+    // Add or reset all selected css values if the tag does not have the no-css attribute
+    let finalCss = {}
+    for (let rule of mainCss) {
+      if (
+        availableCss.includes(rule.selector) &&
+        !Object.keys(tag.attributes).includes("no-css")
+      ) {
+        for (let key of Object.keys(rule.css)) {
+          delete finalCss[key]
+          finalCss[key] = rule.css[key]
         }
       }
-      let innerText = textArray
-        .join(" ")
-        .replace(/&lt;/g, "<")
-        .replace(/&gt/g, ">")
-        .replace(/&amp;/g, "&")
-        .replace(/\n\s+/g, "\\n")
-
-      // Get valid attributes
-      let cssAttr = []
-      let plainAttr = []
-      for (let attr of Object.keys(tagInfo[tag["tagName"]]["attr"])) {
-        if (tagInfo[tag["tagName"]]["attr"][attr]["isOnlyAttr"]) {
-          plainAttr.push(attr)
-        } else {
-          cssAttr.push(attr)
+    }
+    // Add attribute values to the css
+    for (let key of Object.keys(attributeCss)) {
+      delete finalCss[key]
+      finalCss[key] = attributeCss[key]
+    }
+    
+    // Switch for each tag name
+    let mapping
+    switch (tag.tagName) {
+      case "spacer":
+        // Add the spacer to the code and validate for the space attribute
+        code += `\nlet spacer${incrementor} = ${currentStack}.addSpacer(${
+          attributeCss.space && attributeCss.space !== "null"
+            ? attributeCss.space
+            : ""
+        })`
+        mapping = {space: "posInt"}
+        validate(attributeCss, finalCss, mapping)
+        return
+        break
+      case "widget":
+        // Add the widget to the code and validate the attributes and css
+        code += `let widget = new ListWidget()`
+        mapping = {
+          "background": ["gradient", "image", "colour"],
+          "refresh-after-date": "posInt",
+          "spacing": "posInt",
+          "url": "url",
+          "padding": "padding"
         }
-      }
-      plainAttr.push("class")
-      let availableCss = ["*", tag["tagName"]]
-      let attributeCss = {}
-
-      // Add attributes to css or compile for class
-      for (let key of Object.keys(tag["attributes"])) {
-        let value = tag["attributes"][key].trim()
-        if (!plainAttr.includes(key) && !cssAttr.includes(key)) {
-          throw new Error(
-            `Unknown Attribute ${key} On ${tag["tagName"]} Element`
-          )
-        }
-        if (key == "class") {
-          value = value.trim().split(" ")
-          for (let item of value) {
-            availableCss.push("." + item)
-          }
-        } else {
-          if (!plainAttr.includes(key)) {
-            attributeCss[key] = value || true
-          }
-        }
-      }
-      // Add or reset all selected css values
-      let customeCss = tagInfo[tag["tagName"]]["customeAttr"]
-      let customInfo = tagInfo[tag["tagName"]]["attr"]
-      let finalCss = tagInfo[tag["tagName"]]["defaultCss"] || {}
-      for (let rule of mainCss) {
-        if (availableCss.includes(rule["selector"])) {
-          for (let key of Object.keys(rule["css"])) {
-            if (cssAttr.includes(key)) {
-              delete finalCss[key]
-              finalCss[key] = rule["css"][key]
+        validate(attributeCss, finalCss, mapping)
+        // Repeat with each css value
+        for (let key of Object.keys(finalCss)) {
+          let value = finalCss[key]
+          let on = "widget"
+          if (key == "background" && value !== "null" && key != "no-css" && key != "children") {
+            // Background must be completed differently because it can have 3 different types
+            try {
+              types.url.validate("background", true, value)
+              types.image.add(key, value, on)
+            } catch (e) {
+              if (
+                value.split(
+                  /,(?![^(]*\))(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)/
+                ).length === 1
+              ) {
+                await types.colour.add("background-color", value, on)
+              } else {
+                await types.gradient.add("background-gradient", value, on)
+              }
             }
+          } else if (value != "null" && key != "children" && key != "no-css") {
+            // Add the style to the tag
+            await types[mapping[key]].add(key, value, on)
           }
         }
-      }
-      for (let key of Object.keys(attributeCss)) {
-        delete finalCss[key]
-        finalCss[key] = attributeCss[key]
-      }
-
-      // Construct component
-      code += await tagInfo[tag["tagName"]]["constructer"](
-        incrementor,
-        innerText,
-        tag["children"],
-        tag["attributes"],
-        currentStack,
-        finalCss
-      )
-
-      // Add the css
-      for (let key of Object.keys(finalCss)) {
-        let value = finalCss[key] == "true" ? true : finalCss[key]
-        code += await customInfo[key]["func"](
-          value,
-          incrementor,
-          finalCss,
-          Base
-        )
-      }
-
-      // Compile children of component if specified
-      if (tagInfo[tag["tagName"]]["compile"]) {
+        // Compile children
         for (let child of tag["children"]) {
-          currentStack = tagInfo[tag["tagName"]]["compile"](incrementor)
+          currentStack = "widget"
           await compile(child)
         }
+        return
+        break
+      case "stack":
+         // Add the stack to the code and validate the attributes and css
+        code += `\nlet stack${incrementor} = ${currentStack}.addStack()`
+        mapping = {
+          "background": ["gradient", "image", "colour"],
+          "spacing": "posInt",
+          "url": "url",
+          "padding": "padding",
+          "border-color": "colour",
+          "border-width": "posInt",
+          "size": "size",
+          "corner-radius": "posInt",
+          "align-content": "alignContent",
+          "layout": "layout"
+        }
+        validate(attributeCss, finalCss, mapping)
+        // Repeat with each css value
+        for (let key of Object.keys(finalCss)) {
+          let value = finalCss[key]
+          let on = "stack" + incrementor
+          if (key == "background" && value !== "null" && key != "children" && key != "no-css") {
+            // Background must be completed differently because it can have 3 different types
+            try {
+              types.url.validate("background", true, value)
+              types.image.add(key, value, on)
+            } catch (e) {
+              if (
+                value.split(
+                  /,(?![^(]*\))(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)/
+                ).length === 1
+              ) {
+                await types.colour.add("background-color", value, on)
+              } else {
+                await types.gradient.add("background-gradient", value, on)
+              }
+            }
+          } else if (value != "null" && key != "children" && key != "no-css") {
+            // Add style to stack
+            await types[mapping[key]].add(key, value, on)
+          }
+        }
+        // Compile children
+        let compileIncrementor = incrementor
+        for (let child of tag["children"]) {
+          currentStack = "stack" + compileIncrementor
+          await compile(child)
+        }
+        return
+        break
+      case "img":
+        let image
+        // Throw an error if there is no src attribute
+        if (!attributeCss["src"] || attributeCss["src"] == "null") {
+          throw new Error("img Element Must Have A src Attribute")
+        }
+        // Determine if the image is a URL or base encoding
+        if (attributeCss["src"].startsWith("data:image/")) {
+          image = `Image.fromData(Data.fromBase64String("${attributeCss["src"]
+            .replace("data:image/png;base64,", "")
+            .replace("data:image/jpeg;base64,", "")
+            .replace(/"/g, "")}"))`
+        } else {
+          image = `await new Request("${attributeCss["src"].replace(
+            /"/g,
+            ""
+          )}").loadImage()`
+        }
+        // Add the image to the code and validate attributes and css
+        code += `\nlet img${incrementor} = ${currentStack}.addImage(${image})`
+        mapping = {
+          "src": "image",
+          "url": "url",
+          "border-color": "colour",
+          "border-width": "posInt",
+          "corner-radius": "posInt",
+          "image-size": "size",
+          "image-opacity": "decimal",
+          "tint-color": "colour",
+          "resizable": "bool",
+          "container-relative-shape": "bool",
+          "content-mode": "contentMode",
+          "align-image": "alignImage"
+        }
+        validate(attributeCss, finalCss, mapping)
+        // Add css styles to the image
+        for (let key of Object.keys(finalCss)) {
+          if (key == "src") {
+            continue
+          }
+          let value = finalCss[key]
+          let on = "img" + incrementor
+          if (value != "null" && key != "children" && key != "no-css") {
+            await types[mapping[key]].add(key, value, on)
+          }
+        }
+        return
+        break
+      case "text":
+        // Add text to the widget and validate attributes and css
+        code += `\nlet text${incrementor} = ${currentStack}.addText("${innerText.replace(
+          /"/g,
+          ""
+        )}")`
+        mapping = {
+          "url": "url",
+          "font": "font",
+          "line-limit": "posInt",
+          "minimum-scale-factor": "decimal",
+          "shadow-color": "colour",
+          "shadow-offset": "point",
+          "shadow-radius": "posInt",
+          "text-color": "colour",
+          "text-opacity": "decimal",
+          "align-text": "alignText"
+        }
+        validate(attributeCss, finalCss, mapping)
+        // Add styles to the text
+        for (let key of Object.keys(finalCss)) {
+          let value = finalCss[key]
+          let on = "text" + incrementor
+          if (value != "null" && key != "children" && key != "no-css") {
+            await types[mapping[key]].add(key, value, on)
+          }
+        }
+        return
+        break
+      case "date":
+        // Add the date element to the widget and validate for the attributes and css
+        code += `\nlet date${incrementor} = ${currentStack}.addDate(new Date("${innerText.replace(
+          /"/g,
+          ""
+        )}"))`
+        mapping = {
+          "url": "url",
+          "font": "font",
+          "line-limit": "posInt",
+          "minimum-scale-factor": "decimal",
+          "shadow-color": "colour",
+          "shadow-offset": "point",
+          "shadow-radius": "posInt",
+          "text-color": "colour",
+          "text-opacity": "decimal",
+          "align-text": "alignText",
+          "apply-style": "applyStyle"
+        }
+        validate(attributeCss, finalCss, mapping)
+        // Add styles to the date
+        for (let key of Object.keys(finalCss)) {
+          let value = finalCss[key]
+          let on = "date" + incrementor
+          if (value != "null" && key != "children" && key != "no-css") {
+            await types[mapping[key]].add(key, value, on)
+          }
+        }
+        return
+        break
+      default:
+        // Throw an error if it is not a valid addon
+        if (!Object.keys(addons).includes(tag["tagName"])) {
+          throw new Error("Invalid Tag Name: " + tag["tagName"])
       }
-      return
+        code += `\n// <${tag.tagName}>`
+        // Run the addon
+        await addons[tag["tagName"]](
+          validate,
+          template,
+          update,
+          finalCss,
+          attributeCss,
+          innerText
+        )
+        code += `\n// </${tag.tagName}>`
+        return
+        // Function to add the raw html of the addon to the widget
+        async function template(input) {
+          // Parse the template
+          let parsedInput = htmlParser(input)
+          // Run through all children to determine where to put the tag children and add the no-css attribute
+            parsedInput.children = parsedInput.children.map((e) =>
+              putChildren(e, tag.children))
+          // Compile template
+          let stack = currentStack
+          for (let child of parsedInput.children) {
+            let currentStack = stack
+            await compile(child)
+          }
+          // Function to add the no-css attribute to all children and put the tag children into the template
+          function putChildren(tag, children) {
+            if (
+              tag.attributes &&
+              Object.keys(tag.attributes).includes("children")
+            ) {
+              for (let item of children) {
+                tag.children.push(item)
+              }
+            }
+            if (tag.children) {
+              tag.children.map((e) => {
+                putChildren(e, children)
+              })
+            }
+            if (tag.attributes) {
+              tag.attributes["no-css"] = ""
+            }
+            return tag
+          }
+        }
     }
     // Compile for comment
     if (tag["type"] == "Comment") {
@@ -1392,11 +1041,85 @@ async function htmlWidget(input, debug, addons) {
       }
       return
     }
-    // Raise error if there is a nestled widget tag or unknown tag
-    throw new Error("Invalid Tag Name:" + tag["tagName"])
   }
-
-  // Get any html supported color
+  // Function that validated all attributes and css
+  function validate(attributeCss, finalCss, mapping) {
+    // Repeat with all the attributes
+    for (let attr of Object.keys(attributeCss)) {
+      // Do nothing if the attributes is children or no-css or the value is null
+      if (
+        attributeCss[attr] == "null" ||
+        attr == "children" ||
+        attr == "no-css"
+      ) {
+        continue
+      }
+      // Throw an error if the attribute is not in the mapping
+      if (!mapping[attr]) {
+        throw new Error(`Unknown Attribute: ${attr}`)
+      }
+      // Validate the attribute as a string or array of posibilities
+      if (typeof mapping[attr] == "string") {
+        types[mapping[attr]].validate(attr, true, attributeCss[attr])
+      } else {
+        let isValid = false
+        for (let posibility of mapping[attr]) {
+          try {
+            types[posibility].validate(attr, true, attributeCss[attr])
+            isValid = true
+          } catch (e) {}
+        }
+        if (isValid === false) {
+          throw new Error(
+            `${attr} Attribute Must Be A ${mapping[attr]
+              .join(", ")
+              .replace(/,([^,]*?)$/, " or$1")} Type: ${attributeCss[attr]}`
+          )
+        }
+      }
+    }
+    // Repeat with all the css
+    for (let css of Object.keys(finalCss)) {
+      // Do nothing if the css is children or no-css or the value is null
+      if (finalCss[css] == "null" || css == "children" || css == "no-css") {
+        continue
+      }
+      // Throw an error if the css is not in the mapping
+      if (!mapping[css]) {
+        throw new Error(`Unknown Property: ${css}`)
+      }
+      // Validate the css as a string or array of posibilities
+      if (typeof mapping[css] == "string") {
+        types[mapping[css]].validate(css, false, finalCss[css])
+      } else {
+        let isValid = false
+        for (let posibility of mapping[css]) {
+          try {
+            types[posibility].validate(css, false, finalCss[css])
+            isValid = true
+          } catch (e) {}
+        }
+        if (isValid === false) {
+          throw new Error(
+            `${attr} Property Must Be A ${mapping[css]
+              .join(", ")
+              .replace(/,([^,]*?)$/, " or$1")} Type: ${finalCss[css]}`
+          )
+        }
+      }
+    }
+  }
+  // Function to fill all not entered keys from the mapping with null
+  function update(input, mapping) {
+    for (let key of Object.keys(mapping)) {
+      if (!Object.keys(input).includes(key)) {
+        input[key] = "null"
+      }
+    }
+    return input
+  }
+  
+  // Function to get any html supported color
   async function colorFromValue(c) {
     let w = new WebView()
     await w.loadHTML(`<div id="div"style="color:${c}"></div>`)
