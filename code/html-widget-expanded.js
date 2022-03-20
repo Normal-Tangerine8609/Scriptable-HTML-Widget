@@ -14,7 +14,7 @@ async function htmlWidget(input, debug, addons) {
       "corner-radius": "posInt",
       "progress-corner-radius": "posInt",
       "width": "posInt",
-      "length": "posInt",
+      "height": "posInt",
       "value": "decimal"
     }
     validate(attrs, styles, mapping)
@@ -32,29 +32,32 @@ async function htmlWidget(input, debug, addons) {
     if (value > 1) {
       throw new Error(`value Attribute Must Be Below 1: ${attrs.value}`)
     }
-
+    
+    let width = Number(
+    styles.width && styles.width !== "null" ? styles.width : 100
+  )
+  let height = Number(
+    styles.height && styles.height !== "null" ? styles.height : 1
+  )
     await template(`
     <stack url="${styles.url || "null"}" 
       background="${styles.background || "black-white"}" 
       border-color="${styles["border-color"] || "null"}" 
       border-width="${styles["border-width"] || "null"}" 
       corner-radius="${styles["corner-radius"] || "null"}" 
-      size="${attrs.length || 100}, ${attrs.width || 1}"
+      size="${width}, ${height}"
     >
       <stack background="${styles["progress-background"] || "gray"}" 
         corner-radius="${styles["progress-corner-radius"] || "null"}" 
-        size="${attrs.width || 1}" size="${
-      Number(attrs.length || 100) * Number(value)
-    }, ${attrs.width || 1}">
+        size="${
+      Math.round(width * Number(value))
+    }, ${height}">
       </stack>
-      <stack size="${Number(attrs.length || 100) * (1 - Number(value))}, ${
-      attrs.width || 1
-    }"></stack>
+      <stack size="${Math.round(width * (1 - Number(value)))}, ${height}"></stack>
     </stack>
   `)
   }
 }
-
 
   const symbol = async (
   validate,
@@ -109,7 +112,7 @@ const hr = {
       "url": "url",
       "corner-radius": "posInt",
       "width": "posInt",
-      "hight": "posIng"
+      "hight": "posInt"
     }
 
     validate(attrs, styles, mapping)
