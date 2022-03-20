@@ -1,10 +1,9 @@
 /*
-HTML Widget hr 2.0
+HTML Widget hr 2.1
 https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget/blob/main/add-ons/html-widget-hr.js
 
 - Compatible with HTML Widget 5.00
-- Removed vertical layout
-- Background attribute added and background-color and background-gradient are removed
+- Fixed a bug with setting height
 */
 module.exports = {
   isSelfClosing: true,
@@ -14,7 +13,7 @@ module.exports = {
       "url": "url",
       "corner-radius": "posInt",
       "width": "posInt",
-      "hight": "posIng"
+      "hight": "posInt"
     }
 
     validate(attrs, styles, mapping)
