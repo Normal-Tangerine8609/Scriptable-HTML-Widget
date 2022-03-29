@@ -1,64 +1,7 @@
-//HTML Widget Version 5.00
+//HTML Widget Version 5.01
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 
 async function htmlWidget(input, debug, addons) {
-  const progress = {
-  isSelfClosing: true,
-  func: async (validate, template, update, styles, attrs, innerText) => {
-    const mapping = {
-      "url": "url",
-      "background": ["colour", "gradient"],
-      "progress-background": ["colour", "gradient"],
-      "border-color": "colour",
-      "border-width": "posInt",
-      "corner-radius": "posInt",
-      "progress-corner-radius": "posInt",
-      "width": "posInt",
-      "height": "posInt",
-      "value": "decimal"
-    }
-    validate(attrs, styles, mapping)
-    let value = /\d*(?:\.\d*)?%?/.exec(attrs.value)[0]
-    if (value.endsWith("%")) {
-      value = Number(value.replace("%", ""))
-      value /= 100
-    }
-    if (!attrs.value) {
-      throw new Error("progress Element Must Have A value Attribute")
-    }
-    if (value < 0) {
-      throw new Error(`value Attribute Must Be Above 0: ${attrs.value}`)
-    }
-    if (value > 1) {
-      throw new Error(`value Attribute Must Be Below 1: ${attrs.value}`)
-    }
-    
-    let width = Number(
-    styles.width && styles.width !== "null" ? styles.width : 100
-  )
-  let height = Number(
-    styles.height && styles.height !== "null" ? styles.height : 1
-  )
-    await template(`
-    <stack url="${styles.url || "null"}" 
-      background="${styles.background || "black-white"}" 
-      border-color="${styles["border-color"] || "null"}" 
-      border-width="${styles["border-width"] || "null"}" 
-      corner-radius="${styles["corner-radius"] || "null"}" 
-      size="${width}, ${height}"
-    >
-      <stack background="${styles["progress-background"] || "gray"}" 
-        corner-radius="${styles["progress-corner-radius"] || "null"}" 
-        size="${
-      Math.round(width * Number(value))
-    }, ${height}">
-      </stack>
-      <stack size="${Math.round(width * (1 - Number(value)))}, ${height}"></stack>
-    </stack>
-  `)
-  }
-}
-
   const symbol = async (
   validate,
   template,
@@ -104,7 +47,7 @@ async function htmlWidget(input, debug, addons) {
   `)
 }
 
-const hr = {
+  const hr = {
   isSelfClosing: true,
   func: async (validate, template, update, styles, attrs, innerText) => {
     const mapping = {
@@ -130,9 +73,64 @@ const hr = {
   `)
   }
 }
-  
-  Object.assign(addons, {hr,symbol,progress})
 
+  const progress = {
+  isSelfClosing: true,
+  func: async (validate, template, update, styles, attrs, innerText) => {
+    const mapping = {
+      "url": "url",
+      "background": ["colour", "gradient"],
+      "progress-background": ["colour", "gradient"],
+      "border-color": "colour",
+      "border-width": "posInt",
+      "corner-radius": "posInt",
+      "progress-corner-radius": "posInt",
+      "width": "posInt",
+      "height": "posInt",
+      "value": "decimal"
+    }
+    validate(attrs, styles, mapping)
+    let value = /\d*(?:\.\d*)?%?/.exec(attrs.value)[0]
+    if (value.endsWith("%")) {
+      value = Number(value.replace("%", ""))
+      value /= 100
+    }
+    if (!attrs.value) {
+      throw new Error("`progress` tag must have a `value` attribute")
+    }
+    if (value < 0) {
+      throw new Error(`\`value\` attribute must be above \`0\`: ${attrs.value}`)
+    }
+    if (value > 1) {
+      throw new Error(`\`value\` attribute must be below \`1\`: ${attrs.value}`)
+    }
+    
+    let width = Number(
+    styles.width && styles.width !== "null" ? styles.width : 100
+  )
+  let height = Number(
+    styles.height && styles.height !== "null" ? styles.height : 1
+  )
+    await template(`
+    <stack url="${styles.url || "null"}" 
+      background="${styles.background || "black-white"}" 
+      border-color="${styles["border-color"] || "null"}" 
+      border-width="${styles["border-width"] || "null"}" 
+      corner-radius="${styles["corner-radius"] || "null"}" 
+      size="${width}, ${height}"
+    >
+      <stack background="${styles["progress-background"] || "gray"}" 
+        corner-radius="${styles["progress-corner-radius"] || "null"}" 
+        size="${
+      Math.round(width * Number(value))
+    }, ${height}">
+      </stack>
+      <stack size="${Math.round(width * (1 - Number(value)))}, ${height}"></stack>
+    </stack>
+  `)
+  }
+}
+Object.assign(addons, progress, hr, symbol)
   // Primitive types for adding and validating
   const types = {
     colour: {
@@ -170,11 +168,7 @@ const hr = {
       },
       validate: (attribute, isAttribute, value) => {
         if (!/^\s*\d+\s*$/.test(value)) {
-          throw new Error(
-            `${attribute} ${
-              isAttribute ? "Attribute" : "Property"
-            } Must Be A Positive Integer: ${value}`
-          )
+          error(1, attribute, isAttribute ? "attribute" : "property", value)
         }
       }
     },
@@ -194,15 +188,10 @@ const hr = {
       validate: (attribute, isAttribute, value) => {
         let regex = /^\s*(\d*(?:\.\d*)?)%?\s*$/
         if (
-        !value.match(regex) ||
-        value.match(regex) &&
-        ["","."].includes(value.match(regex)[1])
+          !value.match(regex) ||
+          (value.match(regex) && ["", "."].includes(value.match(regex)[1]))
         ) {
-          throw new Error(
-            `${attribute} ${
-              isAttribute ? "Attribute" : "Property"
-            } Must Be A Positive Integer Or Float With An Optional "%" At The End: ${value}`
-          )
+          error(2, attribute, isAttribute ? "attribute" : "property", value)
         }
       }
     },
@@ -355,25 +344,13 @@ const hr = {
           let currentLocation = locations[i]
           if (currentLocation) {
             if (minLocation > currentLocation) {
-              throw new Error(
-                `${attribute} ${
-                  isAttribute ? "Attribute" : "Property"
-                } Locations Must Be In Ascending Order: ${value}`
-              )
+              error(3, attribute, isAttribute ? "attribute" : "property", value)
             }
             if (currentLocation < 0) {
-              throw new Error(
-                `${attribute} ${
-                  isAttribute ? "Attribute" : "Property"
-                } Locations Must Be Equal Or Greater Than 0: ${value}`
-              )
+              error(4, attribute, isAttribute ? "attribute" : "property", value)
             }
             if (currentLocation > 1) {
-              throw new Error(
-                `${attribute} ${
-                  isAttribute ? "Attribute" : "Property"
-                } Locations Must Be Equal Or Less Than 1: ${value}`
-              )
+              error(5, attribute, isAttribute ? "attribute" : "property", value)
             }
             minLocation = currentLocation
           }
@@ -408,11 +385,7 @@ const hr = {
         if (
           !/^\s*\d+((\s*,\s*\d+){3}|(\s*,\s*\d+))?\s*$|default/g.test(value)
         ) {
-          throw new Error(
-            `padding ${
-              isAttribute ? "Attribute" : "Property"
-            } Must Be 1, 2 Or 4 Positive Integers Separated By Commas Or default: ${value}`
-          )
+          error(6, attribute, isAttribute ? "attribute" : "property", value)
         }
       }
     },
@@ -426,11 +399,7 @@ const hr = {
       },
       validate: (attribute, isAttribute, value) => {
         if (!/^\s*\d+\s*,\s*\d+\s*$/.test(value)) {
-          throw new Error(
-            `${attribute} ${
-              isAttribute ? "Attribute" : "Property"
-            } Must Have 2 Positive Integers Separated By Commas: ${value}`
-          )
+          error(7, attribute, isAttribute ? "attribute" : "property", value)
         }
       }
     },
@@ -467,11 +436,7 @@ const hr = {
             "title3"
           ].includes(value)
         ) {
-          throw new Error(
-            `font ${
-              isAttribute ? "Attribute" : "Property"
-            } Must Be 1 font And 1 Positive Integer Separated By Commas Or A Content-Based Font: ${value}`
-          )
+          error(8, attribute, isAttribute ? "attribute" : "property", value)
         }
       }
     },
@@ -483,11 +448,7 @@ const hr = {
       },
       validate: (attribute, isAttribute, value) => {
         if (!/^\s*-?\d+\s*,\s*-?\d+\s*$/.test(value)) {
-          throw new Error(
-            `${attribute} ${
-              isAttribute ? "Attribute" : "Property"
-            } Must Have 2 Integers Separated By Commas: ${value}`
-          )
+          error(9, attribute, isAttribute ? "attribute" : "property", value)
         }
       }
     },
@@ -512,11 +473,7 @@ const hr = {
             value
           )
         ) {
-          throw new Error(
-            `${attribute} ${
-              isAttribute ? "Attribute" : "Property"
-            } Must Be A Valid URL: ${value}`
-          )
+          error(10, attribute, isAttribute ? "attribute" : "property", value)
         }
       }
     },
@@ -544,11 +501,7 @@ const hr = {
       },
       validate: (attribute, isAttribute, value) => {
         if (value != "vertically" && value != "horizontally") {
-          throw new Error(
-            `${attribute} ${
-              isAttribute ? "Attribute" : "Property"
-            } Must Be vertically Or horizontally: ${value}`
-          )
+          error(11, attribute, isAttribute ? "attribute" : "property", value)
         }
       }
     },
@@ -558,11 +511,7 @@ const hr = {
       },
       validate: (attribute, isAttribute, value) => {
         if (!["center", "left", "right"].includes(value)) {
-          throw new Error(
-            `${attribute} ${
-              isAttribute ? "Attribute" : "Property"
-            } Must Be left, right Or center: ${value}`
-          )
+          error(12, attribute, isAttribute ? "attribute" : "property", value)
         }
       }
     },
@@ -572,11 +521,7 @@ const hr = {
       },
       validate: (attribute, isAttribute, value) => {
         if (!["center", "left", "right"].includes(value)) {
-          throw new Error(
-            `${attribute} ${
-              isAttribute ? "Attribute" : "Property"
-            } Must Be left, right Or center: ${value}`
-          )
+          error(12, attribute, isAttribute ? "attribute" : "property", value)
         }
       }
     },
@@ -586,11 +531,7 @@ const hr = {
       },
       validate: (attribute, isAttribute, value) => {
         if (!["center", "top", "bottom"].includes(value)) {
-          throw new Error(
-            `${attribute} ${
-              isAttribute ? "Attribute" : "Property"
-            } Must Be top, bottom Or center: ${value}`
-          )
+          error(13, attribute, isAttribute ? "attribute" : "property", value)
         }
       }
     },
@@ -600,11 +541,7 @@ const hr = {
       },
       validate: (attribute, isAttribute, value) => {
         if (!["date", "timer", "offset", "relative", "time"].includes(value)) {
-          throw new Error(
-            `${attribute} ${
-              isAttribute ? "Attribute" : "Property"
-            } Must Be date, timer , relative, time, Or offset: ${value}`
-          )
+          error(14, attribute, isAttribute ? "attribute" : "property", value)
         }
       }
     },
@@ -616,31 +553,28 @@ const hr = {
       },
       validate: (attribute, isAttribute, value) => {
         if (!["filling", "fitting"].includes(value)) {
-          throw new Error(
-            `${attribute} ${
-              isAttribute ? "Attribute" : "Property"
-            } Must Be filling Or fitting: ${value}`
-          )
+          error(15, attribute, isAttribute ? "attribute" : "property", value)
         }
       }
     }
   }
-  
+
   // Format addons to only the functions and find if they are self closing
   let selfClosers = ["img", "spacer"]
-  for (let addon of Object.keys(addons)) {
-    if (typeof addons[addon] == "object") {
-      if (addons[addon].isSelfClosing) {
-        selfClosers.push(addon)
+  if (addons) {
+    for (let addon of Object.keys(addons)) {
+      if (typeof addons[addon] == "object") {
+        if (addons[addon].isSelfClosing) {
+          selfClosers.push(addon)
+        }
+        addons[addon] = addons[addon].func
       }
-      addons[addon] = addons[addon].func
     }
   }
-  
   // https://github.com/henryluki/html-parser
   // Added comment support
   const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/,ENDTAG_REX=/^<\/([-A-Za-z0-9_]+)[^>]*>/,ATTR_REX=/([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;function makeMap(t){return t.split(",").reduce((t,e)=>(t[e]=!0,t),{})}const EMPTY_MAKER=makeMap(selfClosers.join(",")),FILLATTRS_MAKER=makeMap("no-css,children");function isEmptyMaker(t){return!!EMPTY_MAKER[t]}function isFillattrsMaker(t){return!!FILLATTRS_MAKER[t]}class TagStart{constructor(t,e){this.name=t,this.attributes=this.getAttributes(e)}getAttributes(t){let e={};return t.replace(ATTR_REX,function(t,n){const s=Array.prototype.slice.call(arguments),r=s[2]?s[2]:s[3]?s[3]:s[4]?s[4]:isFillattrsMaker(n)?n:"";e[n]=r.replace(/(^|[^\\])"/g,'$1\\"')}),e}}class TagEmpty extends TagStart{constructor(t,e){super(t,e)}}class TagEnd{constructor(t){this.name=t}}class Text{constructor(t){this.text=t}}const ElEMENT_TYPE="Element",TEXT_TYPE="Text";function createElement(t){const e=t.name,n=t.attributes;return t instanceof TagEmpty?{type:ElEMENT_TYPE,tagName:e,attributes:n}:{type:ElEMENT_TYPE,tagName:e,attributes:n,children:[]}}function createText(t){const e=t.text;return{type:TEXT_TYPE,content:e}}function createNodeFactory(t,e){switch(t){case ElEMENT_TYPE:return createElement(e);case TEXT_TYPE:return createText(e)}}function parse(t){let e={tag:"root",children:[]},n=[e];n.last=(()=>n[n.length-1]);for(let e=0;e<t.length;e++){const s=t[e];if(s instanceof TagStart){const t=createNodeFactory(ElEMENT_TYPE,s);t.children?n.push(t):n.last().children.push(t)}else if(s instanceof TagEnd){let t=n[n.length-2],e=n.pop();t.children.push(e)}else s instanceof Text?n.last().children.push(createNodeFactory(TEXT_TYPE,s)):"Comment"!=s.type||n.last().children.push(s)}return e}function tokenize(t){let e=t,n=[];const s=Date.now()+1e3;for(;e;){if(0===e.indexOf("\x3c!--")){const t=e.indexOf("--\x3e")+3;n.push({type:"Comment",text:e.substring(4,t-3)}),e=e.substring(t);continue}if(0===e.indexOf("</")){const t=e.match(ENDTAG_REX);if(!t)continue;e=e.substring(t[0].length);const s=t[1];if(isEmptyMaker(s))continue;n.push(new TagEnd(s));continue}if(0===e.indexOf("<")){const t=e.match(STARTTAG_REX);if(!t)continue;e=e.substring(t[0].length);const s=t[1],r=t[2],a=isEmptyMaker(s)?new TagEmpty(s,r):new TagStart(s,r);n.push(a);continue}const t=e.indexOf("<"),r=t<0?e:e.substring(0,t);if(e=t<0?"":e.substring(t),n.push(new Text(r)),Date.now()>=s)break}return n}function htmlParser(t){return parse(tokenize(t))}
-  
+
   // Set base variables
   let currentStack,
     code = "",
@@ -655,7 +589,7 @@ const hr = {
   })[0]
   // If there were no widget tags raise error
   if (!widgetBody) {
-    throw new Error("widget Tag Must Be The Root Tag")
+    error(17)
   }
   // Get all direct style tags
   let styleTags = widgetBody.children.filter((e) => e.tagName == "style")
@@ -678,7 +612,7 @@ const hr = {
         rule
       )
     ) {
-      throw new Error(`Invalid CSS Rule:\n${rule.trim()}`)
+      error(18, rule.trim())
     }
     // Set rules into the mainCss JSON
     let selector = rule.match(/\.?[\w\-]+|\*/)[0]
@@ -712,7 +646,7 @@ const hr = {
     }
     // Throw an error if there is a nestled widget tag
     if (tag.tagName == "widget" && code) {
-      throw new Error("widget Tag Must Not Be Nestled")
+      error(19)
     }
     // Increment incrementor
     if (incrementors[tag.tagName] || incrementors[tag.tagName] == 0) {
@@ -769,9 +703,9 @@ const hr = {
       delete finalCss[key]
       finalCss[key] = attributeCss[key]
     }
-    
+
     // Switch for each tag name
-    let mapping
+    let mapping, linesBefore, codeLines
     switch (tag.tagName) {
       case "spacer":
         // Add the spacer to the code and validate for the space attribute
@@ -799,7 +733,12 @@ const hr = {
         for (let key of Object.keys(finalCss)) {
           let value = finalCss[key]
           let on = "widget"
-          if (key == "background" && value !== "null" && key != "no-css" && key != "children") {
+          if (
+            key == "background" &&
+            value !== "null" &&
+            key != "no-css" &&
+            key != "children"
+          ) {
             // Background must be completed differently because it can have 3 different types
             try {
               types.url.validate("background", true, value)
@@ -820,15 +759,26 @@ const hr = {
             await types[mapping[key]].add(key, value, on)
           }
         }
-        // Compile children
+        // Compile children with space indents
+        linesBefore = code.split("\n").length
         for (let child of tag["children"]) {
           currentStack = "widget"
           await compile(child)
         }
+
+        codeLines = code.split("\n")
+
+        for (let i = codeLines.length - 1; i >= 0; i--) {
+          if (i == linesBefore - 1) {
+            break
+          }
+          codeLines[i] = "  " + codeLines[i]
+        }
+        code = codeLines.join("\n")
         return
         break
       case "stack":
-         // Add the stack to the code and validate the attributes and css
+        // Add the stack to the code and validate the attributes and css
         code += `\nlet stack${incrementor} = ${currentStack}.addStack()`
         mapping = {
           "background": ["gradient", "image", "colour"],
@@ -847,7 +797,12 @@ const hr = {
         for (let key of Object.keys(finalCss)) {
           let value = finalCss[key]
           let on = "stack" + incrementor
-          if (key == "background" && value !== "null" && key != "children" && key != "no-css") {
+          if (
+            key == "background" &&
+            value !== "null" &&
+            key != "children" &&
+            key != "no-css"
+          ) {
             // Background must be completed differently because it can have 3 different types
             try {
               types.url.validate("background", true, value)
@@ -868,19 +823,29 @@ const hr = {
             await types[mapping[key]].add(key, value, on)
           }
         }
-        // Compile children
-        let compileIncrementor = incrementor
+        // Compile children with space indents
+        linesBefore = code.split("\n").length
         for (let child of tag["children"]) {
-          currentStack = "stack" + compileIncrementor
+          currentStack = "widget"
           await compile(child)
         }
+
+        codeLines = code.split("\n")
+
+        for (let i = codeLines.length - 1; i >= 0; i--) {
+          if (i == linesBefore - 1) {
+            break
+          }
+          codeLines[i] = "  " + codeLines[i]
+        }
+        code = codeLines.join("\n")
         return
         break
       case "img":
         let image
         // Throw an error if there is no src attribute
         if (!attributeCss["src"] || attributeCss["src"] == "null") {
-          throw new Error("img Element Must Have A src Attribute")
+          error(20)
         }
         // Determine if the image is a URL or base encoding
         if (attributeCss["src"].startsWith("data:image/")) {
@@ -986,8 +951,8 @@ const hr = {
       default:
         // Throw an error if it is not a valid addon
         if (!Object.keys(addons).includes(tag["tagName"])) {
-          throw new Error("Invalid Tag Name: " + tag["tagName"])
-      }
+          error(21, tag["tagName"])
+        }
         code += `\n// <${tag.tagName}>`
         // Run the addon
         await addons[tag["tagName"]](
@@ -1005,14 +970,26 @@ const hr = {
           // Parse the template
           let parsedInput = htmlParser(input)
           // Run through all children to determine where to put the tag children and add the no-css attribute
-            parsedInput.children = parsedInput.children.map((e) =>
-              putChildren(e, tag.children))
+          parsedInput.children = parsedInput.children.map((e) =>
+            putChildren(e, tag.children)
+          )
           // Compile template
           let stack = currentStack
+          linesBefore = code.split("\n").length
+
           for (let child of parsedInput.children) {
             let currentStack = stack
             await compile(child)
           }
+          codeLines = code.split("\n")
+
+          for (let i = codeLines.length - 1; i >= 0; i--) {
+            if (i == linesBefore - 1) {
+              break
+            }
+            codeLines[i] = "  " + codeLines[i]
+          }
+          code = codeLines.join("\n")
           // Function to add the no-css attribute to all children and put the tag children into the template
           function putChildren(tag, children) {
             if (
@@ -1059,7 +1036,7 @@ const hr = {
       }
       // Throw an error if the attribute is not in the mapping
       if (!mapping[attr]) {
-        throw new Error(`Unknown Attribute: ${attr}`)
+        error(22, attr)
       }
       // Validate the attribute as a string or array of posibilities
       if (typeof mapping[attr] == "string") {
@@ -1073,10 +1050,11 @@ const hr = {
           } catch (e) {}
         }
         if (isValid === false) {
-          throw new Error(
-            `${attr} Attribute Must Be A ${mapping[attr]
-              .join(", ")
-              .replace(/,([^,]*?)$/, " or$1")} Type: ${attributeCss[attr]}`
+          error(
+            23,
+            attr,
+            mapping[attr].join(", ").replace(/,([^,]*?)$/, " or$1"),
+            attributeCss[attr]
           )
         }
       }
@@ -1089,7 +1067,7 @@ const hr = {
       }
       // Throw an error if the css is not in the mapping
       if (!mapping[css]) {
-        throw new Error(`Unknown Property: ${css}`)
+        error(24, css)
       }
       // Validate the css as a string or array of posibilities
       if (typeof mapping[css] == "string") {
@@ -1103,10 +1081,11 @@ const hr = {
           } catch (e) {}
         }
         if (isValid === false) {
-          throw new Error(
-            `${attr} Property Must Be A ${mapping[css]
-              .join(", ")
-              .replace(/,([^,]*?)$/, " or$1")} Type: ${finalCss[css]}`
+          error(
+            24,
+            attr,
+            mapping[css].join(", ").replace(/,([^,]*?)$/, " or$1"),
+            finalCss[css]
           )
         }
       }
@@ -1121,7 +1100,7 @@ const hr = {
     }
     return input
   }
-  
+
   // Function to get any html supported color
   async function colorFromValue(c) {
     let w = new WebView()
@@ -1156,5 +1135,40 @@ const hr = {
       }
       return `new Color("${"#" + r + g + b}"${a})`
     }
+  }
+  function error(number) {
+    const errors = {
+      1: "`{}` {} must be a positive integer: `{}`",
+      2: "`{}` {} must be a positive integer or float with an optional `%` at the end: `{}`",
+      3: "`{}` {} locations must be in ascending order: `{}`",
+      4: "`{}` {} locations must be equal or greater than `0`: `{}`",
+      5: "`{}` {} locations must be equal or less than `1`: `{}`",
+      6: "`{}` {} must be 1, 2 or 4 positive integers separated by commas or be `default`: `{}`",
+      7: "`{}` {} must be 2 positive integers separated by commas: `{}`",
+      8: "`{}` {} must be 1 font name and 1 positive integer separated by commas or be a content-based font: `{}`",
+      9: "`{}` {} must be 2 integers separated by commas: `{}`",
+      10: "`{}` {} must be a valid URL: `{}`",
+      11: "`{}` {} must be `vertically` or `horizontally`: `{}`",
+      12: "`{}` {} must be `left`, `right` or `center`: `{}`",
+      13: "`{}` {} must be `top`, `bottom` or `center`: `{}`",
+      15: "`{}` {} must be `date`, `timer` , `relative`, `time`, or `offset`: `{}`",
+      16: "`{}` {} must be `filling` or `fitting`: `{}`",
+      17: "`widget` tag must be the root tag",
+      18: "Invalid CSS rule: `{}`",
+      19: "`widget` tag must not be nestled",
+      20: "`img` tag must have a `src` attribute",
+      21: "Invalid tag name: `{}`",
+      22: "Unknown attribute: `{}`",
+      23: "`{}` attribute must be a {} type: `{}`",
+      24: "Unknown property: `{}`",
+      25: "`{}` property must be a {} type: `{}`"
+    }
+    let error = errors[number]
+    let params = [...arguments]
+    params.splice(0, 1)
+    for (let param of params) {
+      error = error.replace("{}", param)
+    }
+    throw new Error(error)
   }
 }
