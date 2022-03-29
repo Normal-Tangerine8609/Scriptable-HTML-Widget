@@ -1,12 +1,9 @@
 /*
-HTML Widget progress 1.1
+HTML Widget progress 1.2
 https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget/blob/main/add-ons/html-widget-progress.js
 
 - Compatible with HTML Widget 5.00
-- length attribute changed to width
-- width attribute changed to height
-- Fixed some bugs when setting width or height to null
-- Fixed a bug were a error was thrown when the size attribue on a stack this element makes has a decimal number
+- Errors updated to match main HTML Widget errors
 */
 module.exports = {
   isSelfClosing: true,
@@ -30,13 +27,13 @@ module.exports = {
       value /= 100
     }
     if (!attrs.value) {
-      throw new Error("progress Element Must Have A value Attribute")
+      throw new Error("`progress` tag must have a `value` attribute")
     }
     if (value < 0) {
-      throw new Error(`value Attribute Must Be Above 0: ${attrs.value}`)
+      throw new Error(`\`value\` attribute must be above \`0\`: ${attrs.value}`)
     }
     if (value > 1) {
-      throw new Error(`value Attribute Must Be Below 1: ${attrs.value}`)
+      throw new Error(`\`value\` attribute must be below \`1\`: ${attrs.value}`)
     }
     
     let width = Number(
