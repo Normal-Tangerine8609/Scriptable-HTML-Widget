@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.01
+
+- 21.5 KB
+- Improved error messages
+- Logged code is now indented to show nestled tags
+- Fixed an issue where you would need the addons paramater to run the function 
+- Fixed some error messages to work with template tags 
+
 ## 5.00
 
 - 21.1 KB
