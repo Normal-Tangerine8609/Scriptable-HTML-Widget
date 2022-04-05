@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.02
+
+- 21.9 KB
+- Fixed a bug with the children of stack elements being forced on the widget not the stack
+- Added commas to css selectors
+- Added validation for the image type
+- Improved validation for padding and url type
+
 ## 5.01
 
 - 21.5 KB
