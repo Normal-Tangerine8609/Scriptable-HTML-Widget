@@ -1,9 +1,9 @@
-//HTML Widget Version 5.01
+//HTML Widget Version 5.02
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 
-
 async function htmlWidget(input, debug, addons) {
-  const blockquote = async (
+  
+const blockquote = async (
   validate,
   template,
   update,
@@ -443,7 +443,7 @@ Object.assign(addons, progress, hr, symbol,blockquote)
       },
       validate: (attribute, isAttribute, value) => {
         if (
-          !/^\s*\d+((\s*,\s*\d+){3}|(\s*,\s*\d+))?\s*$|default/g.test(value)
+          !/^\s*\d+((\s*,\s*\d+){3}|(\s*,\s*\d+))?\s*$|^default$/g.test(value)
         ) {
           error(6, attribute, isAttribute ? "attribute" : "property", value)
         }
@@ -529,7 +529,7 @@ Object.assign(addons, progress, hr, symbol,blockquote)
       },
       validate: (attribute, isAttribute, value) => {
         if (
-          !/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/.test(
+          !/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/.test(
             value
           )
         ) {
@@ -541,8 +541,7 @@ Object.assign(addons, progress, hr, symbol,blockquote)
       add: (attribute, value, on) => {
         if (value.startsWith("data:image/")) {
           code += `\n${on}.backgroundImage = Image.fromData(Data.fromBase64String("${value
-            .replace("data:image/png;base64,", "")
-            .replace("data:image/jpeg;base64,", "")
+            .replace(/data:image\/\w+?;base64,/, "")
             .replace(/"/g, "")}"))`
         } else {
           code += `\n${on}.backgroundImage = await new Request("${value.replace(
@@ -551,7 +550,15 @@ Object.assign(addons, progress, hr, symbol,blockquote)
           )}").loadImage()`
         }
       },
-      validate: (attribute, isAttribute, value) => {}
+      validate: (attribute, isAttribute, value) => {
+        if (
+          !/^(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))|(data:image\/\w+?;base64,[a-zA-Z0-9+/]+={0,2})$/.test(
+            value
+          )
+        ) {
+          error(26, attribute, isAttribute ? "attribute" : "property", value)
+        }
+      }
     },
     layout: {
       add: (attribute, value, on) => {
@@ -668,25 +675,30 @@ Object.assign(addons, progress, hr, symbol,blockquote)
   for (let i = 0; i < rules.length; i++) {
     let rule = rules[i]
     if (
-      !/^\s*(\.?[\w\-]+?|\*)\s*\{(\s*[\w\-]+\s*:\s*[^\n]+?\s*;)*?\s*([\w\-]+\s*:\s*[^\n]+\s*;?)?\s*\}/.test(
+      !/^\s*(\.?[\w\-]+|\*)(\s*,\s*(\.?[\w\-]+|\*))*\s*\{(\s*[\w\-]+\s*:\s*[^\n]+?\s*;)*?\s*([\w\-]+\s*:\s*[^\n]+\s*;?)?\s*\}/.test(
         rule
       )
     ) {
       error(18, rule.trim())
     }
     // Set rules into the mainCss JSON
-    let selector = rule.match(/\.?[\w\-]+|\*/)[0]
-    mainCss[i] = {selector: selector, css: {}}
+    let declarations = {}
     rule
       .match(/\{([\s\S]*)\}/)[1]
       .split(";")
       .map((e) => e.trim())
       .filter((e) => e)
       .forEach((e) => {
-        mainCss[i]["css"][e.split(/:/)[0].trim()] = e
+        declarations[e.split(/:/)[0].trim()] = e
           .substring(e.indexOf(":") + 1)
           .trim()
       })
+    let selectors = rule
+      .match(/(\.?[\w\-]+|\*)(\s*,\s*(\.?[\w\-]+|\*))*/)[0]
+      .split(",")
+    for (let selector of selectors) {
+      mainCss.push({selector: selector.trim(), css: declarations})
+    }
   }
   // Compile widget
   await compile(widgetBody)
@@ -885,8 +897,9 @@ Object.assign(addons, progress, hr, symbol,blockquote)
         }
         // Compile children with space indents
         linesBefore = code.split("\n").length
+        let stack = "stack" + incrementor
         for (let child of tag["children"]) {
-          currentStack = "widget"
+          currentStack = stack
           await compile(child)
         }
 
@@ -1221,7 +1234,8 @@ Object.assign(addons, progress, hr, symbol,blockquote)
       22: "Unknown attribute: `{}`",
       23: "`{}` attribute must be a {} type: `{}`",
       24: "Unknown property: `{}`",
-      25: "`{}` property must be a {} type: `{}`"
+      25: "`{}` property must be a {} type: `{}`",
+      26: "`{}` {} must be a valid url or base encoded data link: `{}`"
     }
     let error = errors[number]
     let params = [...arguments]
