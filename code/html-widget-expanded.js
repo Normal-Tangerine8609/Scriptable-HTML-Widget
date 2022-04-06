@@ -85,11 +85,18 @@ const blockquote = async (
 
   validate(attrs, styles, mapping)
   update(styles, mapping)
-
+  
+  let symbol = SFSymbol.named(innerText || "questionmark.circle")
+  let symbolSize = 100
+  if(styles["image-size"]) {
+    let [width,height] = styles["image-size"].match(/\d+/g)
+    symbolSize = (width > height) ? height : width
+  }
+  symbol.applyFont(Font.systemFont(parseInt(symbolSize)))
   await template(`
 <img 
   src="data:image/png;base64,${Data.fromPNG(
-    SFSymbol.named(innerText || "questionmark.circle").image
+    symbol.image
   ).toBase64String()}" 
   url="${styles.url}" 
   border-color="${styles["border-color"]}"
@@ -104,6 +111,8 @@ const blockquote = async (
   resizable="${styles["resizable"]}"
 >
   `)
+}
+
 }
 
   const hr = {
