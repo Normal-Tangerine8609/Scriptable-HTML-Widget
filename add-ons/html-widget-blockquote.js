@@ -1,8 +1,9 @@
 /*
-HTML Widget blockquote 1.0
+HTML Widget blockquote 1.1
 https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget/blob/main/add-ons/html-widget-blockquote.js
 
 - Compatible with HTML Widget 5.00
+- fixed height spelling
 */
 module.exports = async (
   validate,
@@ -24,7 +25,7 @@ module.exports = async (
     "padding": "padding",
     "layout": "layout",
     "width": "posInt",
-    "hight": "posInt"
+    "height": "posInt"
   }
 
   validate(attrs, styles, mapping)
@@ -35,7 +36,7 @@ module.exports = async (
       : 5
   )
   let height = Number(
-    styles.hight && styles.hight !== "null" ? styles.hight : 100
+    styles.height && styles.height !== "null" ? styles.height : 100
   )
   let width = Number(
     styles.width && styles.width !== "null" ? styles.width : 100
