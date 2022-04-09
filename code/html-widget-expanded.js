@@ -1,9 +1,8 @@
-//HTML Widget Version 5.02
+//HTML Widget Version 5.03
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 
 async function htmlWidget(input, debug, addons) {
-  
-const blockquote = async (
+  const blockquote = async (
   validate,
   template,
   update,
@@ -111,8 +110,6 @@ const blockquote = async (
   resizable="${styles["resizable"]}"
 >
   `)
-}
-
 }
 
   const hr = {
@@ -1147,9 +1144,10 @@ Object.assign(addons, progress, hr, symbol,blockquote)
       if (finalCss[css] == "null" || css == "children" || css == "no-css") {
         continue
       }
-      // Throw an error if the css is not in the mapping
+      // Ignore css properties that are not in the mapping
       if (!mapping[css]) {
-        error(24, css)
+        delete finalCss[css]
+        continue
       }
       // Validate the css as a string or array of posibilities
       if (typeof mapping[css] == "string") {
@@ -1242,8 +1240,7 @@ Object.assign(addons, progress, hr, symbol,blockquote)
       21: "Invalid tag name: `{}`",
       22: "Unknown attribute: `{}`",
       23: "`{}` attribute must be a {} type: `{}`",
-      24: "Unknown property: `{}`",
-      25: "`{}` property must be a {} type: `{}`",
+      24: "`{}` property must be a {} type: `{}`",
       26: "`{}` {} must be a valid url or base encoded data link: `{}`"
     }
     let error = errors[number]
