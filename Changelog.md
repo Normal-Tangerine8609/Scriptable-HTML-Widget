@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.03
+
+- 21.9 KB
+- Instead of an error being thrown, when a property is attempted to be aplied to a tag and it is not in the mapping, it will be ignored. Previously a error was raised, but that makes the `*`  selector practically useless. This also makes it possible to share classes through different tags
+- An error text was fixed
+
 ## 5.02
 
 - 21.9 KB
