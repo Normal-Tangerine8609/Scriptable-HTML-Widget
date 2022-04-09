@@ -1,9 +1,9 @@
 /*
-HTML Widget hr 2.1
+HTML Widget hr 2.2
 https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget/blob/main/add-ons/html-widget-hr.js
 
 - Compatible with HTML Widget 5.00
-- Fixed a bug with setting height
+- Fixed height spelling
 */
 module.exports = {
   isSelfClosing: true,
@@ -13,7 +13,7 @@ module.exports = {
       "url": "url",
       "corner-radius": "posInt",
       "width": "posInt",
-      "hight": "posInt"
+      "height": "posInt"
     }
 
     validate(attrs, styles, mapping)
@@ -25,7 +25,7 @@ module.exports = {
       ${styles.width ? "" : "<spacer>"}
       <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" image-size="${
         styles.width || 100
-      },${styles.hight || 1}">
+      },${styles.height || 1}">
       ${styles.width ? "" : "<spacer>"}
     </stack>
   `)
