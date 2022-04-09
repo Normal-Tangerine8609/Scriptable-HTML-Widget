@@ -22,7 +22,7 @@ async function htmlWidget(input, debug, addons) {
     "padding": "padding",
     "layout": "layout",
     "width": "posInt",
-    "hight": "posInt"
+    "height": "posInt"
   }
 
   validate(attrs, styles, mapping)
@@ -33,7 +33,7 @@ async function htmlWidget(input, debug, addons) {
       : 5
   )
   let height = Number(
-    styles.hight && styles.hight !== "null" ? styles.hight : 100
+    styles.height && styles.height !== "null" ? styles.height : 100
   )
   let width = Number(
     styles.width && styles.width !== "null" ? styles.width : 100
@@ -120,7 +120,7 @@ async function htmlWidget(input, debug, addons) {
       "url": "url",
       "corner-radius": "posInt",
       "width": "posInt",
-      "hight": "posInt"
+      "height": "posInt"
     }
 
     validate(attrs, styles, mapping)
@@ -132,7 +132,7 @@ async function htmlWidget(input, debug, addons) {
       ${styles.width ? "" : "<spacer>"}
       <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" image-size="${
         styles.width || 100
-      },${styles.hight || 1}">
+      },${styles.height || 1}">
       ${styles.width ? "" : "<spacer>"}
     </stack>
   `)
