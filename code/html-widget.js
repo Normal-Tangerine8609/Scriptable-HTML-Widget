@@ -1,7 +1,7 @@
 //HTML Widget Version 5.10
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 
-module.exports = async function htmlWidget(input, debug, addons) {
+async function htmlWidget(input, debug, addons) {
   // Primitive types for adding and validating
   const types = {
     colour: {
