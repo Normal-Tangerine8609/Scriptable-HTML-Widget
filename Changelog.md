@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.10
+
+- 22.6 KB
+- Added support for multiple classes in css and `tag.class`
+- Added the `>` selector to css
+
 ## 5.03
 
 - 21.9 KB
