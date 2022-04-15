@@ -1,7 +1,7 @@
-//HTML Widget Version 5.03
+//HTML Widget Version 5.10
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 
-async function htmlWidget(input, debug, addons) {
+module.exports = async function htmlWidget(input, debug, addons) {
   // Primitive types for adding and validating
   const types = {
     colour: {
@@ -451,7 +451,146 @@ async function htmlWidget(input, debug, addons) {
   }
   // https://github.com/henryluki/html-parser
   // Added comment support
-  const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/,ENDTAG_REX=/^<\/([-A-Za-z0-9_]+)[^>]*>/,ATTR_REX=/([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;function makeMap(t){return t.split(",").reduce((t,e)=>(t[e]=!0,t),{})}const EMPTY_MAKER=makeMap(selfClosers.join(",")),FILLATTRS_MAKER=makeMap("no-css,children");function isEmptyMaker(t){return!!EMPTY_MAKER[t]}function isFillattrsMaker(t){return!!FILLATTRS_MAKER[t]}class TagStart{constructor(t,e){this.name=t,this.attributes=this.getAttributes(e)}getAttributes(t){let e={};return t.replace(ATTR_REX,function(t,n){const s=Array.prototype.slice.call(arguments),r=s[2]?s[2]:s[3]?s[3]:s[4]?s[4]:isFillattrsMaker(n)?n:"";e[n]=r.replace(/(^|[^\\])"/g,'$1\\"')}),e}}class TagEmpty extends TagStart{constructor(t,e){super(t,e)}}class TagEnd{constructor(t){this.name=t}}class Text{constructor(t){this.text=t}}const ElEMENT_TYPE="Element",TEXT_TYPE="Text";function createElement(t){const e=t.name,n=t.attributes;return t instanceof TagEmpty?{type:ElEMENT_TYPE,tagName:e,attributes:n}:{type:ElEMENT_TYPE,tagName:e,attributes:n,children:[]}}function createText(t){const e=t.text;return{type:TEXT_TYPE,content:e}}function createNodeFactory(t,e){switch(t){case ElEMENT_TYPE:return createElement(e);case TEXT_TYPE:return createText(e)}}function parse(t){let e={tag:"root",children:[]},n=[e];n.last=(()=>n[n.length-1]);for(let e=0;e<t.length;e++){const s=t[e];if(s instanceof TagStart){const t=createNodeFactory(ElEMENT_TYPE,s);t.children?n.push(t):n.last().children.push(t)}else if(s instanceof TagEnd){let t=n[n.length-2],e=n.pop();t.children.push(e)}else s instanceof Text?n.last().children.push(createNodeFactory(TEXT_TYPE,s)):"Comment"!=s.type||n.last().children.push(s)}return e}function tokenize(t){let e=t,n=[];const s=Date.now()+1e3;for(;e;){if(0===e.indexOf("\x3c!--")){const t=e.indexOf("--\x3e")+3;n.push({type:"Comment",text:e.substring(4,t-3)}),e=e.substring(t);continue}if(0===e.indexOf("</")){const t=e.match(ENDTAG_REX);if(!t)continue;e=e.substring(t[0].length);const s=t[1];if(isEmptyMaker(s))continue;n.push(new TagEnd(s));continue}if(0===e.indexOf("<")){const t=e.match(STARTTAG_REX);if(!t)continue;e=e.substring(t[0].length);const s=t[1],r=t[2],a=isEmptyMaker(s)?new TagEmpty(s,r):new TagStart(s,r);n.push(a);continue}const t=e.indexOf("<"),r=t<0?e:e.substring(0,t);if(e=t<0?"":e.substring(t),n.push(new Text(r)),Date.now()>=s)break}return n}function htmlParser(t){return parse(tokenize(t))}
+  const STARTTAG_REX =
+      /^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/,
+    ENDTAG_REX = /^<\/([-A-Za-z0-9_]+)[^>]*>/,
+    ATTR_REX =
+      /([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g
+  function makeMap(t) {
+    return t.split(",").reduce((t, e) => ((t[e] = !0), t), {})
+  }
+  const EMPTY_MAKER = makeMap(selfClosers.join(",")),
+    FILLATTRS_MAKER = makeMap("no-css,children")
+  function isEmptyMaker(t) {
+    return !!EMPTY_MAKER[t]
+  }
+  function isFillattrsMaker(t) {
+    return !!FILLATTRS_MAKER[t]
+  }
+  class TagStart {
+    constructor(t, e) {
+      ;(this.name = t), (this.attributes = this.getAttributes(e))
+    }
+    getAttributes(t) {
+      let e = {}
+      return (
+        t.replace(ATTR_REX, function (t, n) {
+          const s = Array.prototype.slice.call(arguments),
+            r = s[2]
+              ? s[2]
+              : s[3]
+              ? s[3]
+              : s[4]
+              ? s[4]
+              : isFillattrsMaker(n)
+              ? n
+              : ""
+          e[n] = r.replace(/(^|[^\\])"/g, '$1\\"')
+        }),
+        e
+      )
+    }
+  }
+  class TagEmpty extends TagStart {
+    constructor(t, e) {
+      super(t, e)
+    }
+  }
+  class TagEnd {
+    constructor(t) {
+      this.name = t
+    }
+  }
+  class Text {
+    constructor(t) {
+      this.text = t
+    }
+  }
+  const ElEMENT_TYPE = "Element",
+    TEXT_TYPE = "Text"
+  function createElement(t) {
+    const e = t.name,
+      n = t.attributes
+    return t instanceof TagEmpty
+      ? {type: ElEMENT_TYPE, tagName: e, attributes: n}
+      : {type: ElEMENT_TYPE, tagName: e, attributes: n, children: []}
+  }
+  function createText(t) {
+    const e = t.text
+    return {type: TEXT_TYPE, content: e}
+  }
+  function createNodeFactory(t, e) {
+    switch (t) {
+      case ElEMENT_TYPE:
+        return createElement(e)
+      case TEXT_TYPE:
+        return createText(e)
+    }
+  }
+  function parse(t) {
+    let e = {tag: "root", children: []},
+      n = [e]
+    n.last = () => n[n.length - 1]
+    for (let e = 0; e < t.length; e++) {
+      const s = t[e]
+      if (s instanceof TagStart) {
+        const t = createNodeFactory(ElEMENT_TYPE, s)
+        t.children ? n.push(t) : n.last().children.push(t)
+      } else if (s instanceof TagEnd) {
+        let t = n[n.length - 2],
+          e = n.pop()
+        t.children.push(e)
+      } else
+        s instanceof Text
+          ? n.last().children.push(createNodeFactory(TEXT_TYPE, s))
+          : "Comment" != s.type || n.last().children.push(s)
+    }
+    return e
+  }
+  function tokenize(t) {
+    let e = t,
+      n = []
+    const s = Date.now() + 1e3
+    for (; e; ) {
+      if (0 === e.indexOf("\x3c!--")) {
+        const t = e.indexOf("--\x3e") + 3
+        n.push({type: "Comment", text: e.substring(4, t - 3)}),
+          (e = e.substring(t))
+        continue
+      }
+      if (0 === e.indexOf("</")) {
+        const t = e.match(ENDTAG_REX)
+        if (!t) continue
+        e = e.substring(t[0].length)
+        const s = t[1]
+        if (isEmptyMaker(s)) continue
+        n.push(new TagEnd(s))
+        continue
+      }
+      if (0 === e.indexOf("<")) {
+        const t = e.match(STARTTAG_REX)
+        if (!t) continue
+        e = e.substring(t[0].length)
+        const s = t[1],
+          r = t[2],
+          a = isEmptyMaker(s) ? new TagEmpty(s, r) : new TagStart(s, r)
+        n.push(a)
+        continue
+      }
+      const t = e.indexOf("<"),
+        r = t < 0 ? e : e.substring(0, t)
+      if (
+        ((e = t < 0 ? "" : e.substring(t)),
+        n.push(new Text(r)),
+        Date.now() >= s)
+      )
+        break
+    }
+    return n
+  }
+  function htmlParser(t) {
+    return parse(tokenize(t))
+  }
 
   // Set base variables
   let currentStack,
@@ -486,7 +625,7 @@ async function htmlWidget(input, debug, addons) {
   for (let i = 0; i < rules.length; i++) {
     let rule = rules[i]
     if (
-      !/^\s*(\.?[\w\-]+|\*)(\s*,\s*(\.?[\w\-]+|\*))*\s*\{(\s*[\w\-]+\s*:\s*[^\n]+?\s*;)*?\s*([\w\-]+\s*:\s*[^\n]+\s*;?)?\s*\}/.test(
+      !/^\s*(\.?[\w\-]+|\*)(\s*[,>]\s*(\.?[\w\-]+|\*))*\s*\{(\s*[\w\-]+\s*:\s*[^\n]+?\s*;)*?\s*([\w\-]+\s*:\s*[^\n]+\s*;?)?\s*\}/.test(
         rule
       )
     ) {
@@ -505,10 +644,111 @@ async function htmlWidget(input, debug, addons) {
           .trim()
       })
     let selectors = rule
-      .match(/(\.?[\w\-]+|\*)(\s*,\s*(\.?[\w\-]+|\*))*/)[0]
+      .match(/(\.?[\w\-]+|\*)(\s*[>,]\s*(\.?[\w\-]+|\*))*/)[0]
       .split(",")
     for (let selector of selectors) {
-      mainCss.push({selector: selector.trim(), css: declarations})
+      mainCss.push({selector: parseSeletor(selector.trim()), css: declarations})
+    }
+  }
+  function parseSeletor(input) {
+    input = input.trim()
+    let current = 0
+    let root = []
+    let currentSelector = root.push({
+      classes: []
+    })
+    while (current < input.length) {
+      let char = input[current]
+
+      if (char === ".") {
+        char = input[++current]
+        let VALIDCHARS = /[-a-zA-Z_0-9]/
+        if (!VALIDCHARS.test(char)) {
+          throw new Error("A css parse error: `" + input + "`")
+        }
+        let value = ""
+        while (char && VALIDCHARS.test(char)) {
+          value += char
+          char = input[++current]
+        }
+        root[currentSelector - 1].classes.push(value)
+      }
+      let SPACE = / /
+      let DIRECTCHILD = />/
+      if (DIRECTCHILD.test(char)) {
+        char = input[++current]
+        while (char && SPACE.test(char)) {
+          char = input[++current]
+        }
+        currentSelector = root.push({
+          classes: []
+        })
+      }
+      let TAG = /[a-z]/i
+      if (TAG.test(char)) {
+        let value = ""
+        while (char && TAG.test(char)) {
+          value += char
+          char = input[++current]
+        }
+        root[currentSelector - 1].tag = value
+      }
+      let STAR = /\*/
+      if (STAR.test(char)) {
+        char = input[++current]
+        root[currentSelector - 1].tag = "*"
+      }
+      if (SPACE.test(char)) {
+        char = input[++current]
+      }
+    }
+    return root
+  }
+
+  for (let rule of mainCss) {
+    applyCss(widgetBody, rule)
+  }
+  function applyCss(tag, rule) {
+    if (tag.type == "Text" || tag.tagName == "style") {
+      return
+    }
+    addCss(tag, rule, 0)
+    if (tag.children) {
+      for (let child of tag.children) {
+        applyCss(child, rule)
+      }
+    }
+  }
+  function addCss(tag, rule, index) {
+    if (tag.type == "Text" || tag.tagName == "style") {
+      return
+    }
+    for (let cssClass of rule.selector[index].classes) {
+      if (!tag.attributes.class) {
+        return
+      }
+      if (!tag.attributes.class.split(" ").includes(cssClass)) {
+        return
+      }
+    }
+    if (
+      rule.selector[index].tag &&
+      rule.selector[index].tag !== "*" &&
+      rule.selector[index].tag !== tag.tagName
+    ) {
+      return
+    }
+    if (rule.selector.length - 1 === index) {
+      if (!tag.css) {
+        tag.css = []
+      }
+      tag.css.push(rule)
+    } else {
+      if (tag.children) {
+        for (let child of tag.children) {
+          addCss(child, rule, index + 1)
+        }
+      }
     }
   }
   // Compile widget
@@ -553,31 +793,24 @@ async function htmlWidget(input, debug, addons) {
       .replace(/&amp;/g, "&")
       .replace(/\n\s+/g, "\\n")
 
-    let availableCss = ["*", tag["tagName"]]
     let attributeCss = {}
 
-    // Add attributes to css or compile for class
+    // Add attributes to css
     for (let key of Object.keys(tag.attributes)) {
       let value = tag.attributes[key].trim()
-      if (key == "class") {
-        value = value.trim().split(" ")
-        for (let item of value) {
-          availableCss.push("." + item)
-        }
-      } else {
+      if (key !== "class") {
         attributeCss[key] = value
       }
     }
     // Add or reset all selected css values if the tag does not have the no-css attribute
     let finalCss = {}
-    for (let rule of mainCss) {
-      if (
-        availableCss.includes(rule.selector) &&
-        !Object.keys(tag.attributes).includes("no-css")
-      ) {
-        for (let key of Object.keys(rule.css)) {
-          delete finalCss[key]
-          finalCss[key] = rule.css[key]
+    if (tag.css) {
+      for (let rule of tag.css) {
+        if (!Object.keys(tag.attributes).includes("no-css")) {
+          for (let key of Object.keys(rule.css)) {
+            delete finalCss[key]
+            finalCss[key] = rule.css[key]
+          }
         }
       }
     }
@@ -903,7 +1136,6 @@ async function htmlWidget(input, debug, addons) {
       } else {
         code += `\n/*\n${tag["text"]}\n*/`
       }
-      return
     }
   }
   // Function that validated all attributes and css
