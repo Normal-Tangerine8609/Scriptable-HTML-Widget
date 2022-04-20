@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.11
+
+- 22.7 KB
+- Fixed background on stack, now allowing the `image` type
+- Fixed `>` selector in template tags
+
 ## 5.10
 
 - 22.6 KB
