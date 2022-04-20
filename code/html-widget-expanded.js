@@ -1,4 +1,4 @@
-//HTML Widget Version 5.10
+//HTML Widget Version 5.11
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 
 async function htmlWidget(input, debug, addons) {
@@ -85,13 +85,16 @@ async function htmlWidget(input, debug, addons) {
   validate(attrs, styles, mapping)
   update(styles, mapping)
   
-  let symbol = SFSymbol.named(innerText || "questionmark.circle")
-  let symbolSize = 100
-  if(styles["image-size"]) {
-    let [width,height] = styles["image-size"].match(/\d+/g)
-    symbolSize = (width > height) ? height : width
+  let symbol = SFSymbol.named(innerText)
+  if(!symbol){
+    symbol = SFSymbol.named("questionmark.circle")
   }
-  symbol.applyFont(Font.systemFont(parseInt(symbolSize)))
+  let symbolSize = 100
+  if(styles["image-size"] !== "null") {
+    let [width,height] = styles["image-size"].match(/\d+/g)
+    symbolSize = parseInt((width > height) ? height : width)
+  }
+  symbol.applyFont(Font.systemFont(symbolSize))
   await template(`
 <img 
   src="data:image/png;base64,${Data.fromPNG(
@@ -112,32 +115,6 @@ async function htmlWidget(input, debug, addons) {
   `)
 }
 
-  const hr = {
-  isSelfClosing: true,
-  func: async (validate, template, update, styles, attrs, innerText) => {
-    const mapping = {
-      "background": ["colour", "gradient", "image"],
-      "url": "url",
-      "corner-radius": "posInt",
-      "width": "posInt",
-      "height": "posInt"
-    }
-
-    validate(attrs, styles, mapping)
-
-    await template(`
-    <stack background="${styles.background || "black-white"}" url="${
-      styles.url || "null"
-    }" corner-radius="${styles["corner-radius"] || "null"}">
-      ${styles.width ? "" : "<spacer>"}
-      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" image-size="${
-        styles.width || 100
-      },${styles.height || 1}">
-      ${styles.width ? "" : "<spacer>"}
-    </stack>
-  `)
-  }
-}
 
   const progress = {
   isSelfClosing: true,
@@ -195,8 +172,11 @@ async function htmlWidget(input, debug, addons) {
   `)
   }
 }
-  Object.assign(addons, progress, hr, symbol,blockquote)
-
+  if(addons) {
+    Object.assign(addons, progress, hr, symbol,blockquote)
+  } else {
+    addons = {}
+  }
   // Primitive types for adding and validating
   const types = {
     colour: {
@@ -646,146 +626,7 @@ async function htmlWidget(input, debug, addons) {
   }
   // https://github.com/henryluki/html-parser
   // Added comment support
-  const STARTTAG_REX =
-      /^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/,
-    ENDTAG_REX = /^<\/([-A-Za-z0-9_]+)[^>]*>/,
-    ATTR_REX =
-      /([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g
-  function makeMap(t) {
-    return t.split(",").reduce((t, e) => ((t[e] = !0), t), {})
-  }
-  const EMPTY_MAKER = makeMap(selfClosers.join(",")),
-    FILLATTRS_MAKER = makeMap("no-css,children")
-  function isEmptyMaker(t) {
-    return !!EMPTY_MAKER[t]
-  }
-  function isFillattrsMaker(t) {
-    return !!FILLATTRS_MAKER[t]
-  }
-  class TagStart {
-    constructor(t, e) {
-      ;(this.name = t), (this.attributes = this.getAttributes(e))
-    }
-    getAttributes(t) {
-      let e = {}
-      return (
-        t.replace(ATTR_REX, function (t, n) {
-          const s = Array.prototype.slice.call(arguments),
-            r = s[2]
-              ? s[2]
-              : s[3]
-              ? s[3]
-              : s[4]
-              ? s[4]
-              : isFillattrsMaker(n)
-              ? n
-              : ""
-          e[n] = r.replace(/(^|[^\\])"/g, '$1\\"')
-        }),
-        e
-      )
-    }
-  }
-  class TagEmpty extends TagStart {
-    constructor(t, e) {
-      super(t, e)
-    }
-  }
-  class TagEnd {
-    constructor(t) {
-      this.name = t
-    }
-  }
-  class Text {
-    constructor(t) {
-      this.text = t
-    }
-  }
-  const ElEMENT_TYPE = "Element",
-    TEXT_TYPE = "Text"
-  function createElement(t) {
-    const e = t.name,
-      n = t.attributes
-    return t instanceof TagEmpty
-      ? {type: ElEMENT_TYPE, tagName: e, attributes: n}
-      : {type: ElEMENT_TYPE, tagName: e, attributes: n, children: []}
-  }
-  function createText(t) {
-    const e = t.text
-    return {type: TEXT_TYPE, content: e}
-  }
-  function createNodeFactory(t, e) {
-    switch (t) {
-      case ElEMENT_TYPE:
-        return createElement(e)
-      case TEXT_TYPE:
-        return createText(e)
-    }
-  }
-  function parse(t) {
-    let e = {tag: "root", children: []},
-      n = [e]
-    n.last = () => n[n.length - 1]
-    for (let e = 0; e < t.length; e++) {
-      const s = t[e]
-      if (s instanceof TagStart) {
-        const t = createNodeFactory(ElEMENT_TYPE, s)
-        t.children ? n.push(t) : n.last().children.push(t)
-      } else if (s instanceof TagEnd) {
-        let t = n[n.length - 2],
-          e = n.pop()
-        t.children.push(e)
-      } else
-        s instanceof Text
-          ? n.last().children.push(createNodeFactory(TEXT_TYPE, s))
-          : "Comment" != s.type || n.last().children.push(s)
-    }
-    return e
-  }
-  function tokenize(t) {
-    let e = t,
-      n = []
-    const s = Date.now() + 1e3
-    for (; e; ) {
-      if (0 === e.indexOf("\x3c!--")) {
-        const t = e.indexOf("--\x3e") + 3
-        n.push({type: "Comment", text: e.substring(4, t - 3)}),
-          (e = e.substring(t))
-        continue
-      }
-      if (0 === e.indexOf("</")) {
-        const t = e.match(ENDTAG_REX)
-        if (!t) continue
-        e = e.substring(t[0].length)
-        const s = t[1]
-        if (isEmptyMaker(s)) continue
-        n.push(new TagEnd(s))
-        continue
-      }
-      if (0 === e.indexOf("<")) {
-        const t = e.match(STARTTAG_REX)
-        if (!t) continue
-        e = e.substring(t[0].length)
-        const s = t[1],
-          r = t[2],
-          a = isEmptyMaker(s) ? new TagEmpty(s, r) : new TagStart(s, r)
-        n.push(a)
-        continue
-      }
-      const t = e.indexOf("<"),
-        r = t < 0 ? e : e.substring(0, t)
-      if (
-        ((e = t < 0 ? "" : e.substring(t)),
-        n.push(new Text(r)),
-        Date.now() >= s)
-      )
-        break
-    }
-    return n
-  }
-  function htmlParser(t) {
-    return parse(tokenize(t))
-  }
+  const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/,ENDTAG_REX=/^<\/([-A-Za-z0-9_]+)[^>]*>/,ATTR_REX=/([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;function makeMap(t){return t.split(",").reduce((t,e)=>(t[e]=!0,t),{})}const EMPTY_MAKER=makeMap(selfClosers.join(",")),FILLATTRS_MAKER=makeMap("no-css,children");function isEmptyMaker(t){return!!EMPTY_MAKER[t]}function isFillattrsMaker(t){return!!FILLATTRS_MAKER[t]}class TagStart{constructor(t,e){this.name=t,this.attributes=this.getAttributes(e)}getAttributes(t){let e={};return t.replace(ATTR_REX,function(t,n){const s=Array.prototype.slice.call(arguments),r=s[2]?s[2]:s[3]?s[3]:s[4]?s[4]:isFillattrsMaker(n)?n:"";e[n]=r.replace(/(^|[^\\])"/g,'$1\\"')}),e}}class TagEmpty extends TagStart{constructor(t,e){super(t,e)}}class TagEnd{constructor(t){this.name=t}}class Text{constructor(t){this.text=t}}const ElEMENT_TYPE="Element",TEXT_TYPE="Text";function createElement(t){const e=t.name,n=t.attributes;return t instanceof TagEmpty?{type:ElEMENT_TYPE,tagName:e,attributes:n}:{type:ElEMENT_TYPE,tagName:e,attributes:n,children:[]}}function createText(t){const e=t.text;return{type:TEXT_TYPE,content:e}}function createNodeFactory(t,e){switch(t){case ElEMENT_TYPE:return createElement(e);case TEXT_TYPE:return createText(e)}}function parse(t){let e={tag:"root",children:[]},n=[e];n.last=(()=>n[n.length-1]);for(let e=0;e<t.length;e++){const s=t[e];if(s instanceof TagStart){const t=createNodeFactory(ElEMENT_TYPE,s);t.children?n.push(t):n.last().children.push(t)}else if(s instanceof TagEnd){let t=n[n.length-2],e=n.pop();t.children.push(e)}else s instanceof Text?n.last().children.push(createNodeFactory(TEXT_TYPE,s)):"Comment"!=s.type||n.last().children.push(s)}return e}function tokenize(t){let e=t,n=[];const s=Date.now()+1e3;for(;e;){if(0===e.indexOf("\x3c!--")){const t=e.indexOf("--\x3e")+3;n.push({type:"Comment",text:e.substring(4,t-3)}),e=e.substring(t);continue}if(0===e.indexOf("</")){const t=e.match(ENDTAG_REX);if(!t)continue;e=e.substring(t[0].length);const s=t[1];if(isEmptyMaker(s))continue;n.push(new TagEnd(s));continue}if(0===e.indexOf("<")){const t=e.match(STARTTAG_REX);if(!t)continue;e=e.substring(t[0].length);const s=t[1],r=t[2],a=isEmptyMaker(s)?new TagEmpty(s,r):new TagStart(s,r);n.push(a);continue}const t=e.indexOf("<"),r=t<0?e:e.substring(0,t);if(e=t<0?"":e.substring(t),n.push(new Text(r)),Date.now()>=s)break}return n}function htmlParser(t){return parse(tokenize(t))}
 
   // Set base variables
   let currentStack,
@@ -899,7 +740,8 @@ async function htmlWidget(input, debug, addons) {
     }
     return root
   }
-
+  
+  // repeat with all rules on all tags and see if they fit the criteria
   for (let rule of mainCss) {
     applyCss(widgetBody, rule)
   }
@@ -1116,7 +958,7 @@ async function htmlWidget(input, debug, addons) {
           ) {
             // Background must be completed differently because it can have 3 different types
             try {
-              types.url.validate("background", true, value)
+              types.image.validate("background", true, value)
               types.image.add(key, value, on)
             } catch (e) {
               if (
@@ -1304,6 +1146,12 @@ async function htmlWidget(input, debug, addons) {
           code = codeLines.join("\n")
           // Function to add the no-css attribute to all children and put the tag children into the template
           function putChildren(tag, children) {
+            
+            if (tag.children) {
+              tag.children.map((e) => {
+                putChildren(e, children)
+              })
+            }
             if (
               tag.attributes &&
               Object.keys(tag.attributes).includes("children")
@@ -1311,11 +1159,6 @@ async function htmlWidget(input, debug, addons) {
               for (let item of children) {
                 tag.children.push(item)
               }
-            }
-            if (tag.children) {
-              tag.children.map((e) => {
-                putChildren(e, children)
-              })
             }
             if (tag.attributes) {
               tag.attributes["no-css"] = ""
