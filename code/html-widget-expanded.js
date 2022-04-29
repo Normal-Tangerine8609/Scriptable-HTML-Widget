@@ -1,7 +1,7 @@
 //HTML Widget Version 5.11
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 
-async function htmlWidget(input, debug, addons) {
+module.exports = async function htmlWidget(input, debug, addons) {
   const blockquote = async (
   validate,
   template,
@@ -172,10 +172,37 @@ async function htmlWidget(input, debug, addons) {
   `)
   }
 }
+const hr = {
+  isSelfClosing: true,
+  func: async (validate, template, update, styles, attrs, innerText) => {
+    const mapping = {
+      "background": ["colour", "gradient", "image"],
+      "url": "url",
+      "corner-radius": "posInt",
+      "width": "posInt",
+      "height": "posInt"
+    }
+
+    validate(attrs, styles, mapping)
+
+    await template(`
+    <stack background="${styles.background || "black-white"}" url="${
+      styles.url || "null"
+    }" corner-radius="${styles["corner-radius"] || "null"}">
+      ${styles.width ? "" : "<spacer>"}
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" image-size="${
+        styles.width || 100
+      },${styles.height || 1}">
+      ${styles.width ? "" : "<spacer>"}
+    </stack>
+  `)
+  }
+}
+
   if(addons) {
-    Object.assign(addons, progress, hr, symbol,blockquote)
+    Object.assign(addons, progress, hr, symbol, blockquote)
   } else {
-    addons = {}
+    addons = {progress, hr, symbol, blockquote}
   }
   // Primitive types for adding and validating
   const types = {
