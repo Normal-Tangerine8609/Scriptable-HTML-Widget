@@ -12,7 +12,6 @@ HTML Widget allows you to create [Scriptable](https://scriptable.app/) widgets i
 ![Small Reddit Widget](/images/RedditWidget.jpeg)
 
 ```javascript
-
 const htmlWidget = importModule("html-widget")
 const symbol = importModule("html-widget-symbol")
 const addons = {symbol}
@@ -25,6 +24,7 @@ let ups = post["ups"]
 let awards = post["all_awardings"].length
 let comments = post["num_comments"]
 let url = post["url"]
+
 let widget = await htmlWidget(`
 <widget refresh-after-date="15" url="${url}">
   <style>
@@ -41,24 +41,25 @@ let widget = await htmlWidget(`
     }
   </style>
   <text class="title">Showerthoughts</text>
-  <spacer space="5">
+  <spacer space="5"/>
   <text class="content">${title}</text>
   <text class="content">${body}</text>
   <stack align-content="center">
     <symbol>arrow.up.circle.fill</symbol>
-    <spacer space="2">
+    <spacer space="2"/>
     <text class="content">${ups}</text>
-    <spacer>
+    <spacer/>
     <symbol>star.circle.fill</symbol>
-    <spacer space="2">
+    <spacer space="2"/>
     <text class="content">${awards}</text>
-    <spacer>
+    <spacer/>
     <symbol>message.circle.fill</symbol>
-    <spacer space="2">
+    <spacer space="2"/>
     <text class="content">${comments}</text>
   </stack>
 </widget>
 `, true, addons)
+
 Script.setWidget(widget)
 widget.presentSmall()
 Script.complete()
