@@ -1,105 +1,47 @@
-//HTML Widget Version 5.11
+//HTML Widget Version 6.00
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 
 module.exports = async function htmlWidget(input, debug, addons) {
-  const blockquote = async (
-  validate,
-  template,
-  update,
-  styles,
-  attrs,
-  innerText
-) => {
-  const mapping = {
-    "url": "url",
-    "background": ["colour", "gradient"],
-    "corner-radius": "posInt",
-    "bar-width": "posInt",
-    "bar-background": ["colour", "gradient"],
-    "bar-corner-radius": "posInt",
-    "space": "posInt",
-    "spacing": "posInt",
-    "padding": "padding",
-    "layout": "layout",
-    "width": "posInt",
-    "height": "posInt"
-  }
-
-  validate(attrs, styles, mapping)
-
-  let barWidth = Number(
-    styles["bar-width"] && styles["bar-width"] !== "null"
-      ? styles["bar-width"]
-      : 5
-  )
-  let height = Number(
-    styles.height && styles.height !== "null" ? styles.height : 100
-  )
-  let width = Number(
-    styles.width && styles.width !== "null" ? styles.width : 100
-  )
-  let space = Number(styles.space && styles.space !== "null" ? styles.space : 0)
-  let contentWidth = width - barWidth - space
-
-  await template(`
-      <stack layout="horizontally" url="${styles.url || null}">
-        <stack size="${barWidth + "," + height}" background="${
-    styles["bar-background"] || "black-white"
-  }" corner-radius="${styles["bar-corner-radius"] || null}">
-        </stack>
-        <spacer space="${space}">
-        <stack background="${
-          styles.background || "rgb(0,0,0,50%)-rgb(255,255,255,50%)"
-        }" corner-radius="${styles["corner-radius"] || null}" spacing="${
-    styles.spacing || null
-  }" padding="${styles.padding || 3}" layout="${
-    styles.layout || "vertically"
-  }" size="${contentWidth + "," + height}" children>
-        </stack>
-      </stack>
-  `)
-}
+  // Addons
 
   const symbol = async (
-  validate,
-  template,
-  update,
-  styles,
-  attrs,
-  innerText
-) => {
-  const mapping = {
-    "url": "url",
-    "border-color": "colour",
-    "border-width": "posInt",
-    "corner-radius": "posInt",
-    "image-size": "size",
-    "image-opacity": "decimal",
-    "tint-color": "colour",
-    "resizable": "bool",
-    "container-relative-shape": "bool",
-    "content-mode": "contentMode",
-    "align-image": "alignImage"
-  }
+    validate,
+    template,
+    update,
+    styles,
+    attrs,
+    innerText
+  ) => {
+    const mapping = {
+      "url": "url",
+      "border-color": "colour",
+      "border-width": "posInt",
+      "corner-radius": "posInt",
+      "image-size": "size",
+      "image-opacity": "decimal",
+      "tint-color": "colour",
+      "resizable": "bool",
+      "container-relative-shape": "bool",
+      "content-mode": "contentMode",
+      "align-image": "alignImage"
+    }
 
-  validate(attrs, styles, mapping)
-  update(styles, mapping)
-  
-  let symbol = SFSymbol.named(innerText)
-  if(!symbol){
-    symbol = SFSymbol.named("questionmark.circle")
-  }
-  let symbolSize = 100
-  if(styles["image-size"] !== "null") {
-    let [width,height] = styles["image-size"].match(/\d+/g)
-    symbolSize = parseInt((width > height) ? height : width)
-  }
-  symbol.applyFont(Font.systemFont(symbolSize))
-  await template(`
+    validate(attrs, styles, mapping)
+    update(styles, mapping)
+
+    let symbol = SFSymbol.named(innerText)
+    if (!symbol) {
+      symbol = SFSymbol.named("questionmark.circle")
+    }
+    let symbolSize = 100
+    if (styles["image-size"] !== "null") {
+      let [width, height] = styles["image-size"].match(/\d+/g)
+      symbolSize = parseInt(width > height ? height : width)
+    }
+    symbol.applyFont(Font.systemFont(symbolSize))
+    await template(`
 <img 
-  src="data:image/png;base64,${Data.fromPNG(
-    symbol.image
-  ).toBase64String()}" 
+  src="data:image/png;base64,${Data.fromPNG(symbol.image).toBase64String()}" 
   url="${styles.url}" 
   border-color="${styles["border-color"]}"
   border-width="${styles["border-width"]}" 
@@ -111,14 +53,102 @@ module.exports = async function htmlWidget(input, debug, addons) {
   align-image="${styles["align-image"]}" 
   container-relative-shape="${styles["container-relative-shape"]}" 
   resizable="${styles["resizable"]}"
->
+/>
   `)
-}
+  }
 
+  const blockquote = async (
+    validate,
+    template,
+    update,
+    styles,
+    attrs,
+    innerText
+  ) => {
+    const mapping = {
+      "url": "url",
+      "background": ["colour", "gradient"],
+      "corner-radius": "posInt",
+      "bar-width": "posInt",
+      "bar-background": ["colour", "gradient"],
+      "bar-corner-radius": "posInt",
+      "space": "posInt",
+      "spacing": "posInt",
+      "padding": "padding",
+      "layout": "layout",
+      "width": "posInt",
+      "height": "posInt"
+    }
 
-  const progress = {
-  isSelfClosing: true,
-  func: async (validate, template, update, styles, attrs, innerText) => {
+    validate(attrs, styles, mapping)
+
+    let barWidth = Number(
+      styles["bar-width"] && styles["bar-width"] !== "null"
+        ? styles["bar-width"]
+        : 5
+    )
+    let height = Number(
+      styles.height && styles.height !== "null" ? styles.height : 100
+    )
+    let width = Number(
+      styles.width && styles.width !== "null" ? styles.width : 100
+    )
+    let space = Number(
+      styles.space && styles.space !== "null" ? styles.space : 0
+    )
+    let contentWidth = width - barWidth - space
+
+    await template(`
+      <stack layout="horizontally" url="${styles.url || null}">
+        <stack size="${barWidth + "," + height}" background="${
+      styles["bar-background"] || "black-white"
+    }" corner-radius="${styles["bar-corner-radius"] || null}">
+        </stack>
+        <spacer space="${space}"/>
+        <stack background="${
+          styles.background || "rgb(0,0,0,50%)-rgb(255,255,255,50%)"
+        }" corner-radius="${styles["corner-radius"] || null}" spacing="${
+      styles.spacing || null
+    }" padding="${styles.padding || 3}" layout="${
+      styles.layout || "vertically"
+    }" size="${contentWidth + "," + height}" children="">
+        </stack>
+      </stack>
+  `)
+  }
+
+  const hr = async (validate, template, update, styles, attrs, innerText) => {
+    const mapping = {
+      "background": ["colour", "gradient", "image"],
+      "url": "url",
+      "corner-radius": "posInt",
+      "width": "posInt",
+      "height": "posInt"
+    }
+
+    validate(attrs, styles, mapping)
+
+    await template(`
+    <stack background="${styles.background || "black-white"}" url="${
+      styles.url || "null"
+    }" corner-radius="${styles["corner-radius"] || "null"}">
+      ${styles.width ? "" : "<spacer/>"}
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" image-size="${
+        styles.width || 100
+      },${styles.height || 1}"/>
+      ${styles.width ? "" : "<spacer/>"}
+    </stack>
+  `)
+  }
+
+  const progress = async (
+    validate,
+    template,
+    update,
+    styles,
+    attrs,
+    innerText
+  ) => {
     const mapping = {
       "url": "url",
       "background": ["colour", "gradient"],
@@ -146,13 +176,13 @@ module.exports = async function htmlWidget(input, debug, addons) {
     if (value > 1) {
       throw new Error(`\`value\` attribute must be below \`1\`: ${attrs.value}`)
     }
-    
+
     let width = Number(
-    styles.width && styles.width !== "null" ? styles.width : 100
-  )
-  let height = Number(
-    styles.height && styles.height !== "null" ? styles.height : 1
-  )
+      styles.width && styles.width !== "null" ? styles.width : 100
+    )
+    let height = Number(
+      styles.height && styles.height !== "null" ? styles.height : 1
+    )
     await template(`
     <stack url="${styles.url || "null"}" 
       background="${styles.background || "black-white"}" 
@@ -163,47 +193,21 @@ module.exports = async function htmlWidget(input, debug, addons) {
     >
       <stack background="${styles["progress-background"] || "gray"}" 
         corner-radius="${styles["progress-corner-radius"] || "null"}" 
-        size="${
-      Math.round(width * Number(value))
-    }, ${height}">
+        size="${Math.round(width * Number(value))}, ${height}">
       </stack>
-      <stack size="${Math.round(width * (1 - Number(value)))}, ${height}"></stack>
+      <stack size="${Math.round(
+        width * (1 - Number(value))
+      )}, ${height}"></stack>
     </stack>
   `)
   }
-}
-const hr = {
-  isSelfClosing: true,
-  func: async (validate, template, update, styles, attrs, innerText) => {
-    const mapping = {
-      "background": ["colour", "gradient", "image"],
-      "url": "url",
-      "corner-radius": "posInt",
-      "width": "posInt",
-      "height": "posInt"
-    }
 
-    validate(attrs, styles, mapping)
-
-    await template(`
-    <stack background="${styles.background || "black-white"}" url="${
-      styles.url || "null"
-    }" corner-radius="${styles["corner-radius"] || "null"}">
-      ${styles.width ? "" : "<spacer>"}
-      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" image-size="${
-        styles.width || 100
-      },${styles.height || 1}">
-      ${styles.width ? "" : "<spacer>"}
-    </stack>
-  `)
-  }
-}
-
-  if(addons) {
+  if (addons) {
     Object.assign(addons, progress, hr, symbol, blockquote)
   } else {
     addons = {progress, hr, symbol, blockquote}
   }
+
   // Primitive types for adding and validating
   const types = {
     colour: {
@@ -639,21 +643,63 @@ const hr = {
     }
   }
 
-  // Format addons to only the functions and find if they are self closing
-  let selfClosers = ["img", "spacer"]
-  if (addons) {
-    for (let addon of Object.keys(addons)) {
-      if (typeof addons[addon] == "object") {
-        if (addons[addon].isSelfClosing) {
-          selfClosers.push(addon)
-        }
-        addons[addon] = addons[addon].func
-      }
+  // Function to parse a HTML
+  function parseHTML(string) {
+    // Declare the parser
+    let parser = new XMLParser(string)
+
+    // Root of html
+    let main = {
+      isRoot: true,
+      name: "root",
+      children: []
     }
+
+    // Node to add onto
+    let target = main
+
+    // Store symbols to go back to parent nodes
+    let goBack = {}
+
+    // Store the new node and switch targets
+    parser.didStartElement = (name, attrs) => {
+      let backTo = Symbol("unique")
+      goBack[backTo] = target
+      let newTarget = {
+        name,
+        attrs,
+        innerText: "",
+        children: [],
+        end: backTo
+      }
+      target.children.push(newTarget)
+      target = newTarget
+    }
+
+    // Add the inner text to the node
+    parser.foundCharacters = (text) => {
+      target.innerText += target.innerText === "" ? text : " " + text
+    }
+
+    // Go back to the parent node
+    parser.didEndElement = (name) => {
+      sym = target.end
+      delete target.end
+      target = goBack[sym]
+    }
+
+    // Throw error on invalid input
+    parser.parseErrorOccurred = () => {
+      error(14)
+    }
+    if (!main.isRoot) {
+      error(25, main.name)
+    }
+
+    // Parse and return the root
+    parser.parse()
+    return main
   }
-  // https://github.com/henryluki/html-parser
-  // Added comment support
-  const STARTTAG_REX=/^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/,ENDTAG_REX=/^<\/([-A-Za-z0-9_]+)[^>]*>/,ATTR_REX=/([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;function makeMap(t){return t.split(",").reduce((t,e)=>(t[e]=!0,t),{})}const EMPTY_MAKER=makeMap(selfClosers.join(",")),FILLATTRS_MAKER=makeMap("no-css,children");function isEmptyMaker(t){return!!EMPTY_MAKER[t]}function isFillattrsMaker(t){return!!FILLATTRS_MAKER[t]}class TagStart{constructor(t,e){this.name=t,this.attributes=this.getAttributes(e)}getAttributes(t){let e={};return t.replace(ATTR_REX,function(t,n){const s=Array.prototype.slice.call(arguments),r=s[2]?s[2]:s[3]?s[3]:s[4]?s[4]:isFillattrsMaker(n)?n:"";e[n]=r.replace(/(^|[^\\])"/g,'$1\\"')}),e}}class TagEmpty extends TagStart{constructor(t,e){super(t,e)}}class TagEnd{constructor(t){this.name=t}}class Text{constructor(t){this.text=t}}const ElEMENT_TYPE="Element",TEXT_TYPE="Text";function createElement(t){const e=t.name,n=t.attributes;return t instanceof TagEmpty?{type:ElEMENT_TYPE,tagName:e,attributes:n}:{type:ElEMENT_TYPE,tagName:e,attributes:n,children:[]}}function createText(t){const e=t.text;return{type:TEXT_TYPE,content:e}}function createNodeFactory(t,e){switch(t){case ElEMENT_TYPE:return createElement(e);case TEXT_TYPE:return createText(e)}}function parse(t){let e={tag:"root",children:[]},n=[e];n.last=(()=>n[n.length-1]);for(let e=0;e<t.length;e++){const s=t[e];if(s instanceof TagStart){const t=createNodeFactory(ElEMENT_TYPE,s);t.children?n.push(t):n.last().children.push(t)}else if(s instanceof TagEnd){let t=n[n.length-2],e=n.pop();t.children.push(e)}else s instanceof Text?n.last().children.push(createNodeFactory(TEXT_TYPE,s)):"Comment"!=s.type||n.last().children.push(s)}return e}function tokenize(t){let e=t,n=[];const s=Date.now()+1e3;for(;e;){if(0===e.indexOf("\x3c!--")){const t=e.indexOf("--\x3e")+3;n.push({type:"Comment",text:e.substring(4,t-3)}),e=e.substring(t);continue}if(0===e.indexOf("</")){const t=e.match(ENDTAG_REX);if(!t)continue;e=e.substring(t[0].length);const s=t[1];if(isEmptyMaker(s))continue;n.push(new TagEnd(s));continue}if(0===e.indexOf("<")){const t=e.match(STARTTAG_REX);if(!t)continue;e=e.substring(t[0].length);const s=t[1],r=t[2],a=isEmptyMaker(s)?new TagEmpty(s,r):new TagStart(s,r);n.push(a);continue}const t=e.indexOf("<"),r=t<0?e:e.substring(0,t);if(e=t<0?"":e.substring(t),n.push(new Text(r)),Date.now()>=s)break}return n}function htmlParser(t){return parse(tokenize(t))}
 
   // Set base variables
   let currentStack,
@@ -662,8 +708,8 @@ const hr = {
     gradientNumber = -1
 
   // Get only the first widget tag
-  let widgetBody = htmlParser(input).children.filter((element) => {
-    if (element.tagName == "widget") {
+  let widgetBody = parseHTML(input).children.filter((element) => {
+    if (element.name == "widget") {
       return element
     }
   })[0]
@@ -672,15 +718,10 @@ const hr = {
     error(17)
   }
   // Get all direct style tags
-  let styleTags = widgetBody.children.filter((e) => e.tagName == "style")
+  let styleTags = widgetBody.children.filter((e) => e.name == "style")
   let cssTexts = ""
   for (let styleTag of styleTags) {
-    // Get all text children
-    for (let item of styleTag.children) {
-      if (item.type == "Text") {
-        cssTexts += "\n" + item.content.trim()
-      }
-    }
+    cssTexts += "\n" + styleTag.innerText
   }
   let mainCss = []
   let rules = cssTexts.match(/[\s\S]+?{[\s\S]*?}/g) || []
@@ -767,13 +808,13 @@ const hr = {
     }
     return root
   }
-  
+
   // repeat with all rules on all tags and see if they fit the criteria
   for (let rule of mainCss) {
     applyCss(widgetBody, rule)
   }
   function applyCss(tag, rule) {
-    if (tag.type == "Text" || tag.tagName == "style") {
+    if (tag.name == "style") {
       return
     }
     addCss(tag, rule, 0)
@@ -784,21 +825,21 @@ const hr = {
     }
   }
   function addCss(tag, rule, index) {
-    if (tag.type == "Text" || tag.tagName == "style") {
+    if (tag.name == "style") {
       return
     }
     for (let cssClass of rule.selector[index].classes) {
-      if (!tag.attributes.class) {
+      if (!tag.attrs.class) {
         return
       }
-      if (!tag.attributes.class.split(" ").includes(cssClass)) {
+      if (!tag.attrs.class.split(" ").includes(cssClass)) {
         return
       }
     }
     if (
       rule.selector[index].tag &&
       rule.selector[index].tag !== "*" &&
-      rule.selector[index].tag !== tag.tagName
+      rule.selector[index].tag !== tag.name
     ) {
       return
     }
@@ -828,40 +869,31 @@ const hr = {
   // Compile function
   async function compile(tag) {
     // Do nothing when compile normal text or css
-    if (tag.type == "Text" || tag.tagName == "style") {
+    if (tag.type == "Text" || tag.name == "style") {
       return
     }
     // Throw an error if there is a nestled widget tag
-    if (tag.tagName == "widget" && code) {
+    if (tag.name == "widget" && code) {
       error(19)
     }
     // Increment incrementor
-    if (incrementors[tag.tagName] || incrementors[tag.tagName] == 0) {
-      incrementors[tag.tagName]++
+    if (incrementors[tag.name] || incrementors[tag.name] == 0) {
+      incrementors[tag.name]++
     } else {
-      incrementors[tag.tagName] = 0
+      incrementors[tag.name] = 0
     }
-    let incrementor = incrementors[tag.tagName]
+    let incrementor = incrementors[tag.name]
     // Get innerText
-    let textArray = []
-    tag.children = tag.children || []
-    for (let item of tag.children) {
-      if (item.type == "Text") {
-        textArray.push(item.content.trim())
-      }
-    }
-    let innerText = textArray
-      .join(" ")
+    let innerText = tag.innerText
       .replace(/&lt;/g, "<")
       .replace(/&gt/g, ">")
       .replace(/&amp;/g, "&")
       .replace(/\n\s+/g, "\\n")
-
     let attributeCss = {}
 
     // Add attributes to css
-    for (let key of Object.keys(tag.attributes)) {
-      let value = tag.attributes[key].trim()
+    for (let key of Object.keys(tag.attrs)) {
+      let value = tag.attrs[key].trim()
       if (key !== "class") {
         attributeCss[key] = value
       }
@@ -870,7 +902,7 @@ const hr = {
     let finalCss = {}
     if (tag.css) {
       for (let rule of tag.css) {
-        if (!Object.keys(tag.attributes).includes("no-css")) {
+        if (!Object.keys(tag.attrs).includes("no-css")) {
           for (let key of Object.keys(rule.css)) {
             delete finalCss[key]
             finalCss[key] = rule.css[key]
@@ -886,7 +918,7 @@ const hr = {
 
     // Switch for each tag name
     let mapping, linesBefore, codeLines
-    switch (tag.tagName) {
+    switch (tag.name) {
       case "spacer":
         // Add the spacer to the code and validate for the space attribute
         code += `\nlet spacer${incrementor} = ${currentStack}.addSpacer(${
@@ -1131,12 +1163,12 @@ const hr = {
         break
       default:
         // Throw an error if it is not a valid addon
-        if (!Object.keys(addons).includes(tag["tagName"])) {
-          error(21, tag["tagName"])
+        if (!Object.keys(addons).includes(tag.name)) {
+          error(21, tag["name"])
         }
-        code += `\n// <${tag.tagName}>`
+        code += `\n// <${tag.name}>`
         // Run the addon
-        await addons[tag["tagName"]](
+        await addons[tag.name](
           validate,
           template,
           update,
@@ -1144,12 +1176,12 @@ const hr = {
           attributeCss,
           innerText
         )
-        code += `\n// </${tag.tagName}>`
+        code += `\n// </${tag.name}>`
         return
         // Function to add the raw html of the addon to the widget
         async function template(input) {
           // Parse the template
-          let parsedInput = htmlParser(input)
+          let parsedInput = parseHTML(input)
           // Run through all children to determine where to put the tag children and add the no-css attribute
           parsedInput.children = parsedInput.children.map((e) =>
             putChildren(e, tag.children)
@@ -1173,34 +1205,20 @@ const hr = {
           code = codeLines.join("\n")
           // Function to add the no-css attribute to all children and put the tag children into the template
           function putChildren(tag, children) {
-            
             if (tag.children) {
               tag.children.map((e) => {
                 putChildren(e, children)
               })
             }
-            if (
-              tag.attributes &&
-              Object.keys(tag.attributes).includes("children")
-            ) {
+            if (Object.keys(tag.attrs).includes("children")) {
               for (let item of children) {
                 tag.children.push(item)
               }
             }
-            if (tag.attributes) {
-              tag.attributes["no-css"] = ""
-            }
+            tag.attrs["no-css"] = ""
             return tag
           }
         }
-    }
-    // Compile for comment
-    if (tag["type"] == "Comment") {
-      if (!tag["text"].match(/\n/g)) {
-        code += `\n// ${tag["text"]}`
-      } else {
-        code += `\n/*\n${tag["text"]}\n*/`
-      }
     }
   }
   // Function that validated all attributes and css
@@ -1343,7 +1361,9 @@ const hr = {
       22: "Unknown attribute: `{}`",
       23: "`{}` attribute must be a {} type: `{}`",
       24: "`{}` property must be a {} type: `{}`",
-      26: "`{}` {} must be a valid url or base encoded data link: `{}`"
+      26: "`{}` {} must be a valid url or base encoded data link: `{}`",
+      14: "A parse error occurred, ensure your widget is formatted properly.",
+      25: "A parse error occurred, ensure all self closing tages are closed: <{}>"
     }
     let error = errors[number]
     let params = [...arguments]
