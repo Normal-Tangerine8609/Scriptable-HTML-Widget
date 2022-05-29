@@ -2,8 +2,7 @@
 HTML Widget blockquote 1.1
 https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget/blob/main/add-ons/html-widget-blockquote.js
 
-- Compatible with HTML Widget 5.00
-- fixed height spelling
+- Compatible with HTML Widget 6.00
 */
 module.exports = async (
   validate,
@@ -50,14 +49,14 @@ module.exports = async (
     styles["bar-background"] || "black-white"
   }" corner-radius="${styles["bar-corner-radius"] || null}">
         </stack>
-        <spacer space="${space}">
+        <spacer space="${space}"/>
         <stack background="${
           styles.background || "rgb(0,0,0,50%)-rgb(255,255,255,50%)"
         }" corner-radius="${styles["corner-radius"] || null}" spacing="${
     styles.spacing || null
   }" padding="${styles.padding || 3}" layout="${
     styles.layout || "vertically"
-  }" size="${contentWidth + "," + height}" children>
+  }" size="${contentWidth + "," + height}" children="">
         </stack>
       </stack>
   `)
