@@ -77,6 +77,6 @@ Thanks for the support of the [r/Scriptable](https://www.reddit.com/r/Scriptable
 
 Thanks for [u/TheLongConIsGone](https://www.reddit.com/user/TheLongConIsGone) and [u/Glassounds](https://www.reddit.com/user/Glassounds) for answering some of my scriptable questions.
 
-Thanks for [henryluki](https://github.com/henryluki), the creator of the  [HTML parser](https://github.com/henryluki/html-parser) used in the script.
+Thanks for [henryluki](https://github.com/henryluki), the creator of the  [HTML parser](https://github.com/henryluki/html-parser) once used in the script.
 
 Thanks for you visiting or trying out HTML Widget!
