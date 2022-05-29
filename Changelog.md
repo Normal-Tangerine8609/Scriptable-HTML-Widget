@@ -1,5 +1,15 @@
 # Changelog
 
+## 6.00
+
+- 20.4 KB
+- Changed the HTML parsing system to use the native `XMLParser`
+  - Reduced the size
+  - Self closing tags now need to end with a forwardslash (`<img/>`)
+  - Templates do not need to specify if they are self closing (all tags technically are)
+  - Boolean attributes need to have a value attached to them (including `children` and `no-css`)
+  - Parser will not bug out and infinity run with an invalid HTML
+
 ## 5.11
 
 - 22.7 KB
