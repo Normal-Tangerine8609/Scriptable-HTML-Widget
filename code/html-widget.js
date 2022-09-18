@@ -1,7 +1,7 @@
 //HTML Widget Version 6.01
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 
-module.exports = async function htmlWidget(input, debug, addons) {
+async function htmlWidget(input, debug, addons) {
   ///////////////////
   // PRIMATIVE TYPES
   ///////////////////
