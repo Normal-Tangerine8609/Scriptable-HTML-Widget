@@ -1,9 +1,10 @@
-//HTML Widget Version 6.00
+//HTML Widget Version 6.01
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 
 module.exports = async function htmlWidget(input, debug, addons) {
-  
-  // Primitive types for adding and validating
+  ///////////////////
+  // PRIMATIVE TYPES
+  ///////////////////
   const types = {
     colour: {
       add: async (attribute, value, on) => {
@@ -91,7 +92,7 @@ module.exports = async function htmlWidget(input, debug, addons) {
           "to right bottom": 315
         }
         // Set gradient direction
-        if (Object.keys(wordDirections).includes(gradient[0])) {
+        if (gradient[0] in wordDirections) {
           gradientDirection = wordDirections[gradient.shift()]
         } else if (/\d+\s*deg/.test(gradient[0])) {
           gradientDirection = Number(gradient.shift().match(/(\d+)\s*deg/)[1])
@@ -234,7 +235,7 @@ module.exports = async function htmlWidget(input, debug, addons) {
         if (value == "default") {
           code += `\n${on}.useDefaultPadding()`
         } else {
-          paddingArray = value.match(/\d+/g)
+          let paddingArray = value.match(/\d+/g)
           if (paddingArray.length == 1) {
             paddingArray = [
               paddingArray[0],
@@ -437,7 +438,11 @@ module.exports = async function htmlWidget(input, debug, addons) {
       }
     }
   }
-  
+
+  ///////////////////
+  // PARSE HTML + STYLES
+  ///////////////////
+
   // Function to parse a HTML
   function parseHTML(string) {
     // Declare the parser
@@ -478,7 +483,7 @@ module.exports = async function htmlWidget(input, debug, addons) {
 
     // Go back to the parent node
     parser.didEndElement = (name) => {
-      sym = target.end
+      let sym = target.end
       delete target.end
       target = goBack[sym]
     }
@@ -496,33 +501,36 @@ module.exports = async function htmlWidget(input, debug, addons) {
     return main
   }
 
-  // Set base variables
-  let currentStack,
-    code = "",
-    incrementors = {},
-    gradientNumber = -1
-
   // Get only the first widget tag
-  let widgetBody = parseHTML(input).children.filter((element) => {
-    if (element.name == "widget") {
-      return element
+  let widgetBody = parseHTML(input).children.find((e) => {
+    if (e.name == "widget") {
+      return e
     }
-  })[0]
+  })
+
   // If there were no widget tags raise error
   if (!widgetBody) {
     error(17)
   }
+
   // Get all direct style tags
-  let styleTags = widgetBody.children.filter((e) => e.name == "style")
+  const styleTags = widgetBody.children.filter((e) => e.name == "style")
+
+  // combine the css text
   let cssTexts = ""
   for (let styleTag of styleTags) {
     cssTexts += "\n" + styleTag.innerText
   }
+
+  // store css
   let mainCss = []
-  let rules = cssTexts.match(/[\s\S]+?{[\s\S]*?}/g) || []
+
+  // get all css rules
+  const rules = cssTexts.match(/[\s\S]+?{[\s\S]*?}/g) || []
+
   // Repeat with each css rule
-  for (let i = 0; i < rules.length; i++) {
-    let rule = rules[i]
+  for (let rule of rules) {
+    // Test rule
     if (
       !/^\s*(\.?[\w\-]+|\*)(\s*[,>]\s*(\.?[\w\-]+|\*))*\s*\{(\s*[\w\-]+\s*:\s*[^\n]+?\s*;)*?\s*([\w\-]+\s*:\s*[^\n]+\s*;?)?\s*\}/.test(
         rule
@@ -530,40 +538,54 @@ module.exports = async function htmlWidget(input, debug, addons) {
     ) {
       error(18, rule.trim())
     }
-    // Set rules into the mainCss JSON
+    // Store the declarations for the rule
     let declarations = {}
-    rule
-      .match(/\{([\s\S]*)\}/)[1]
-      .split(";")
-      .map((e) => e.trim())
-      .filter((e) => e)
-      .forEach((e) => {
-        declarations[e.split(/:/)[0].trim()] = e
-          .substring(e.indexOf(":") + 1)
-          .trim()
-      })
-    let selectors = rule
+
+    // format declarations into the declarations JSON
+    const rawDeclorations = rule.match(/\{([\s\S]*)\}/)[1].split(";")
+    for (let decloration of rawDeclorations) {
+      decloration = decloration.trim()
+      if (!decloration) {
+        continue
+      }
+      const property = decloration.split(":")[0].trim()
+      const value = decloration.split(":")[1].trim()
+      declarations[property] = value
+    }
+
+    // get the selector for the rule
+    const selectors = rule
       .match(/(\.?[\w\-]+|\*)(\s*[>,]\s*(\.?[\w\-]+|\*))*/)[0]
       .split(",")
+    // add the css rule to the main css with all selectors
     for (let selector of selectors) {
-      mainCss.push({selector: parseSeletor(selector.trim()), css: declarations})
+      mainCss.push({selector: parseSeletor(selector), css: declarations})
     }
   }
+
+  // function to parse the selectors
   function parseSeletor(input) {
     input = input.trim()
+    // store parser character location
     let current = 0
+    // store the full css selector
     let root = []
+    // store the current css selector position
     let currentSelector = root.push({
       classes: []
     })
+
+    // repeat while the parser has characters left to go through
     while (current < input.length) {
+      // store the current character
       let char = input[current]
 
+      // if the char is a `.` then get all following valid characters and add a class to the selector
       if (char === ".") {
         char = input[++current]
         let VALIDCHARS = /[-a-zA-Z_0-9]/
         if (!VALIDCHARS.test(char)) {
-          throw new Error("A css parse error: `" + input + "`")
+          error(27, input)
         }
         let value = ""
         while (char && VALIDCHARS.test(char)) {
@@ -572,6 +594,8 @@ module.exports = async function htmlWidget(input, debug, addons) {
         }
         root[currentSelector - 1].classes.push(value)
       }
+
+      // If it matches a direct child then create a new currentSelector position for the next part of the selector
       let SPACE = / /
       let DIRECTCHILD = />/
       if (DIRECTCHILD.test(char)) {
@@ -583,6 +607,8 @@ module.exports = async function htmlWidget(input, debug, addons) {
           classes: []
         })
       }
+
+      // if it matches a tag then get the tag name and add it to the selector
       let TAG = /[a-z]/i
       if (TAG.test(char)) {
         let value = ""
@@ -592,6 +618,8 @@ module.exports = async function htmlWidget(input, debug, addons) {
         }
         root[currentSelector - 1].tag = value
       }
+
+      // if it matches a star then set the tag to be a `*`
       let STAR = /\*/
       if (STAR.test(char)) {
         char = input[++current]
@@ -601,28 +629,34 @@ module.exports = async function htmlWidget(input, debug, addons) {
         char = input[++current]
       }
     }
+
+    // return the root of the selector
     return root
   }
 
-  // repeat with all rules on all tags and see if they fit the criteria
-  for (let rule of mainCss) {
-    applyCss(widgetBody, rule)
-  }
-  function applyCss(tag, rule) {
+  // each element and attempt to add styles
+  applyCss(widgetBody)
+  function applyCss(tag) {
     if (tag.name == "style") {
       return
     }
-    addCss(tag, rule, 0)
+    for (let rule of mainCss) {
+      addCss(tag, rule, 0)
+    }
     if (tag.children) {
       for (let child of tag.children) {
-        applyCss(child, rule)
+        applyCss(child)
       }
     }
   }
+
+  // function to check if a selector matches an element and add the css to it
   function addCss(tag, rule, index) {
-    if (tag.name == "style") {
+    if (tag.name === "style") {
       return
     }
+
+    // ensure matching classes
     for (let cssClass of rule.selector[index].classes) {
       if (!tag.attrs.class) {
         return
@@ -631,6 +665,8 @@ module.exports = async function htmlWidget(input, debug, addons) {
         return
       }
     }
+
+    // enaure proper tag name
     if (
       rule.selector[index].tag &&
       rule.selector[index].tag !== "*" &&
@@ -638,30 +674,43 @@ module.exports = async function htmlWidget(input, debug, addons) {
     ) {
       return
     }
+
+    // if at the end of the css (no `>` following) add the css to the tag's css'
+    // else check for matching the next level of the css with children tag (selector following `>`)
     if (rule.selector.length - 1 === index) {
       if (!tag.css) {
         tag.css = []
       }
       tag.css.push(rule)
-    } else {
-      if (tag.children) {
-        for (let child of tag.children) {
-          addCss(child, rule, index + 1)
-        }
+    } else if (tag.children) {
+      for (let child of tag.children) {
+        addCss(child, rule, index + 1)
       }
     }
   }
-  // Compile widget
+
+  ///////////////////
+  // COMPILE WIDGET
+  ///////////////////
+
+  // Set base variables
+  let currentStack,
+    code = "",
+    incrementors = {},
+    gradientNumber = -1
+
+  // compile the widget
   await compile(widgetBody)
+
   // Run code and set output of function
   if (debug == true) {
     console.log(code)
   }
-  let AsyncFunction = Object.getPrototypeOf(async function () {}).constructor
-  let runCode = new AsyncFunction(code + "\nreturn widget")
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor
+  const runCode = new AsyncFunction(code + "\nreturn widget")
   return await runCode()
 
-  // Compile function
+  // function to compile the widget
   async function compile(tag) {
     // Do nothing when compile normal text or css
     if (tag.type == "Text" || tag.name == "style") {
@@ -671,6 +720,12 @@ module.exports = async function htmlWidget(input, debug, addons) {
     if (tag.name == "widget" && code) {
       error(19)
     }
+
+    // Add a new line spacing before tags
+    if (code) {
+      code += "\n"
+    }
+
     // Increment incrementor
     if (incrementors[tag.name] || incrementors[tag.name] == 0) {
       incrementors[tag.name]++
@@ -678,41 +733,47 @@ module.exports = async function htmlWidget(input, debug, addons) {
       incrementors[tag.name] = 0
     }
     let incrementor = incrementors[tag.name]
+
     // Get innerText
     let innerText = tag.innerText
       .replace(/&lt;/g, "<")
       .replace(/&gt/g, ">")
       .replace(/&amp;/g, "&")
       .replace(/\n\s+/g, "\\n")
+
+    // store attributes that translate to css
     let attributeCss = {}
 
     // Add attributes to css
-    for (let key of Object.keys(tag.attrs)) {
+    for (let key in tag.attrs) {
       let value = tag.attrs[key].trim()
-      if (key !== "class") {
+      if (!["class", "no-css", "children"].includes(key)) {
         attributeCss[key] = value
       }
     }
+
     // Add or reset all selected css values if the tag does not have the no-css attribute
     let finalCss = {}
     if (tag.css) {
       for (let rule of tag.css) {
-        if (!Object.keys(tag.attrs).includes("no-css")) {
-          for (let key of Object.keys(rule.css)) {
+        if (!("no-css" in tag.attrs)) {
+          for (let key in rule.css) {
             delete finalCss[key]
             finalCss[key] = rule.css[key]
           }
         }
       }
     }
+
     // Add attribute values to the css
-    for (let key of Object.keys(attributeCss)) {
+    for (let key in attributeCss) {
       delete finalCss[key]
       finalCss[key] = attributeCss[key]
     }
 
     // Switch for each tag name
-    let mapping, linesBefore, codeLines
+    let mapping, linesBefore
+
     switch (tag.name) {
       case "spacer":
         // Add the spacer to the code and validate for the space attribute
@@ -737,20 +798,17 @@ module.exports = async function htmlWidget(input, debug, addons) {
         }
         validate(attributeCss, finalCss, mapping)
         // Repeat with each css value
-        for (let key of Object.keys(finalCss)) {
-          let value = finalCss[key]
-          let on = "widget"
-          if (
-            key == "background" &&
-            value !== "null" &&
-            key != "no-css" &&
-            key != "children"
-          ) {
+        for (let key in finalCss) {
+          const value = finalCss[key]
+          const on = "widget"
+          if (key == "background" && value !== "null") {
             // Background must be completed differently because it can have 3 different types
             try {
+              // try for image
               types.url.validate("background", true, value)
               types.image.add(key, value, on)
             } catch (e) {
+              // split for gradient and if the length is 1 set as a background colour else as a grafient
               if (
                 value.split(
                   /,(?![^(]*\))(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)/
@@ -761,27 +819,25 @@ module.exports = async function htmlWidget(input, debug, addons) {
                 await types.gradient.add("background-gradient", value, on)
               }
             }
-          } else if (value != "null" && key != "children" && key != "no-css") {
+          } else if (value !== "null") {
             // Add the style to the tag
-            await types[mapping[key]].add(key, value, on)
+            const addFunc = types[mapping[key]].add
+            if (isAsync(addFunc)) {
+              await addFunc(key, value, on)
+            } else {
+              addFunc(key, value, on)
+            }
           }
         }
         // Compile children with space indents
         linesBefore = code.split("\n").length
-        for (let child of tag["children"]) {
+        for (let child of tag.children) {
           currentStack = "widget"
           await compile(child)
         }
 
-        codeLines = code.split("\n")
-
-        for (let i = codeLines.length - 1; i >= 0; i--) {
-          if (i == linesBefore - 1) {
-            break
-          }
-          codeLines[i] = "  " + codeLines[i]
-        }
-        code = codeLines.join("\n")
+        // add indents to the code before the widget tag
+        indent(linesBefore)
         return
         break
       case "stack":
@@ -801,20 +857,17 @@ module.exports = async function htmlWidget(input, debug, addons) {
         }
         validate(attributeCss, finalCss, mapping)
         // Repeat with each css value
-        for (let key of Object.keys(finalCss)) {
-          let value = finalCss[key]
-          let on = "stack" + incrementor
-          if (
-            key == "background" &&
-            value !== "null" &&
-            key != "children" &&
-            key != "no-css"
-          ) {
+        for (let key in finalCss) {
+          const value = finalCss[key]
+          const on = "stack" + incrementor
+          if (key == "background" && value !== "null") {
             // Background must be completed differently because it can have 3 different types
             try {
+              // try for background image
               types.image.validate("background", true, value)
               types.image.add(key, value, on)
             } catch (e) {
+              // split for gradient and if the length is 1 set as a background colour else as a grafient
               if (
                 value.split(
                   /,(?![^(]*\))(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)/
@@ -825,11 +878,17 @@ module.exports = async function htmlWidget(input, debug, addons) {
                 await types.gradient.add("background-gradient", value, on)
               }
             }
-          } else if (value != "null" && key != "children" && key != "no-css") {
+          } else if (value !== "null") {
             // Add style to stack
-            await types[mapping[key]].add(key, value, on)
+            const addFunc = types[mapping[key]].add
+            if (isAsync(addFunc)) {
+              await addFunc(key, value, on)
+            } else {
+              addFunc(key, value, on)
+            }
           }
         }
+
         // Compile children with space indents
         linesBefore = code.split("\n").length
         let stack = "stack" + incrementor
@@ -838,28 +897,20 @@ module.exports = async function htmlWidget(input, debug, addons) {
           await compile(child)
         }
 
-        codeLines = code.split("\n")
-
-        for (let i = codeLines.length - 1; i >= 0; i--) {
-          if (i == linesBefore - 1) {
-            break
-          }
-          codeLines[i] = "  " + codeLines[i]
-        }
-        code = codeLines.join("\n")
+        // add indents to the code before the stack tag
+        indent(linesBefore)
         return
         break
       case "img":
         let image
         // Throw an error if there is no src attribute
-        if (!attributeCss["src"] || attributeCss["src"] == "null") {
+        if (!attributeCss["src"] || attributeCss["src"] === "null") {
           error(20)
         }
         // Determine if the image is a URL or base encoding
         if (attributeCss["src"].startsWith("data:image/")) {
           image = `Image.fromData(Data.fromBase64String("${attributeCss["src"]
-            .replace("data:image/png;base64,", "")
-            .replace("data:image/jpeg;base64,", "")
+            .replace(/data:image\/.*?;base64,/, "")
             .replace(/"/g, "")}"))`
         } else {
           image = `await new Request("${attributeCss["src"].replace(
@@ -885,14 +936,19 @@ module.exports = async function htmlWidget(input, debug, addons) {
         }
         validate(attributeCss, finalCss, mapping)
         // Add css styles to the image
-        for (let key of Object.keys(finalCss)) {
+        for (let key in finalCss) {
           if (key == "src") {
             continue
           }
-          let value = finalCss[key]
-          let on = "img" + incrementor
-          if (value != "null" && key != "children" && key != "no-css") {
-            await types[mapping[key]].add(key, value, on)
+          const value = finalCss[key]
+          const on = "img" + incrementor
+          if (value !== "null") {
+            const addFunc = types[mapping[key]].add
+            if (isAsync(addFunc)) {
+              await addFunc(key, value, on)
+            } else {
+              addFunc(key, value, on)
+            }
           }
         }
         return
@@ -917,11 +973,16 @@ module.exports = async function htmlWidget(input, debug, addons) {
         }
         validate(attributeCss, finalCss, mapping)
         // Add styles to the text
-        for (let key of Object.keys(finalCss)) {
-          let value = finalCss[key]
-          let on = "text" + incrementor
-          if (value != "null" && key != "children" && key != "no-css") {
-            await types[mapping[key]].add(key, value, on)
+        for (let key in finalCss) {
+          const value = finalCss[key]
+          const on = "text" + incrementor
+          if (value !== "null") {
+            const addFunc = types[mapping[key]].add
+            if (isAsync(addFunc)) {
+              await addFunc(key, value, on)
+            } else {
+              addFunc(key, value, on)
+            }
           }
         }
         return
@@ -947,32 +1008,43 @@ module.exports = async function htmlWidget(input, debug, addons) {
         }
         validate(attributeCss, finalCss, mapping)
         // Add styles to the date
-        for (let key of Object.keys(finalCss)) {
-          let value = finalCss[key]
-          let on = "date" + incrementor
-          if (value != "null" && key != "children" && key != "no-css") {
-            await types[mapping[key]].add(key, value, on)
+        for (let key in finalCss) {
+          const value = finalCss[key]
+          const on = "date" + incrementor
+          if (value != "null") {
+            const addFunc = types[mapping[key]].add
+            if (isAsync(addFunc)) {
+              await addFunc(key, value, on)
+            } else {
+              addFunc(key, value, on)
+            }
           }
         }
         return
         break
       default:
         // Throw an error if it is not a valid addon
-        if (!Object.keys(addons).includes(tag.name)) {
-          error(21, tag["name"])
+        if (!(tag.name in addons)) {
+          error(21, tag.name)
         }
         code += `\n// <${tag.name}>`
         // Run the addon
-        await addons[tag.name](
+        const addonParams = [
           validate,
           template,
           update,
           finalCss,
           attributeCss,
           innerText
-        )
+        ]
+        if (isAsync(addons[tag.name])) {
+          await addons[tag.name](...addonParams)
+        } else {
+          addons[tag.name](...addonParams)
+        }
         code += `\n// </${tag.name}>`
         return
+
         // Function to add the raw html of the addon to the widget
         async function template(input) {
           // Parse the template
@@ -981,6 +1053,7 @@ module.exports = async function htmlWidget(input, debug, addons) {
           parsedInput.children = parsedInput.children.map((e) =>
             putChildren(e, tag.children)
           )
+
           // Compile template
           let stack = currentStack
           linesBefore = code.split("\n").length
@@ -989,15 +1062,10 @@ module.exports = async function htmlWidget(input, debug, addons) {
             let currentStack = stack
             await compile(child)
           }
-          codeLines = code.split("\n")
+          const codeLines = code.split("\n")
 
-          for (let i = codeLines.length - 1; i >= 0; i--) {
-            if (i == linesBefore - 1) {
-              break
-            }
-            codeLines[i] = "  " + codeLines[i]
-          }
-          code = codeLines.join("\n")
+          indent(linesBefore)
+
           // Function to add the no-css attribute to all children and put the tag children into the template
           function putChildren(tag, children) {
             if (tag.children) {
@@ -1005,7 +1073,7 @@ module.exports = async function htmlWidget(input, debug, addons) {
                 putChildren(e, children)
               })
             }
-            if (Object.keys(tag.attrs).includes("children")) {
+            if ("children" in tag.attrs) {
               for (let item of children) {
                 tag.children.push(item)
               }
@@ -1019,13 +1087,9 @@ module.exports = async function htmlWidget(input, debug, addons) {
   // Function that validated all attributes and css
   function validate(attributeCss, finalCss, mapping) {
     // Repeat with all the attributes
-    for (let attr of Object.keys(attributeCss)) {
-      // Do nothing if the attributes is children or no-css or the value is null
-      if (
-        attributeCss[attr] == "null" ||
-        attr == "children" ||
-        attr == "no-css"
-      ) {
+    for (let attr in attributeCss) {
+      // Do nothing if the attributes is null
+      if (attributeCss[attr] === "null") {
         continue
       }
       // Throw an error if the attribute is not in the mapping
@@ -1033,7 +1097,7 @@ module.exports = async function htmlWidget(input, debug, addons) {
         error(22, attr)
       }
       // Validate the attribute as a string or array of posibilities
-      if (typeof mapping[attr] == "string") {
+      if (typeof mapping[attr] === "string") {
         types[mapping[attr]].validate(attr, true, attributeCss[attr])
       } else {
         let isValid = false
@@ -1043,7 +1107,7 @@ module.exports = async function htmlWidget(input, debug, addons) {
             isValid = true
           } catch (e) {}
         }
-        if (isValid === false) {
+        if (!isValid) {
           error(
             23,
             attr,
@@ -1054,9 +1118,9 @@ module.exports = async function htmlWidget(input, debug, addons) {
       }
     }
     // Repeat with all the css
-    for (let css of Object.keys(finalCss)) {
+    for (let css in finalCss) {
       // Do nothing if the css is children or no-css or the value is null
-      if (finalCss[css] == "null" || css == "children" || css == "no-css") {
+      if (finalCss[css] === "null") {
         continue
       }
       // Ignore css properties that are not in the mapping
@@ -1065,7 +1129,7 @@ module.exports = async function htmlWidget(input, debug, addons) {
         continue
       }
       // Validate the css as a string or array of posibilities
-      if (typeof mapping[css] == "string") {
+      if (typeof mapping[css] === "string") {
         types[mapping[css]].validate(css, false, finalCss[css])
       } else {
         let isValid = false
@@ -1075,7 +1139,7 @@ module.exports = async function htmlWidget(input, debug, addons) {
             isValid = true
           } catch (e) {}
         }
-        if (isValid === false) {
+        if (!isValid) {
           error(
             24,
             attr,
@@ -1088,13 +1152,17 @@ module.exports = async function htmlWidget(input, debug, addons) {
   }
   // Function to fill all not entered keys from the mapping with null
   function update(input, mapping) {
-    for (let key of Object.keys(mapping)) {
-      if (!Object.keys(input).includes(key)) {
+    for (let key in mapping) {
+      if (!(key in input)) {
         input[key] = "null"
       }
     }
     return input
   }
+
+  ///////////////////
+  // HELPER FUNCTIONS
+  ///////////////////
 
   // Function to get any html supported color
   async function colorFromValue(c) {
@@ -1131,6 +1199,21 @@ module.exports = async function htmlWidget(input, debug, addons) {
       return `new Color("${"#" + r + g + b}"${a})`
     }
   }
+
+  function indent(startLine) {
+    const codeLines = code.split("\n")
+    for (let i = codeLines.length - 1; i >= startLine; i--) {
+      codeLines[i] = "  " + codeLines[i]
+    }
+    code = codeLines.join("\n")
+  }
+
+  // if the provided function is a async function
+  function isAsync(func) {
+    return func.constructor.name === "AsyncFunction"
+  }
+
+  // error function
   function error(number) {
     const errors = {
       1: "`{}` {} must be a positive integer: `{}`",
@@ -1158,7 +1241,8 @@ module.exports = async function htmlWidget(input, debug, addons) {
       24: "`{}` property must be a {} type: `{}`",
       26: "`{}` {} must be a valid url or base encoded data link: `{}`",
       14: "A parse error occurred, ensure your widget is formatted properly.",
-      25: "A parse error occurred, ensure all self closing tages are closed: <{}>"
+      25: "A parse error occurred, ensure all self closing tages are closed: <{}>",
+      27: "A css parse error occurred: `{}`"
     }
     let error = errors[number]
     let params = [...arguments]
