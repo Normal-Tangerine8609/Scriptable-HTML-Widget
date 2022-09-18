@@ -3,7 +3,6 @@
 ## 6.01
 
 - 15.3 KB
-
 - Fix global `sym` variable and global `paddingArray` variable
 - Improved preformance and file size
 - Added more comments
