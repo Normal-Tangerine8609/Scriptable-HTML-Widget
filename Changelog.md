@@ -1,5 +1,14 @@
 # Changelog
 
+## 6.01
+
+- 15.3 KB
+
+- Fix global `sym` variable and global `paddingArray` variable
+- Improved preformance and file size
+- Added more comments
+- When `debug` is true, in the logged code, tags are split by new lines
+
 ## 6.00
 
 - 20.4 KB
