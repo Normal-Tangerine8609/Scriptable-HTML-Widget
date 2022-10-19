@@ -1,4 +1,4 @@
-//HTML Widget Version 6.01
+//HTML Widget Version 6.02
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 
 async function htmlWidget(input, debug, addons) {
@@ -11,71 +11,52 @@ async function htmlWidget(input, debug, addons) {
         const colours = value.split("-")
         const colour =
           colours.length == 2
-            ? "Color.dynamic(" +
-              (await colorFromValue(colours[0])) +
-              "," +
-              (await colorFromValue(colours[1])) +
-              ")"
+            ? `Color.dynamic(${await colorFromValue(
+                colours[0]
+              )}, ${await colorFromValue(colours[1])})`
             : await colorFromValue(colours[0])
-        code += `\n${on}.${attribute
-          .toLowerCase()
-          .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) =>
-            chr.toUpperCase()
-          )} = ${colour}`
+        code += `\n${on}.${toCamelCase(attribute)} = ${colour}`
       },
       validate: () => {}
     },
     posInt: {
       add: (attribute, value, on) => {
         if (attribute == "refresh-after-date") {
-          code += `\nlet date = new Date()\ndate.setMinutes(date.getMinutes() + ${/\d+/.exec(
-            value
-          )})\nwidget.refreshAfterDate = date`
+          code += `\nlet date = new Date()\ndate.setMinutes(date.getMinutes() + ${value})\nwidget.refreshAfterDate = date`
         } else {
-          code += `\n${on}.${attribute
-            .toLowerCase()
-            .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) =>
-              chr.toUpperCase()
-            )} = ${/\d+/.exec(value)}`
+          code += `\n${on}.${toCamelCase(attribute)} = ${value}`
         }
       },
-      validate: (attribute, isAttribute, value) => {
-        if (!/^\s*\d+\s*$/.test(value)) {
-          error(1, attribute, isAttribute ? "attribute" : "property", value)
+      validate: (attribute, type, value) => {
+        if (!/^\d+$/.test(value)) {
+          error(1, attribute, type, value)
         }
       }
     },
     decimal: {
       add: (attribute, value, on) => {
-        value = /\d*(?:\.\d*)?%?/.exec(value)[0]
         if (value.endsWith("%")) {
           value = Number(value.replace("%", ""))
           value /= 100
         }
-        code += `\n${on}.${attribute
-          .toLowerCase()
-          .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) =>
-            chr.toUpperCase()
-          )} = ${value}`
+        code += `\n${on}.${toCamelCase(attribute)} = ${value}`
       },
-      validate: (attribute, isAttribute, value) => {
-        let regex = /^\s*(\d*(?:\.\d*)?)%?\s*$/
-        if (
-          !value.match(regex) ||
-          (value.match(regex) && ["", "."].includes(value.match(regex)[1]))
-        ) {
-          error(2, attribute, isAttribute ? "attribute" : "property", value)
+      validate: (attribute, type, value) => {
+        if (!/^\d*((\.\d+)|\d\.?)%?$/.test(value)) {
+          error(2, attribute, type, value)
         }
       }
     },
     gradient: {
       add: async (attribute, value, on) => {
         gradientNumber++
+
+        // split into parts
         let gradient = value
-        // Split gradient in parts
-        gradient = gradient
           .split(/,(?![^(]*\))(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)/)
           .map((e) => e.trim())
+
+        // get the direction from the first item of gradient
         let gradientDirection
         const wordDirections = {
           "to left": 90,
@@ -91,7 +72,7 @@ async function htmlWidget(input, debug, addons) {
           "to left bottom": 45,
           "to right bottom": 315
         }
-        // Set gradient direction
+        // check if it is a word direction, degrees direction or none are provided
         if (gradient[0] in wordDirections) {
           gradientDirection = wordDirections[gradient.shift()]
         } else if (/\d+\s*deg/.test(gradient[0])) {
@@ -99,77 +80,74 @@ async function htmlWidget(input, debug, addons) {
         } else {
           gradientDirection = 0
         }
+
         // Get colours
         let colours = []
         for (let colour of gradient) {
-          colour = colour.replace(/\d*(\.\d+)?%?$/, "")
+          colour = colour.replace(/\s+\d*((\.\d+)|\d\.?)%?$/, "")
           colour = colour.split("-")
           if (colour.length == 2) {
             colours.push(
-              Color.dynamic(
-                await colorFromValue(colour[0]),
-                await colorFromValue(colour[1])
-              )
+              `Color.dynamic(${await colorFromValue(
+                colour[0]
+              )},${await colorFromValue(colour[1])})`
             )
           } else {
             colours.push(await colorFromValue(colour[0]))
           }
         }
+
         // Get locations
-        let locations = gradient
-          .map((e) =>
-            /\d*(\.\d+)?%?$/.test(e) ? e.match(/\d*(\.\d+)?%?$/)[0] : null
-          )
-          .map((e) => {
-            if (e) {
-              if (e.endsWith("%")) {
-                e = Number(e.replace("%", "")) / 100
-              }
-            }
-            return (!isNaN(e) && !isNaN(parseFloat(e))) || typeof e == "number"
-              ? Number(e)
-              : null
-          })
-        if (!locations[0]) {
+        let locations = gradient.map((e) => {
+          // get all provided locations
+          let matched = e.match(/\s+\d*((\.\d+)|\d\.?)%?$/)
+          // get the matched result or null
+          let result = matched && matched[0]
+          // divide a percentage
+          if (result && result.endsWith("%")) {
+            result = Number(result.replace("%", "")) / 100
+          }
+          return result === null ? null : Number(result)
+        })
+
+        // Set defult first and last locations
+        if (locations[0] === null) {
           locations[0] = 0
         }
-        if (!locations[locations.length - 1]) {
+        if (locations[locations.length - 1] === null) {
           locations[locations.length - 1] = 1
         }
-        let minLocation = 0
+
         // Set not specified locations
         for (let i = 0; i < locations.length; i++) {
           let currentLocation = locations[i]
-          if (currentLocation) {
-            let counter = 0
-            let index = i
-            while (locations[index] === null) {
-              counter++
-              index++
-            }
-            let difference =
-              (locations[index] - locations[i - 1]) / (counter + 1)
-            for (let count = 0; count < counter; count++) {
-              locations[count + i] = difference * (count + 1) + locations[i - 1]
-            }
+          // get next non-null location index
+          let index = i + 1
+          while (index < locations.length && locations[index] === null) {
+            index++
+          }
+          // calculate the difference between each null location for a linear trasition
+          let difference = (locations[index] - locations[i]) / (index - i)
+
+          // set each between null location
+          for (let plusIndex = 1; plusIndex < index - i; plusIndex++) {
+            locations[i + plusIndex] = difference * plusIndex + currentLocation
           }
         }
-        code += `\nlet gradient${gradientNumber} = new LinearGradient()\ngradient${gradientNumber}.colors = [${colours}]\ngradient${gradientNumber}.locations = [${locations}]\ngradient${gradientNumber}.startPoint = ${`new Point(${
-          1 -
-          (0.5 + 0.5 * Math.cos((Math.PI * (gradientDirection + 90)) / 180.0))
-        }, ${
-          1 -
-          (0.5 + 0.5 * Math.sin((Math.PI * (gradientDirection + 90)) / 180.0))
-        })`}\ngradient${gradientNumber}.endPoint = ${`new Point(${
-          0.5 + 0.5 * Math.cos((Math.PI * (gradientDirection + 90)) / 180.0)
-        }, ${
-          0.5 + 0.5 * Math.sin((Math.PI * (gradientDirection + 90)) / 180.0)
-        })`}\n${on}.backgroundGradient = gradient${gradientNumber}`
+
+        // calculate gradient points based on the direction
+        const x1 =
+          1 - (0.5 + 0.5 * Math.cos((Math.PI * (gradientDirection + 90)) / 180))
+        const y1 =
+          1 - (0.5 + 0.5 * Math.sin((Math.PI * (gradientDirection + 90)) / 180))
+        const x2 =
+          0.5 + 0.5 * Math.cos((Math.PI * (gradientDirection + 90)) / 180)
+        const y2 =
+          0.5 + 0.5 * Math.sin((Math.PI * (gradientDirection + 90)) / 180)
+        code += `\nlet gradient${gradientNumber} = new LinearGradient()\ngradient${gradientNumber}.colors = [${colours}]\ngradient${gradientNumber}.locations = [${locations}]\ngradient${gradientNumber}.startPoint = ${`new Point(${x1}, ${y1})`}\ngradient${gradientNumber}.endPoint = ${`new Point(${x2}, ${y2})`}\n${on}.backgroundGradient = gradient${gradientNumber}`
       },
-      validate: (attribute, isAttribute, value) => {
+      validate: (attribute, type, value) => {
         let gradient = value
-        // Split gradient in parts
-        gradient = gradient
           .split(/,(?![^(]*\))(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)/)
           .map((e) => e.trim())
         const wordDirections = [
@@ -192,38 +170,30 @@ async function htmlWidget(input, debug, addons) {
           gradient.shift()
         }
         // Get locations
-        let locations = gradient
-          .map((e) =>
-            /\d*(\.\d+)?%?$/.test(e) ? e.match(/\d*(\.\d+)?%?$/)[0] : null
-          )
-          .map((e) => {
-            if (e) {
-              if (e.endsWith("%")) {
-                e = Number(e.replace("%", "")) / 100
-              }
-            }
-            return (!isNaN(e) && !isNaN(parseFloat(e))) || typeof e == "number"
-              ? Number(e)
-              : null
-          })
-        if (!locations[0]) {
-          locations[0] = 0
-        }
-        if (!locations[locations.length - 1]) {
-          locations[locations.length - 1] = 1
-        }
+        let locations = gradient.map((e) => {
+          // get all provided locations
+          let matched = e.match(/\s+\d*((\.\d+)|\d\.?)%?$/)
+          // get the matched result or null
+          let result = matched && matched[0]
+          // divide a percentage
+          if (result && result.endsWith("%")) {
+            result = Number(result.replace("%", "")) / 100
+          }
+          return result === null ? null : Number(result)
+        })
+
         let minLocation = 0
         for (let i = 0; i < locations.length; i++) {
           let currentLocation = locations[i]
           if (currentLocation) {
             if (minLocation > currentLocation) {
-              error(3, attribute, isAttribute ? "attribute" : "property", value)
+              error(3, attribute, type, value)
             }
             if (currentLocation < 0) {
-              error(4, attribute, isAttribute ? "attribute" : "property", value)
+              error(4, attribute, type, value)
             }
             if (currentLocation > 1) {
-              error(5, attribute, isAttribute ? "attribute" : "property", value)
+              error(5, attribute, type, value)
             }
             minLocation = currentLocation
           }
@@ -251,35 +221,32 @@ async function htmlWidget(input, debug, addons) {
               paddingArray[1]
             ]
           }
-          code += `\n${on}.setPadding(${paddingArray.join(",")})`
+          code += `\n${on}.setPadding(${paddingArray.join(", ")})`
         }
       },
-      validate: (attribute, isAttribute, value) => {
-        if (
-          !/^\s*\d+((\s*,\s*\d+){3}|(\s*,\s*\d+))?\s*$|^default$/g.test(value)
-        ) {
-          error(6, attribute, isAttribute ? "attribute" : "property", value)
+      validate: (attribute, type, value) => {
+        if (!/^(\d+((\s*,\s*\d+){3}|(\s*,\s*\d+))?|default)$/g.test(value)) {
+          error(6, attribute, type, value)
         }
       }
     },
     size: {
       add: (attribute, value, on) => {
-        code += `\n${on}.${attribute
-          .toLowerCase()
-          .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) =>
-            chr.toUpperCase()
-          )} = new Size(${value.match(/\d+/g)[0]},${value.match(/\d+/g)[1]})`
+        let size = value.match(/\d+/g)
+        code += `\n${on}.${toCamelCase(attribute)} = new Size(${size[0]}, ${
+          size[1]
+        })`
       },
-      validate: (attribute, isAttribute, value) => {
-        if (!/^\s*\d+\s*,\s*\d+\s*$/.test(value)) {
-          error(7, attribute, isAttribute ? "attribute" : "property", value)
+      validate: (attribute, type, value) => {
+        if (!/^\d+\s*,\s*\d+$/.test(value)) {
+          error(7, attribute, type, value)
         }
       }
     },
     font: {
       add: (attribute, value, on) => {
         let regex =
-          /^\s*(((black|bold|medium|light|heavy|regular|semibold|thin|ultraLight)(MonospacedSystemFont|RoundedSystemFont|SystemFont)\s*,\s*(\d+))|(body|callout|caption1|caption2|footnote|subheadline|headline|largeTitle|title1|title2|title3)|((italicSystemFont)\s*,\s*(\d+)))\s*$/
+          /^(((black|bold|medium|light|heavy|regular|semibold|thin|ultraLight)(MonospacedSystemFont|RoundedSystemFont|SystemFont)\s*,\s*(\d+))|(body|callout|caption1|caption2|footnote|subheadline|headline|largeTitle|title1|title2|title3)|((italicSystemFont)\s*,\s*(\d+)))$/
         if (regex.test(value)) {
           code += `\n${on}.font = Font.${value.replace(
             regex,
@@ -291,9 +258,9 @@ async function htmlWidget(input, debug, addons) {
             .replace(/"/g, "")}",${value.split(",")[1].match(/\d+/g)[0]})`
         }
       },
-      validate: (attribute, isAttribute, value) => {
+      validate: (attribute, type, value) => {
         if (
-          !/^\s*[^,]+,\s*\d+\s*$/.test(value) &&
+          !/^[^,]+,\s*\d+$/.test(value) &&
           ![
             "body",
             "callout",
@@ -309,19 +276,18 @@ async function htmlWidget(input, debug, addons) {
             "title3"
           ].includes(value)
         ) {
-          error(8, attribute, isAttribute ? "attribute" : "property", value)
+          error(8, attribute, type, value)
         }
       }
     },
     point: {
       add: (attribute, value, on) => {
-        code += `\n${on}.shadowOffset = new Point(${
-          value.split(",")[0].match(/-?\d+/)[0]
-        },${value.split(",")[1].match(/-?\d+/)[0]})`
+        const point = value.split(",")
+        code += `\n${on}.shadowOffset = new Point(${point[0]},${point[1]})`
       },
-      validate: (attribute, isAttribute, value) => {
-        if (!/^\s*-?\d+\s*,\s*-?\d+\s*$/.test(value)) {
-          error(9, attribute, isAttribute ? "attribute" : "property", value)
+      validate: (attribute, type, value) => {
+        if (!/^-?\d+\s*,\s*-?\d+$/.test(value)) {
+          error(9, attribute, type, value)
         }
       }
     },
@@ -329,8 +295,10 @@ async function htmlWidget(input, debug, addons) {
       add: (attribute, value, on) => {
         if (attribute == "resizable" && value !== "false") {
           code += `\n${on}.resizable = false`
-        }
-        if (attribute == "container-relative-shape" && value !== "false") {
+        } else if (
+          attribute == "container-relative-shape" &&
+          value !== "false"
+        ) {
           code += `\n${on}.containerRelativeShape = true`
         }
       },
@@ -340,13 +308,13 @@ async function htmlWidget(input, debug, addons) {
       add: (attribute, value, on) => {
         code += `\n${on}.url = "${value.replace(/"/g, "")}"`
       },
-      validate: (attribute, isAttribute, value) => {
+      validate: (attribute, type, value) => {
         if (
           !/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/.test(
             value
           )
         ) {
-          error(10, attribute, isAttribute ? "attribute" : "property", value)
+          error(10, attribute, type, value)
         }
       }
     },
@@ -354,7 +322,7 @@ async function htmlWidget(input, debug, addons) {
       add: (attribute, value, on) => {
         if (value.startsWith("data:image/")) {
           code += `\n${on}.backgroundImage = Image.fromData(Data.fromBase64String("${value
-            .replace(/data:image\/\w+?;base64,/, "")
+            .replace(/data:image\/\w+;base64,/, "")
             .replace(/"/g, "")}"))`
         } else {
           code += `\n${on}.backgroundImage = await new Request("${value.replace(
@@ -363,25 +331,23 @@ async function htmlWidget(input, debug, addons) {
           )}").loadImage()`
         }
       },
-      validate: (attribute, isAttribute, value) => {
+      validate: (attribute, type, value) => {
         if (
           !/^(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))|(data:image\/\w+?;base64,[a-zA-Z0-9+/]+={0,2})$/.test(
             value
           )
         ) {
-          error(26, attribute, isAttribute ? "attribute" : "property", value)
+          error(26, attribute, type, value)
         }
       }
     },
     layout: {
       add: (attribute, value, on) => {
-        code += `\n${on}.layout${
-          value == "vertically" ? "Vertically" : "Horizontally"
-        }()`
+        code += `\n${on}.layout${value[0].toUpperCase() + value.slice(1)}()`
       },
-      validate: (attribute, isAttribute, value) => {
+      validate: (attribute, type, value) => {
         if (value != "vertically" && value != "horizontally") {
-          error(11, attribute, isAttribute ? "attribute" : "property", value)
+          error(11, attribute, type, value)
         }
       }
     },
@@ -389,9 +355,9 @@ async function htmlWidget(input, debug, addons) {
       add: (attribute, value, on) => {
         code += `\n${on}.${value}AlignText()`
       },
-      validate: (attribute, isAttribute, value) => {
+      validate: (attribute, type, value) => {
         if (!["center", "left", "right"].includes(value)) {
-          error(12, attribute, isAttribute ? "attribute" : "property", value)
+          error(12, attribute, type, value)
         }
       }
     },
@@ -399,9 +365,9 @@ async function htmlWidget(input, debug, addons) {
       add: (attribute, value, on) => {
         code += `\n${on}.${value}AlignImage()`
       },
-      validate: (attribute, isAttribute, value) => {
+      validate: (attribute, type, value) => {
         if (!["center", "left", "right"].includes(value)) {
-          error(12, attribute, isAttribute ? "attribute" : "property", value)
+          error(12, attribute, type, value)
         }
       }
     },
@@ -409,9 +375,9 @@ async function htmlWidget(input, debug, addons) {
       add: (attribute, value, on) => {
         code += `\n${on}.${value}AlignContent()`
       },
-      validate: (attribute, isAttribute, value) => {
+      validate: (attribute, type, value) => {
         if (!["center", "top", "bottom"].includes(value)) {
-          error(13, attribute, isAttribute ? "attribute" : "property", value)
+          error(13, attribute, type, value)
         }
       }
     },
@@ -419,9 +385,9 @@ async function htmlWidget(input, debug, addons) {
       add: (attribute, value, on) => {
         code += `\n${on}.apply${value[0].toUpperCase() + value.slice(1)}Style()`
       },
-      validate: (attribute, isAttribute, value) => {
+      validate: (attribute, type, value) => {
         if (!["date", "timer", "offset", "relative", "time"].includes(value)) {
-          error(14, attribute, isAttribute ? "attribute" : "property", value)
+          error(14, attribute, type, value)
         }
       }
     },
@@ -431,9 +397,9 @@ async function htmlWidget(input, debug, addons) {
           value[0].toUpperCase() + value.slice(1)
         }ContentMode()`
       },
-      validate: (attribute, isAttribute, value) => {
+      validate: (attribute, type, value) => {
         if (!["filling", "fitting"].includes(value)) {
-          error(15, attribute, isAttribute ? "attribute" : "property", value)
+          error(15, attribute, type, value)
         }
       }
     }
@@ -548,8 +514,8 @@ async function htmlWidget(input, debug, addons) {
       if (!decloration) {
         continue
       }
-      const property = decloration.split(":")[0].trim()
-      const value = decloration.split(":")[1].trim()
+      const property = decloration.split(/:/)[0].trim()
+      const value = decloration.split(/:/).splice(1).join(":").trim()
       declarations[property] = value
     }
 
@@ -1098,12 +1064,12 @@ async function htmlWidget(input, debug, addons) {
       }
       // Validate the attribute as a string or array of posibilities
       if (typeof mapping[attr] === "string") {
-        types[mapping[attr]].validate(attr, true, attributeCss[attr])
+        types[mapping[attr]].validate(attr, "attribute", attributeCss[attr])
       } else {
         let isValid = false
         for (let posibility of mapping[attr]) {
           try {
-            types[posibility].validate(attr, true, attributeCss[attr])
+            types[posibility].validate(attr, "attribute", attributeCss[attr])
             isValid = true
           } catch (e) {}
         }
@@ -1130,12 +1096,12 @@ async function htmlWidget(input, debug, addons) {
       }
       // Validate the css as a string or array of posibilities
       if (typeof mapping[css] === "string") {
-        types[mapping[css]].validate(css, false, finalCss[css])
+        types[mapping[css]].validate(css, "property", finalCss[css])
       } else {
         let isValid = false
         for (let posibility of mapping[css]) {
           try {
-            types[posibility].validate(css, false, finalCss[css])
+            types[posibility].validate(css, "property", finalCss[css])
             isValid = true
           } catch (e) {}
         }
@@ -1198,6 +1164,12 @@ async function htmlWidget(input, debug, addons) {
       }
       return `new Color("${"#" + r + g + b}"${a})`
     }
+  }
+
+  function toCamelCase(text) {
+    return text
+      .toLowerCase()
+      .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())
   }
 
   function indent(startLine) {
