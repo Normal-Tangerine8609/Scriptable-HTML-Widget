@@ -1,5 +1,12 @@
 # Changelog
 
+## 6.02
+
+- 14.4 KB
+- Fixed a bug for adding a url in css
+- Fixed gradient bugs
+- Simplified many "primitive types"
+
 ## 6.01
 
 - 15.3 KB
