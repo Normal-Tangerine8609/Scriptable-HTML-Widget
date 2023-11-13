@@ -2,6 +2,7 @@
 
 ## 6.10
 
+- 14.1 KB
 - Small improvements and refactoring
 - Allow for css properties and html attributes to be camelCase or kebab-case
 - Updated file structure by removing html-widget-extended and the module file
@@ -17,7 +18,7 @@
 
 - 15.3 KB
 - Fix global `sym` variable and global `paddingArray` variable
-- Improved preformance and file size
+- Improved performance and file size
 - Added more comments
 - When `debug` is true, in the logged code, tags are split by new lines
 
@@ -26,8 +27,8 @@
 - 20.4 KB
 - Changed the HTML parsing system to use the native `XMLParser`
   - Reduced the size and increased speed
-  - Self closing tags now need to end with a forwardslash (`<img/>`)
-  - Templates do not need to specify if they are self closing (all tags technically are)
+  - Self-closing tags now need to end with a forward-slash (`<img/>`)
+  - Templates do not need to specify if they are self-closing (all tags technically are)
   - Boolean attributes need to have a value attached to them (including `children` and `no-css`)
   - Parser will not bug out and infinity run with an invalid HTML
 
@@ -46,13 +47,13 @@
 ## 5.03
 
 - 21.9 KB
-- Instead of an error being thrown, when a property is attempted to be aplied to a tag and it is not in the mapping, it will be ignored. Previously a error was raised, but that makes the `*`  selector practically useless. This also makes it possible to share classes through different tags
+- Instead of throwing an error, it will be ignored when a property is attempted to be applied to a tag and not in the mapping. Previously an error was raised, but that makes the `*`  selector useless. This also makes it possible to share classes through different tags
 - An error text was fixed
 
 ## 5.02
 
 - 21.9 KB
-- Fixed a bug with the children of stack elements being forced on the widget not the stack
+- Fixed a bug with the children of stack elements being forced on the widget, not the stack
 - Added commas to css selectors
 - Added validation for the image type
 - Improved validation for padding and url type
@@ -62,7 +63,7 @@
 - 21.5 KB
 - Improved error messages
 - Logged code is now indented to show nestled tags
-- Fixed an issue where you would need the addons paramater to run the function 
+- Fixed an issue where you would need the addons parameter to run the function 
 - Fixed some error messages to work with template tags 
 
 ## 5.00
@@ -76,7 +77,7 @@
 ## 4.1
 
 * 17.9 KB
-* Improvments for the posibility of adding more add-ons (mostly those that use a canvas/DrawContext)
+* Improvements for the possibility of adding more add-ons (mostly those that use a canvas/DrawContext)
 * Improvements to other aspects of add-ons
 * Fixed a bug that would create an impropor css/attribute order
 
@@ -102,13 +103,13 @@
 
 * 16 KB
 * Fixed image opacity
-* Added the `style` tag witch allows setting default styles for tags with css
+* Added the `style` tag which allows setting default styles for tags with css
 * Added the `class` attribute
 
 ## 2.10
 
 * 14.2 KB
-* Removed loging of text when setting a gradient
+* Removed logging of text when setting a gradient
 * Colours have now changed to support all HTML colours including hsl, hsla, rgb, rgba, hex and css colour names like `red`
 * Light mode/ dark mode colours have changed to be separated by hyphens instead of commas and do not need to go in brackets when in a gradient
 
