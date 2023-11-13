@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.10
+
+- Small improvements and refactoring
+- Allow for css properties and html attributes to be camelCase or kebab-case
+- Updated file structure by removing html-widget-extended and the module file
+
 ## 6.02
 
 - 14.4 KB

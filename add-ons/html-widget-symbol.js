@@ -1,8 +1,8 @@
 /*
-HTML Widget symbol 2.2
+HTML Widget symbol 2.3
 https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget/blob/main/add-ons/html-widget-symbol.js
 
-- Compatible with HTML Widget 6.00
+- Compatible with HTML Widget 6.10
 */
 module.exports = async (
   validate,
@@ -13,29 +13,30 @@ module.exports = async (
   innerText
 ) => {
   const mapping = {
-    "url": "url",
-    "border-color": "colour",
-    "border-width": "posInt",
-    "corner-radius": "posInt",
-    "image-size": "size",
-    "image-opacity": "decimal",
-    "tint-color": "colour",
-    "resizable": "bool",
-    "container-relative-shape": "bool",
-    "content-mode": "contentMode",
-    "align-image": "alignImage"
+    url: "url",
+    borderColor: "colour",
+    borderWidth: "posInt",
+    cornerRadius: "posInt",
+    imageSize: "size",
+    imageOpacity: "decimal",
+    tintColor: "colour",
+    resizable: "bool",
+    containerRelativeShape: "bool",
+    contentMode: "contentMode",
+    alignImage: "alignImage"
   }
 
   validate(attrs, styles, mapping)
   update(styles, mapping)
-  
+
   let symbol = SFSymbol.named(innerText)
-  if(!symbol){
+  if (!symbol) {
     symbol = SFSymbol.named("questionmark.circle")
   }
+
   let symbolSize = 100
-  if(styles["image-size"] !== "null") {
-    let [width,height] = styles["image-size"].match(/\d+/g)
+  if (styles.imageSize !== "null") {
+    let [width, height] = styles.imageSize.match(/\d+/g)
     symbolSize = parseInt((width > height) ? height : width)
   }
   symbol.applyFont(Font.systemFont(symbolSize))
@@ -45,16 +46,16 @@ module.exports = async (
     symbol.image
   ).toBase64String()}" 
   url="${styles.url}" 
-  border-color="${styles["border-color"]}"
-  border-width="${styles["border-width"]}" 
-  corner-radius="${styles["corner-radius"]}" 
-  image-size="${styles["image-size"]}" 
-  image-opacity="${styles["image-opacity"]}" 
-  tint-color="${styles["tint-color"]}" 
-  content-mode="${styles["content-mode"]}" 
-  align-image="${styles["align-image"]}" 
-  container-relative-shape="${styles["container-relative-shape"]}" 
-  resizable="${styles["resizable"]}"
+  borderColor="${styles.borderColor}"
+  borderWidth="${styles.borderWidth}" 
+  cornerRadius="${styles.cornerRadius}" 
+  imageSize="${styles.imageSize}" 
+  imageOpacity="${styles.imageOpacity}" 
+  tintColor="${styles.tintColor}" 
+  contentMode="${styles.contentMode}" 
+  alignImage="${styles.alignImage}" 
+  containerRelativeShape="${styles.containerRelativeShape}" 
+  resizable="${styles.resizable}"
 />
   `)
 }

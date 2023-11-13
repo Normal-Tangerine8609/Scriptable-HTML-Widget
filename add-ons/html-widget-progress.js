@@ -1,8 +1,8 @@
 /*
-HTML Widget progress 1.3
+HTML Widget progress 1.4
 https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget/blob/main/add-ons/html-widget-progress.js
 
-- Compatible with HTML Widget 6.00
+- Compatible with HTML Widget 6.10
 
 */
 module.exports = async (
@@ -14,16 +14,16 @@ module.exports = async (
   innerText
 ) => {
   const mapping = {
-    "url": "url",
-    "background": ["colour", "gradient"],
-    "progress-background": ["colour", "gradient"],
-    "border-color": "colour",
-    "border-width": "posInt",
-    "corner-radius": "posInt",
-    "progress-corner-radius": "posInt",
-    "width": "posInt",
-    "height": "posInt",
-    "value": "decimal"
+    url: "url",
+    background: ["colour", "gradient"],
+    progressBackground: ["colour", "gradient"],
+    borderColor: "colour",
+    borderWidth: "posInt",
+    cornerRadius: "posInt",
+    progressCornerRadius: "posInt",
+    width: "posInt",
+    height: "posInt",
+    value: "decimal"
   }
   validate(attrs, styles, mapping)
   let value = /\d*(?:\.\d*)?%?/.exec(attrs.value)[0]
@@ -50,18 +50,18 @@ module.exports = async (
   await template(`
     <stack url="${styles.url || "null"}" 
       background="${styles.background || "black-white"}" 
-      border-color="${styles["border-color"] || "null"}" 
-      border-width="${styles["border-width"] || "null"}" 
-      corner-radius="${styles["corner-radius"] || "null"}" 
+      borderColor="${styles.borderColor || "null"}" 
+      borderWidth="${styles.borderWidth || "null"}" 
+      cornerRadius="${styles.cornerRadius || "null"}" 
       size="${width}, ${height}"
     >
-      <stack background="${styles["progress-background"] || "gray"}" 
-        corner-radius="${styles["progress-corner-radius"] || "null"}" 
+      <stack background="${styles.progressBackground || "gray"}" 
+        cornerRadius="${styles.progressCornerRadius || "null"}" 
         size="${Math.round(width * Number(value))}, ${height}">
       </stack>
       <stack size="${Math.round(
-        width * (1 - Number(value))
-      )}, ${height}"></stack>
+    width * (1 - Number(value))
+  )}, ${height}"></stack>
     </stack>
   `)
 }

@@ -1,8 +1,8 @@
 /*
-HTML Widget blockquote 1.1
+HTML Widget blockquote 1.2
 https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget/blob/main/add-ons/html-widget-blockquote.js
 
-- Compatible with HTML Widget 6.00
+- Compatible with HTML Widget 6.10
 */
 module.exports = async (
   validate,
@@ -13,25 +13,25 @@ module.exports = async (
   innerText
 ) => {
   const mapping = {
-    "url": "url",
-    "background": ["colour", "gradient"],
-    "corner-radius": "posInt",
-    "bar-width": "posInt",
-    "bar-background": ["colour", "gradient"],
-    "bar-corner-radius": "posInt",
-    "space": "posInt",
-    "spacing": "posInt",
-    "padding": "padding",
-    "layout": "layout",
-    "width": "posInt",
-    "height": "posInt"
+    url: "url",
+    background: ["colour", "gradient"],
+    cornerRadius: "posInt",
+    barWidth: "posInt",
+    barBackground: ["colour", "gradient"],
+    barCornerRadius: "posInt",
+    space: "posInt",
+    spacing: "posInt",
+    padding: "padding",
+    layout: "layout",
+    width: "posInt",
+    height: "posInt"
   }
 
   validate(attrs, styles, mapping)
 
   let barWidth = Number(
-    styles["bar-width"] && styles["bar-width"] !== "null"
-      ? styles["bar-width"]
+    styles.barWidth && styles.barWidth !== "null"
+      ? styles.barWidth
       : 5
   )
   let height = Number(
@@ -45,18 +45,14 @@ module.exports = async (
 
   await template(`
       <stack layout="horizontally" url="${styles.url || null}">
-        <stack size="${barWidth + "," + height}" background="${
-    styles["bar-background"] || "black-white"
-  }" corner-radius="${styles["bar-corner-radius"] || null}">
+        <stack size="${barWidth + "," + height}" background="${styles.barBackground || "black-white"
+    }" cornerRadius="${styles.barCornerRadius || null}">
         </stack>
         <spacer space="${space}"/>
-        <stack background="${
-          styles.background || "rgb(0,0,0,50%)-rgb(255,255,255,50%)"
-        }" corner-radius="${styles["corner-radius"] || null}" spacing="${
-    styles.spacing || null
-  }" padding="${styles.padding || 3}" layout="${
-    styles.layout || "vertically"
-  }" size="${contentWidth + "," + height}" children="">
+        <stack background="${styles.background || "rgb(0,0,0,50%)-rgb(255,255,255,50%)"
+    }" cornerRadius="${styles.cornerRadius || null}" spacing="${styles.spacing || null
+    }" padding="${styles.padding || 3}" layout="${styles.layout || "vertically"
+    }" size="${contentWidth + "," + height}" children="">
         </stack>
       </stack>
   `)

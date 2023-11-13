@@ -1,63 +1,74 @@
-//HTML Widget Version 6.02
+//HTML Widget Version 6.10
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
-
 async function htmlWidget(input, debug, addons) {
-  ///////////////////
-  // PRIMATIVE TYPES
-  ///////////////////
+  /******************
+   * PRIMITIVE TYPES
+   ******************/
   const types = {
     colour: {
-      add: async (attribute, value, on) => {
-        const colours = value.split("-")
+      async add(attribute, value, on) {
+        const colours = value.split("-");
         const colour =
           colours.length == 2
             ? `Color.dynamic(${await colorFromValue(
                 colours[0]
               )}, ${await colorFromValue(colours[1])})`
-            : await colorFromValue(colours[0])
-        code += `\n${on}.${toCamelCase(attribute)} = ${colour}`
+            : await colorFromValue(colours[0]);
+        appendCodeLine(`${on}.${attribute} = ${colour}`);
       },
-      validate: () => {}
+      validate() {},
     },
     posInt: {
-      add: (attribute, value, on) => {
-        if (attribute == "refresh-after-date") {
-          code += `\nlet date = new Date()\ndate.setMinutes(date.getMinutes() + ${value})\nwidget.refreshAfterDate = date`
+      add(attribute, value, on) {
+        if (attribute === "refreshAfterDate") {
+          appendCodeLine(
+            `let date = new Date()\ndate.setMinutes(date.getMinutes() + ${value})\nwidget.refreshAfterDate = date`
+          );
         } else {
-          code += `\n${on}.${toCamelCase(attribute)} = ${value}`
+          appendCodeLine(`${on}.${attribute} = ${value}`);
         }
       },
-      validate: (attribute, type, value) => {
+      validate(attribute, type, value) {
         if (!/^\d+$/.test(value)) {
-          error(1, attribute, type, value)
+          error(
+            "`{}` {} must be a positive integer: `{}`.",
+            attribute,
+            type,
+            value
+          );
         }
-      }
+      },
     },
     decimal: {
-      add: (attribute, value, on) => {
+      add(attribute, value, on) {
         if (value.endsWith("%")) {
-          value = Number(value.replace("%", ""))
-          value /= 100
+          value = Number(value.replace("%", ""));
+          value /= 100;
         }
-        code += `\n${on}.${toCamelCase(attribute)} = ${value}`
+        appendCodeLine(`${on}.${attribute} = ${value}`);
       },
-      validate: (attribute, type, value) => {
+      validate(attribute, type, value) {
         if (!/^\d*((\.\d+)|\d\.?)%?$/.test(value)) {
-          error(2, attribute, type, value)
+          error(
+            "`{}` {} must be a positive integer or float with an optional `%` at the end: `{}`.",
+            attribute,
+            type,
+            value
+          );
         }
-      }
+      },
     },
     gradient: {
-      add: async (attribute, value, on) => {
-        gradientNumber++
+      async add(_, value, on) {
+        gradientNumber++;
 
         // split into parts
         let gradient = value
           .split(/,(?![^(]*\))(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)/)
-          .map((e) => e.trim())
+          .map((e) => e.trim());
 
         // get the direction from the first item of gradient
-        let gradientDirection
+        let gradientDirection;
         const wordDirections = {
           "to left": 90,
           "to right": 270,
@@ -70,86 +81,91 @@ async function htmlWidget(input, debug, addons) {
           "to left top": 135,
           "to right top": 225,
           "to left bottom": 45,
-          "to right bottom": 315
-        }
+          "to right bottom": 315,
+        };
         // check if it is a word direction, degrees direction or none are provided
         if (gradient[0] in wordDirections) {
-          gradientDirection = wordDirections[gradient.shift()]
+          gradientDirection = wordDirections[gradient.shift()];
         } else if (/\d+\s*deg/.test(gradient[0])) {
-          gradientDirection = Number(gradient.shift().match(/(\d+)\s*deg/)[1])
+          gradientDirection = Number(gradient.shift().match(/(\d+)\s*deg/)[1]);
         } else {
-          gradientDirection = 0
+          gradientDirection = 0;
         }
 
         // Get colours
-        let colours = []
-        for (let colour of gradient) {
-          colour = colour.replace(/\s+\d*((\.\d+)|\d\.?)%?$/, "")
-          colour = colour.split("-")
-          if (colour.length == 2) {
-            colours.push(
+        const gradColours = [];
+        for (const colour of gradient) {
+          const colourArr = colour
+            .replace(/\s+\d*((\.\d+)|\d\.?)%?$/, "")
+            .split("-");
+          if (colourArr.length == 2) {
+            gradColours.push(
               `Color.dynamic(${await colorFromValue(
-                colour[0]
-              )},${await colorFromValue(colour[1])})`
-            )
+                colourArr[0]
+              )},${await colorFromValue(colourArr[1])})`
+            );
           } else {
-            colours.push(await colorFromValue(colour[0]))
+            gradColours.push(await colorFromValue(colourArr[0]));
           }
         }
 
         // Get locations
         let locations = gradient.map((e) => {
           // get all provided locations
-          let matched = e.match(/\s+\d*((\.\d+)|\d\.?)%?$/)
+          let matched = e.match(/\s+\d*((\.\d+)|\d\.?)%?$/);
           // get the matched result or null
-          let result = matched && matched[0]
+          let result = matched && matched[0];
           // divide a percentage
           if (result && result.endsWith("%")) {
-            result = Number(result.replace("%", "")) / 100
+            result = Number(result.replace("%", "")) / 100;
           }
-          return result === null ? null : Number(result)
-        })
+          return result === null ? null : Number(result);
+        });
 
-        // Set defult first and last locations
+        // Set default first and last locations
         if (locations[0] === null) {
-          locations[0] = 0
+          locations[0] = 0;
         }
         if (locations[locations.length - 1] === null) {
-          locations[locations.length - 1] = 1
+          locations[locations.length - 1] = 1;
         }
 
         // Set not specified locations
         for (let i = 0; i < locations.length; i++) {
-          let currentLocation = locations[i]
+          let currentLocation = locations[i];
           // get next non-null location index
-          let index = i + 1
+          let index = i + 1;
           while (index < locations.length && locations[index] === null) {
-            index++
+            index++;
           }
-          // calculate the difference between each null location for a linear trasition
-          let difference = (locations[index] - locations[i]) / (index - i)
+          // calculate the difference between each null location for a linear transition
+          let difference = (locations[index] - locations[i]) / (index - i);
 
           // set each between null location
           for (let plusIndex = 1; plusIndex < index - i; plusIndex++) {
-            locations[i + plusIndex] = difference * plusIndex + currentLocation
+            locations[i + plusIndex] = difference * plusIndex + currentLocation;
           }
         }
 
         // calculate gradient points based on the direction
         const x1 =
-          1 - (0.5 + 0.5 * Math.cos((Math.PI * (gradientDirection + 90)) / 180))
+          1 -
+          (0.5 + 0.5 * Math.cos((Math.PI * (gradientDirection + 90)) / 180));
         const y1 =
-          1 - (0.5 + 0.5 * Math.sin((Math.PI * (gradientDirection + 90)) / 180))
+          1 -
+          (0.5 + 0.5 * Math.sin((Math.PI * (gradientDirection + 90)) / 180));
         const x2 =
-          0.5 + 0.5 * Math.cos((Math.PI * (gradientDirection + 90)) / 180)
+          0.5 + 0.5 * Math.cos((Math.PI * (gradientDirection + 90)) / 180);
         const y2 =
-          0.5 + 0.5 * Math.sin((Math.PI * (gradientDirection + 90)) / 180)
-        code += `\nlet gradient${gradientNumber} = new LinearGradient()\ngradient${gradientNumber}.colors = [${colours}]\ngradient${gradientNumber}.locations = [${locations}]\ngradient${gradientNumber}.startPoint = ${`new Point(${x1}, ${y1})`}\ngradient${gradientNumber}.endPoint = ${`new Point(${x2}, ${y2})`}\n${on}.backgroundGradient = gradient${gradientNumber}`
+          0.5 + 0.5 * Math.sin((Math.PI * (gradientDirection + 90)) / 180);
+        appendCodeLine(
+          `let gradient${gradientNumber} = new LinearGradient()\ngradient${gradientNumber}.colors = [${gradColours}]\ngradient${gradientNumber}.locations = [${locations}]\ngradient${gradientNumber}.startPoint = ${`new Point(${x1}, ${y1})`}\ngradient${gradientNumber}.endPoint = ${`new Point(${x2}, ${y2})`}\n${on}.backgroundGradient = gradient${gradientNumber}`
+        );
       },
-      validate: (attribute, type, value) => {
+      validate(attribute, type, value) {
         let gradient = value
           .split(/,(?![^(]*\))(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)/)
-          .map((e) => e.trim())
+          .map((e) => e.trim());
         const wordDirections = [
           "to left",
           "to right",
@@ -162,103 +178,127 @@ async function htmlWidget(input, debug, addons) {
           "to left top",
           "to right top",
           "to left bottom",
-          "to right bottom"
-        ]
+          "to right bottom",
+        ];
         if (wordDirections.includes(gradient[0])) {
-          gradient.shift()
+          gradient.shift();
         } else if (/\d+\s*deg/.test(gradient[0])) {
-          gradient.shift()
+          gradient.shift();
         }
         // Get locations
         let locations = gradient.map((e) => {
           // get all provided locations
-          let matched = e.match(/\s+\d*((\.\d+)|\d\.?)%?$/)
+          let matched = e.match(/\s+\d*((\.\d+)|\d\.?)%?$/);
           // get the matched result or null
-          let result = matched && matched[0]
+          let result = matched && matched[0];
           // divide a percentage
           if (result && result.endsWith("%")) {
-            result = Number(result.replace("%", "")) / 100
+            result = Number(result.replace("%", "")) / 100;
           }
-          return result === null ? null : Number(result)
-        })
+          return result === null ? null : Number(result);
+        });
 
-        let minLocation = 0
+        let minLocation = 0;
         for (let i = 0; i < locations.length; i++) {
-          let currentLocation = locations[i]
+          let currentLocation = locations[i];
           if (currentLocation) {
             if (minLocation > currentLocation) {
-              error(3, attribute, type, value)
+              error(
+                "`{}` {} locations must be in ascending order: `{}`.",
+                attribute,
+                type,
+                value
+              );
             }
             if (currentLocation < 0) {
-              error(4, attribute, type, value)
+              error(
+                "`{}` {} locations must be equal or greater than `0`: `{}`.",
+                attribute,
+                type,
+                value
+              );
             }
             if (currentLocation > 1) {
-              error(5, attribute, type, value)
+              error(
+                "`{}` {} locations must be equal or less than `1`: `{}`.",
+                attribute,
+                type,
+                value
+              );
             }
-            minLocation = currentLocation
+            minLocation = currentLocation;
           }
         }
-      }
+      },
     },
     padding: {
-      add: (attribute, value, on) => {
-        if (value == "default") {
-          code += `\n${on}.useDefaultPadding()`
+      add(_, value, on) {
+        if (value === "default") {
+          appendCodeLine(`${on}.useDefaultPadding()`);
         } else {
-          let paddingArray = value.match(/\d+/g)
+          let paddingArray = value.match(/\d+/g);
           if (paddingArray.length == 1) {
             paddingArray = [
               paddingArray[0],
               paddingArray[0],
               paddingArray[0],
-              paddingArray[0]
-            ]
+              paddingArray[0],
+            ];
           } else if (paddingArray.length == 2) {
             paddingArray = [
               paddingArray[0],
               paddingArray[1],
               paddingArray[0],
-              paddingArray[1]
-            ]
+              paddingArray[1],
+            ];
           }
-          code += `\n${on}.setPadding(${paddingArray.join(", ")})`
+          appendCodeLine(`${on}.setPadding(${paddingArray.join(", ")})`);
         }
       },
-      validate: (attribute, type, value) => {
+      validate(attribute, type, value) {
         if (!/^(\d+((\s*,\s*\d+){3}|(\s*,\s*\d+))?|default)$/g.test(value)) {
-          error(6, attribute, type, value)
+          error(
+            "`{}` {} must be 1, 2 or 4 positive integers separated by commas or be `default`: `{}`.",
+            attribute,
+            type,
+            value
+          );
         }
-      }
+      },
     },
     size: {
-      add: (attribute, value, on) => {
-        let size = value.match(/\d+/g)
-        code += `\n${on}.${toCamelCase(attribute)} = new Size(${size[0]}, ${
-          size[1]
-        })`
+      add(attribute, value, on) {
+        let size = value.match(/\d+/g);
+        appendCodeLine(`${on}.${attribute} = new Size(${size[0]}, ${size[1]})`);
       },
-      validate: (attribute, type, value) => {
+      validate(attribute, type, value) {
         if (!/^\d+\s*,\s*\d+$/.test(value)) {
-          error(7, attribute, type, value)
+          error(
+            "`{}` {} must be 2 positive integers separated by commas: `{}`.",
+            attribute,
+            type,
+            value
+          );
         }
-      }
+      },
     },
     font: {
-      add: (attribute, value, on) => {
-        let regex =
-          /^(((black|bold|medium|light|heavy|regular|semibold|thin|ultraLight)(MonospacedSystemFont|RoundedSystemFont|SystemFont)\s*,\s*(\d+))|(body|callout|caption1|caption2|footnote|subheadline|headline|largeTitle|title1|title2|title3)|((italicSystemFont)\s*,\s*(\d+)))$/
-        if (regex.test(value)) {
-          code += `\n${on}.font = Font.${value.replace(
-            regex,
-            "$3$4$6$8($5$9)"
-          )}`
+      add(_, value, on) {
+        let fontRegex =
+          /^(((black|bold|medium|light|heavy|regular|semibold|thin|ultraLight)(MonospacedSystemFont|RoundedSystemFont|SystemFont)\s*,\s*(\d+))|(body|callout|caption1|caption2|footnote|subheadline|headline|largeTitle|title1|title2|title3)|((italicSystemFont)\s*,\s*(\d+)))$/;
+        if (fontRegex.test(value)) {
+          appendCodeLine(
+            `${on}.font = Font.${value.replace(fontRegex, "$3$4$6$8($5$9)")}`
+          );
         } else {
-          code += `\n${on}.font = new Font("${value
-            .split(",")[0]
-            .replace(/"/g, "")}",${value.split(",")[1].match(/\d+/g)[0]})`
+          appendCodeLine(
+            `${on}.font = new Font("${value.split(",")[0].replace(/"/g, "")}",${
+              value.split(",")[1].match(/\d+/g)[0]
+            })`
+          );
         }
       },
-      validate: (attribute, type, value) => {
+      validate(attribute, type, value) {
         if (
           !/^[^,]+,\s*\d+$/.test(value) &&
           ![
@@ -273,955 +313,991 @@ async function htmlWidget(input, debug, addons) {
             "largeTitle",
             "title1",
             "title2",
-            "title3"
+            "title3",
           ].includes(value)
         ) {
-          error(8, attribute, type, value)
+          error(
+            "`{}` {} must be 1 font name and 1 positive integer separated by commas or be a content-based font: `{}`.",
+            attribute,
+            type,
+            value
+          );
         }
-      }
+      },
     },
     point: {
-      add: (attribute, value, on) => {
-        const point = value.split(",")
-        code += `\n${on}.shadowOffset = new Point(${point[0]},${point[1]})`
+      add(_, value, on) {
+        const point = value.split(",");
+        appendCodeLine(
+          `${on}.shadowOffset = new Point(${point[0]},${point[1]})`
+        );
       },
-      validate: (attribute, type, value) => {
+      validate(attribute, type, value) {
         if (!/^-?\d+\s*,\s*-?\d+$/.test(value)) {
-          error(9, attribute, type, value)
+          error(
+            "`{}` {} must be 2 integers separated by commas: `{}`.",
+            attribute,
+            type,
+            value
+          );
         }
-      }
+      },
     },
     bool: {
-      add: (attribute, value, on) => {
-        if (attribute == "resizable" && value !== "false") {
-          code += `\n${on}.resizable = false`
+      add(attribute, value, on) {
+        if (attribute === "resizable" && value !== "false") {
+          appendCodeLine(`${on}.resizable = false`);
         } else if (
-          attribute == "container-relative-shape" &&
+          attribute === "containerRelativeShape" &&
           value !== "false"
         ) {
-          code += `\n${on}.containerRelativeShape = true`
+          appendCodeLine(`${on}.containerRelativeShape = true`);
         }
       },
-      validate: () => {}
+      validate() {},
     },
     url: {
-      add: (attribute, value, on) => {
-        code += `\n${on}.url = "${value.replace(/"/g, "")}"`
+      add: (_, value, on) => {
+        appendCodeLine(`${on}.url = "${value.replace(/"/g, "")}"`);
       },
-      validate: (attribute, type, value) => {
+      validate(attribute, type, value) {
         if (
           !/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/.test(
             value
           )
         ) {
-          error(10, attribute, type, value)
-        }
-      }
-    },
-    image: {
-      add: (attribute, value, on) => {
-        if (value.startsWith("data:image/")) {
-          code += `\n${on}.backgroundImage = Image.fromData(Data.fromBase64String("${value
-            .replace(/data:image\/\w+;base64,/, "")
-            .replace(/"/g, "")}"))`
-        } else {
-          code += `\n${on}.backgroundImage = await new Request("${value.replace(
-            /"/g,
-            ""
-          )}").loadImage()`
+          error("`{}` {} must be a valid URL: `{}.`", attribute, type, value);
         }
       },
-      validate: (attribute, type, value) => {
+    },
+    image: {
+      add(_, value, on) {
+        if (value.startsWith("data:image/")) {
+          appendCodeLine(
+            `${on}.backgroundImage = Image.fromData(Data.fromBase64String("${value
+              .replace(/data:image\/\w+;base64,/, "")
+              .replace(/"/g, "")}"))`
+          );
+        } else {
+          appendCodeLine(
+            `${on}.backgroundImage = await new Request("${value.replace(
+              /"/g,
+              ""
+            )}").loadImage()`
+          );
+        }
+      },
+      validate(attribute, type, value) {
         if (
           !/^(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))|(data:image\/\w+?;base64,[a-zA-Z0-9+/]+={0,2})$/.test(
             value
           )
         ) {
-          error(26, attribute, type, value)
+          error(
+            "`{}` {} must be a valid url or base encoded data link: `{}`.",
+            attribute,
+            type,
+            value
+          );
         }
-      }
+      },
     },
     layout: {
-      add: (attribute, value, on) => {
-        code += `\n${on}.layout${value[0].toUpperCase() + value.slice(1)}()`
+      add(_, value, on) {
+        appendCodeLine(
+          `${on}.layout${value[0].toUpperCase() + value.slice(1)}()`
+        );
       },
-      validate: (attribute, type, value) => {
-        if (value != "vertically" && value != "horizontally") {
-          error(11, attribute, type, value)
+      validate(attribute, type, value) {
+        if (value !== "vertically" && value !== "horizontally") {
+          error(
+            "`{}` {} must be `vertically` or `horizontally`: `{}`.",
+            attribute,
+            type,
+            value
+          );
         }
-      }
+      },
     },
     alignText: {
-      add: (attribute, value, on) => {
-        code += `\n${on}.${value}AlignText()`
+      add(_, value, on) {
+        appendCodeLine(`${on}.${value}AlignText()`);
       },
-      validate: (attribute, type, value) => {
+      validate(attribute, type, value) {
         if (!["center", "left", "right"].includes(value)) {
-          error(12, attribute, type, value)
+          error(
+            "`{}` {} must be `left`, `right` or `center`: `{}.`",
+            attribute,
+            type,
+            value
+          );
         }
-      }
+      },
     },
     alignImage: {
-      add: (attribute, value, on) => {
-        code += `\n${on}.${value}AlignImage()`
+      add(_, value, on) {
+        appendCodeLine(`${on}.${value}AlignImage()`);
       },
-      validate: (attribute, type, value) => {
+      validate(attribute, type, value) {
         if (!["center", "left", "right"].includes(value)) {
-          error(12, attribute, type, value)
+          error(
+            "`{}` {} must be `left`, `right` or `center`: `{}`.",
+            attribute,
+            type,
+            value
+          );
         }
-      }
+      },
     },
     alignContent: {
-      add: (attribute, value, on) => {
-        code += `\n${on}.${value}AlignContent()`
+      add(_, value, on) {
+        appendCodeLine(`${on}.${value}AlignContent()`);
       },
-      validate: (attribute, type, value) => {
+      validate(attribute, type, value) {
         if (!["center", "top", "bottom"].includes(value)) {
-          error(13, attribute, type, value)
+          error(
+            "`{}` {} must be `top`, `bottom` or `center`: `{}`.",
+            attribute,
+            type,
+            value
+          );
         }
-      }
+      },
     },
     applyStyle: {
-      add: (attribute, value, on) => {
-        code += `\n${on}.apply${value[0].toUpperCase() + value.slice(1)}Style()`
+      add(_, value, on) {
+        appendCodeLine(
+          `${on}.apply${value[0].toUpperCase() + value.slice(1)}Style()`
+        );
       },
-      validate: (attribute, type, value) => {
+      validate(attribute, type, value) {
         if (!["date", "timer", "offset", "relative", "time"].includes(value)) {
-          error(14, attribute, type, value)
+          error(
+            "`{}` {} must be `date`, `timer` , `relative`, `time`, or `offset`: `{}`.",
+            attribute,
+            type,
+            value
+          );
         }
-      }
+      },
     },
     contentMode: {
-      add: (attribute, value, on) => {
-        code += `\n${on}.apply${
-          value[0].toUpperCase() + value.slice(1)
-        }ContentMode()`
+      add(_, value, on) {
+        appendCodeLine(
+          `${on}.apply${value[0].toUpperCase() + value.slice(1)}ContentMode()`
+        );
       },
-      validate: (attribute, type, value) => {
+      validate(attribute, type, value) {
         if (!["filling", "fitting"].includes(value)) {
-          error(15, attribute, type, value)
+          error(
+            "`{}` {} must be `filling` or `fitting`: `{}`.",
+            attribute,
+            type,
+            value
+          );
         }
-      }
+      },
+    },
+  };
+
+  /*****************
+   * MAIN PROGRAM
+   *****************/
+
+  // Get only the first widget tag
+  const widgetBody = parseHTML(input).children.find((e) => {
+    if (e.name == "widget") {
+      return e;
     }
+  });
+
+  // If there were no widget tags raise an error
+  if (!widgetBody) {
+    error("`widget` tag must be the root tag.");
   }
 
-  ///////////////////
-  // PARSE HTML + STYLES
-  ///////////////////
+  // Get all direct style tags and combine the styles
+  const styleTags = widgetBody.children.filter((e) => e.name == "style");
+  const cssText = styleTags.map((e) => e.innerText).join("\n");
+  const mainCss = createCss(cssText);
+
+  // Add the rules directly to the elements
+  applyCss(widgetBody, mainCss);
+
+  // Set base variables
+  let currentStack;
+  let code = "";
+  let incrementors = {};
+  let gradientNumber = -1;
+
+  // compile the widget
+  await compile(widgetBody);
+
+  // Run code and set output of function
+  if (debug == true) {
+    console.log(code);
+  }
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  const runCode = new AsyncFunction(code + "\nreturn widget");
+  return await runCode();
+
+  /*********************
+   * PARSE HTML + STYLES
+   *********************/
 
   // Function to parse a HTML
   function parseHTML(string) {
-    // Declare the parser
-    let parser = new XMLParser(string)
+    const parser = new XMLParser(string);
 
     // Root of html
-    let main = {
+    const main = {
       isRoot: true,
       name: "root",
-      children: []
-    }
+      children: [],
+    };
 
     // Node to add onto
-    let target = main
+    let target = main;
 
     // Store symbols to go back to parent nodes
-    let goBack = {}
+    const goBack = {};
 
     // Store the new node and switch targets
     parser.didStartElement = (name, attrs) => {
-      let backTo = Symbol("unique")
-      goBack[backTo] = target
-      let newTarget = {
+      const backTo = Symbol();
+      goBack[backTo] = target;
+      const newTarget = {
         name,
         attrs,
         innerText: "",
         children: [],
-        end: backTo
-      }
-      target.children.push(newTarget)
-      target = newTarget
-    }
+        end: backTo,
+      };
+      target.children.push(newTarget);
+      target = newTarget;
+    };
 
     // Add the inner text to the node
     parser.foundCharacters = (text) => {
-      target.innerText += target.innerText === "" ? text : " " + text
-    }
+      target.innerText += target.innerText === "" ? text : " " + text;
+    };
 
     // Go back to the parent node
-    parser.didEndElement = (name) => {
-      let sym = target.end
-      delete target.end
-      target = goBack[sym]
-    }
+    parser.didEndElement = () => {
+      const symbol = target.end;
+      target = goBack[symbol];
+    };
 
     // Throw error on invalid input
     parser.parseErrorOccurred = () => {
-      error(14)
-    }
+      error(
+        "A parse error occurred, ensure your widget is formatted properly."
+      );
+    };
     if (!main.isRoot) {
-      error(25, main.name)
+      error(
+        "A parse error occurred, ensure all self closing tags are closed: <{}>.",
+        main.name
+      );
     }
 
     // Parse and return the root
-    parser.parse()
-    return main
-  }
-
-  // Get only the first widget tag
-  let widgetBody = parseHTML(input).children.find((e) => {
-    if (e.name == "widget") {
-      return e
-    }
-  })
-
-  // If there were no widget tags raise error
-  if (!widgetBody) {
-    error(17)
-  }
-
-  // Get all direct style tags
-  const styleTags = widgetBody.children.filter((e) => e.name == "style")
-
-  // combine the css text
-  let cssTexts = ""
-  for (let styleTag of styleTags) {
-    cssTexts += "\n" + styleTag.innerText
-  }
-
-  // store css
-  let mainCss = []
-
-  // get all css rules
-  const rules = cssTexts.match(/[\s\S]+?{[\s\S]*?}/g) || []
-
-  // Repeat with each css rule
-  for (let rule of rules) {
-    // Test rule
-    if (
-      !/^\s*(\.?[\w\-]+|\*)(\s*[,>]\s*(\.?[\w\-]+|\*))*\s*\{(\s*[\w\-]+\s*:\s*[^\n]+?\s*;)*?\s*([\w\-]+\s*:\s*[^\n]+\s*;?)?\s*\}/.test(
-        rule
-      )
-    ) {
-      error(18, rule.trim())
-    }
-    // Store the declarations for the rule
-    let declarations = {}
-
-    // format declarations into the declarations JSON
-    const rawDeclorations = rule.match(/\{([\s\S]*)\}/)[1].split(";")
-    for (let decloration of rawDeclorations) {
-      decloration = decloration.trim()
-      if (!decloration) {
-        continue
-      }
-      const property = decloration.split(/:/)[0].trim()
-      const value = decloration.split(/:/).splice(1).join(":").trim()
-      declarations[property] = value
-    }
-
-    // get the selector for the rule
-    const selectors = rule
-      .match(/(\.?[\w\-]+|\*)(\s*[>,]\s*(\.?[\w\-]+|\*))*/)[0]
-      .split(",")
-    // add the css rule to the main css with all selectors
-    for (let selector of selectors) {
-      mainCss.push({selector: parseSeletor(selector), css: declarations})
-    }
+    parser.parse();
+    return main;
   }
 
   // function to parse the selectors
-  function parseSeletor(input) {
-    input = input.trim()
+  function parseSelector(input) {
+    input = input.trim();
     // store parser character location
-    let current = 0
+    let current = 0;
     // store the full css selector
-    let root = []
+    const root = [];
     // store the current css selector position
     let currentSelector = root.push({
-      classes: []
-    })
+      classes: [],
+    });
 
     // repeat while the parser has characters left to go through
     while (current < input.length) {
       // store the current character
-      let char = input[current]
+      let char = input[current];
 
       // if the char is a `.` then get all following valid characters and add a class to the selector
       if (char === ".") {
-        char = input[++current]
-        let VALIDCHARS = /[-a-zA-Z_0-9]/
+        char = input[++current];
+        let VALIDCHARS = /[-a-zA-Z_0-9]/;
         if (!VALIDCHARS.test(char)) {
-          error(27, input)
+          error("A css parse error occurred: `{}`.", input);
         }
-        let value = ""
+        let value = "";
         while (char && VALIDCHARS.test(char)) {
-          value += char
-          char = input[++current]
+          value += char;
+          char = input[++current];
         }
-        root[currentSelector - 1].classes.push(value)
+        root[currentSelector - 1].classes.push(value);
       }
 
       // If it matches a direct child then create a new currentSelector position for the next part of the selector
-      let SPACE = / /
-      let DIRECTCHILD = />/
+      let SPACE = / /;
+      let DIRECTCHILD = />/;
       if (DIRECTCHILD.test(char)) {
-        char = input[++current]
+        char = input[++current];
         while (char && SPACE.test(char)) {
-          char = input[++current]
+          char = input[++current];
         }
         currentSelector = root.push({
-          classes: []
-        })
+          classes: [],
+        });
       }
 
       // if it matches a tag then get the tag name and add it to the selector
-      let TAG = /[a-z]/i
+      let TAG = /[a-z]/i;
       if (TAG.test(char)) {
-        let value = ""
+        let value = "";
         while (char && TAG.test(char)) {
-          value += char
-          char = input[++current]
+          value += char;
+          char = input[++current];
         }
-        root[currentSelector - 1].tag = value
+        root[currentSelector - 1].tag = value;
       }
 
       // if it matches a star then set the tag to be a `*`
-      let STAR = /\*/
+      let STAR = /\*/;
       if (STAR.test(char)) {
-        char = input[++current]
-        root[currentSelector - 1].tag = "*"
+        char = input[++current];
+        root[currentSelector - 1].tag = "*";
       }
       if (SPACE.test(char)) {
-        char = input[++current]
+        char = input[++current];
       }
     }
 
     // return the root of the selector
-    return root
+    return root;
   }
 
-  // each element and attempt to add styles
-  applyCss(widgetBody)
-  function applyCss(tag) {
-    if (tag.name == "style") {
-      return
+  // function to convert the css text into a object
+  function createCss(cssText) {
+    // store css
+    const mainCss = [];
+
+    // get all css rules
+    const rules = cssText.match(/[\s\S]+?{[\s\S]*?}/g) || [];
+
+    // Repeat with each css rule
+    for (let rule of rules) {
+      // Test rule
+      if (
+        !/^\s*(\.?[\w\-]+|\*)(\s*[,>]\s*(\.?[\w\-]+|\*))*\s*\{(\s*[\w\-]+\s*:\s*[^\n]+?\s*;)*?\s*([\w\-]+\s*:\s*[^\n]+\s*;?)?\s*\}/.test(
+          rule
+        )
+      ) {
+        error("Invalid CSS rule: `{}`.", rule.trim());
+      }
+
+      // Store the declarations for the rule
+      const declarations = {};
+
+      // format declarations into the declarations JSON
+      const rawDeclarations = rule.match(/\{([\s\S]*)\}/)[1].split(";");
+      for (let declaration of rawDeclarations) {
+        declaration = declaration.trim();
+        if (!declaration) {
+          continue;
+        }
+        const property = declaration.split(/:/)[0].trim();
+        // need to only remove the first colon not others (for URLs)
+        const value = declaration.split(/:/).splice(1).join(":").trim();
+        declarations[toCamelCase(property)] = value;
+      }
+
+      // get the selector for the rule
+      const selectors = rule
+        .match(/(\.?[\w\-]+|\*)(\s*[>,]\s*(\.?[\w\-]+|\*))*/)[0]
+        .split(",");
+      // add the css rule to the main css with all selectors
+      selectors.forEach((selector) =>
+        mainCss.push({ selector: parseSelector(selector), css: declarations })
+      );
     }
-    for (let rule of mainCss) {
-      addCss(tag, rule, 0)
+    return mainCss;
+  }
+
+  // function to add the css to each element and children elements
+  function applyCss(tag, css) {
+    if (tag.name == "style") {
+      return;
+    }
+    for (let rule of css) {
+      addCssIfMatchesSelector(tag, rule, 0);
     }
     if (tag.children) {
       for (let child of tag.children) {
-        applyCss(child)
+        applyCss(child, css);
       }
     }
   }
 
   // function to check if a selector matches an element and add the css to it
-  function addCss(tag, rule, index) {
+  function addCssIfMatchesSelector(tag, rule, index) {
     if (tag.name === "style") {
-      return
+      return;
     }
 
     // ensure matching classes
     for (let cssClass of rule.selector[index].classes) {
       if (!tag.attrs.class) {
-        return
+        return;
       }
       if (!tag.attrs.class.split(" ").includes(cssClass)) {
-        return
+        return;
       }
     }
 
-    // enaure proper tag name
+    // ensure proper tag name
     if (
       rule.selector[index].tag &&
       rule.selector[index].tag !== "*" &&
       rule.selector[index].tag !== tag.name
     ) {
-      return
+      return;
     }
 
     // if at the end of the css (no `>` following) add the css to the tag's css'
     // else check for matching the next level of the css with children tag (selector following `>`)
     if (rule.selector.length - 1 === index) {
       if (!tag.css) {
-        tag.css = []
+        tag.css = [];
       }
-      tag.css.push(rule)
+      tag.css.push(rule);
     } else if (tag.children) {
       for (let child of tag.children) {
-        addCss(child, rule, index + 1)
+        addCssIfMatchesSelector(child, rule, index + 1);
       }
     }
   }
 
-  ///////////////////
-  // COMPILE WIDGET
-  ///////////////////
+  /*********************
+   * COMPILE THE WIDGET
+   ********************/
 
-  // Set base variables
-  let currentStack,
-    code = "",
-    incrementors = {},
-    gradientNumber = -1
-
-  // compile the widget
-  await compile(widgetBody)
-
-  // Run code and set output of function
-  if (debug == true) {
-    console.log(code)
-  }
-  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor
-  const runCode = new AsyncFunction(code + "\nreturn widget")
-  return await runCode()
-
-  // function to compile the widget
   async function compile(tag) {
-    // Do nothing when compile normal text or css
-    if (tag.type == "Text" || tag.name == "style") {
-      return
+    // Do nothing when compiling css
+    if (tag.name == "style") {
+      return;
     }
+
     // Throw an error if there is a nestled widget tag
     if (tag.name == "widget" && code) {
-      error(19)
+      error("`widget` tag must not be nestled.");
     }
 
     // Add a new line spacing before tags
     if (code) {
-      code += "\n"
+      appendCodeLine("");
     }
 
     // Increment incrementor
-    if (incrementors[tag.name] || incrementors[tag.name] == 0) {
-      incrementors[tag.name]++
+    if (tag.name in incrementors) {
+      incrementors[tag.name] += 1;
     } else {
-      incrementors[tag.name] = 0
+      incrementors[tag.name] = 0;
     }
-    let incrementor = incrementors[tag.name]
+    const incrementor = incrementors[tag.name];
 
     // Get innerText
-    let innerText = tag.innerText
+    const innerText = tag.innerText
       .replace(/&lt;/g, "<")
       .replace(/&gt/g, ">")
       .replace(/&amp;/g, "&")
-      .replace(/\n\s+/g, "\\n")
+      .replace(/\n\s+/g, "\\n");
 
     // store attributes that translate to css
-    let attributeCss = {}
+    const attributeCss = {};
 
     // Add attributes to css
-    for (let key in tag.attrs) {
-      let value = tag.attrs[key].trim()
+    Object.entries(tag.attrs).forEach(([key, value]) => {
       if (!["class", "no-css", "children"].includes(key)) {
-        attributeCss[key] = value
+        attributeCss[toCamelCase(key)] = value.trim();
       }
-    }
-
+    });
     // Add or reset all selected css values if the tag does not have the no-css attribute
-    let finalCss = {}
-    if (tag.css) {
-      for (let rule of tag.css) {
-        if (!("no-css" in tag.attrs)) {
-          for (let key in rule.css) {
-            delete finalCss[key]
-            finalCss[key] = rule.css[key]
-          }
-        }
-      }
+    let finalCss = {};
+    if (tag.css && !("no-css" in tag.attrs)) {
+      tag.css.forEach((rule) =>
+        Object.entries(rule.css).forEach(
+          ([property, value]) => (finalCss[property] = value)
+        )
+      );
     }
-
     // Add attribute values to the css
-    for (let key in attributeCss) {
-      delete finalCss[key]
-      finalCss[key] = attributeCss[key]
-    }
+    finalCss = { ...finalCss, ...attributeCss };
 
-    // Switch for each tag name
-    let mapping, linesBefore
-
-    switch (tag.name) {
-      case "spacer":
-        // Add the spacer to the code and validate for the space attribute
-        code += `\nlet spacer${incrementor} = ${currentStack}.addSpacer(${
+    // Do stuff based on the tag name
+    if (tag.name === "spacer") {
+      // Add the spacer to the code and validate for the space attribute
+      appendCodeLine(
+        `let spacer${incrementor} = ${currentStack}.addSpacer(${
           attributeCss.space && attributeCss.space !== "null"
             ? attributeCss.space
             : ""
         })`
-        mapping = {space: "posInt"}
-        validate(attributeCss, finalCss, mapping)
-        return
-        break
-      case "widget":
-        // Add the widget to the code and validate the attributes and css
-        code += `let widget = new ListWidget()`
-        mapping = {
-          "background": ["gradient", "image", "colour"],
-          "refresh-after-date": "posInt",
-          "spacing": "posInt",
-          "url": "url",
-          "padding": "padding"
+      );
+
+      const mapping = { space: "posInt" };
+      validate(attributeCss, finalCss, mapping);
+    } else if (tag.name === "widget") {
+      // Add the widget to the code and validate the attributes and css
+      code += `let widget = new ListWidget()`;
+      const mapping = {
+        background: ["gradient", "image", "colour"],
+        refreshAfterDate: "posInt",
+        spacing: "posInt",
+        url: "url",
+        padding: "padding",
+      };
+      validate(attributeCss, finalCss, mapping);
+
+      // Add the styles
+      for (const [key, value] of Object.entries(finalCss)) {
+        if (value === "null") {
+          continue;
         }
-        validate(attributeCss, finalCss, mapping)
-        // Repeat with each css value
-        for (let key in finalCss) {
-          const value = finalCss[key]
-          const on = "widget"
-          if (key == "background" && value !== "null") {
-            // Background must be completed differently because it can have 3 different types
-            try {
-              // try for image
-              types.url.validate("background", true, value)
-              types.image.add(key, value, on)
-            } catch (e) {
-              // split for gradient and if the length is 1 set as a background colour else as a grafient
-              if (
-                value.split(
-                  /,(?![^(]*\))(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)/
-                ).length === 1
-              ) {
-                await types.colour.add("background-color", value, on)
-              } else {
-                await types.gradient.add("background-gradient", value, on)
-              }
-            }
-          } else if (value !== "null") {
-            // Add the style to the tag
-            const addFunc = types[mapping[key]].add
-            if (isAsync(addFunc)) {
-              await addFunc(key, value, on)
+
+        const on = "widget";
+        if (key === "background") {
+          // Background must be completed differently because it can have 3 different types
+          try {
+            // try for image
+            types.url.validate("background", true, value);
+            types.image.add(key, value, on);
+          } catch (e) {
+            // split for gradient and if the length is 1 set as a background colour else as a gradient
+            if (
+              value.split(
+                /,(?![^(]*\))(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)/
+              ).length === 1
+            ) {
+              await types.colour.add("backgroundColor", value, on);
             } else {
-              addFunc(key, value, on)
+              await types.gradient.add("backgroundGradient", value, on);
             }
           }
-        }
-        // Compile children with space indents
-        linesBefore = code.split("\n").length
-        for (let child of tag.children) {
-          currentStack = "widget"
-          await compile(child)
-        }
-
-        // add indents to the code before the widget tag
-        indent(linesBefore)
-        return
-        break
-      case "stack":
-        // Add the stack to the code and validate the attributes and css
-        code += `\nlet stack${incrementor} = ${currentStack}.addStack()`
-        mapping = {
-          "background": ["gradient", "image", "colour"],
-          "spacing": "posInt",
-          "url": "url",
-          "padding": "padding",
-          "border-color": "colour",
-          "border-width": "posInt",
-          "size": "size",
-          "corner-radius": "posInt",
-          "align-content": "alignContent",
-          "layout": "layout"
-        }
-        validate(attributeCss, finalCss, mapping)
-        // Repeat with each css value
-        for (let key in finalCss) {
-          const value = finalCss[key]
-          const on = "stack" + incrementor
-          if (key == "background" && value !== "null") {
-            // Background must be completed differently because it can have 3 different types
-            try {
-              // try for background image
-              types.image.validate("background", true, value)
-              types.image.add(key, value, on)
-            } catch (e) {
-              // split for gradient and if the length is 1 set as a background colour else as a grafient
-              if (
-                value.split(
-                  /,(?![^(]*\))(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)/
-                ).length === 1
-              ) {
-                await types.colour.add("background-color", value, on)
-              } else {
-                await types.gradient.add("background-gradient", value, on)
-              }
-            }
-          } else if (value !== "null") {
-            // Add style to stack
-            const addFunc = types[mapping[key]].add
-            if (isAsync(addFunc)) {
-              await addFunc(key, value, on)
-            } else {
-              addFunc(key, value, on)
-            }
-          }
-        }
-
-        // Compile children with space indents
-        linesBefore = code.split("\n").length
-        let stack = "stack" + incrementor
-        for (let child of tag["children"]) {
-          currentStack = stack
-          await compile(child)
-        }
-
-        // add indents to the code before the stack tag
-        indent(linesBefore)
-        return
-        break
-      case "img":
-        let image
-        // Throw an error if there is no src attribute
-        if (!attributeCss["src"] || attributeCss["src"] === "null") {
-          error(20)
-        }
-        // Determine if the image is a URL or base encoding
-        if (attributeCss["src"].startsWith("data:image/")) {
-          image = `Image.fromData(Data.fromBase64String("${attributeCss["src"]
-            .replace(/data:image\/.*?;base64,/, "")
-            .replace(/"/g, "")}"))`
         } else {
-          image = `await new Request("${attributeCss["src"].replace(
-            /"/g,
-            ""
-          )}").loadImage()`
-        }
-        // Add the image to the code and validate attributes and css
-        code += `\nlet img${incrementor} = ${currentStack}.addImage(${image})`
-        mapping = {
-          "src": "image",
-          "url": "url",
-          "border-color": "colour",
-          "border-width": "posInt",
-          "corner-radius": "posInt",
-          "image-size": "size",
-          "image-opacity": "decimal",
-          "tint-color": "colour",
-          "resizable": "bool",
-          "container-relative-shape": "bool",
-          "content-mode": "contentMode",
-          "align-image": "alignImage"
-        }
-        validate(attributeCss, finalCss, mapping)
-        // Add css styles to the image
-        for (let key in finalCss) {
-          if (key == "src") {
-            continue
+          // Add the style to the tag
+          const addFunc = types[mapping[key]].add;
+          if (isAsync(addFunc)) {
+            await addFunc(key, value, on);
+          } else {
+            addFunc(key, value, on);
           }
-          const value = finalCss[key]
-          const on = "img" + incrementor
-          if (value !== "null") {
-            const addFunc = types[mapping[key]].add
-            if (isAsync(addFunc)) {
-              await addFunc(key, value, on)
+        }
+      }
+
+      // Compile children with space indents
+      const linesBefore = code.split("\n").length;
+      for (const child of tag.children) {
+        currentStack = "widget";
+        await compile(child);
+      }
+
+      // add indents to the code before the widget tag
+      indent(linesBefore);
+    } else if (tag.name === "stack") {
+      // Add the stack to the code and validate the attributes and css
+      appendCodeLine(`let stack${incrementor} = ${currentStack}.addStack()`);
+      const mapping = {
+        background: ["gradient", "image", "colour"],
+        spacing: "posInt",
+        url: "url",
+        padding: "padding",
+        borderColor: "colour",
+        borderWidth: "posInt",
+        size: "size",
+        cornerRadius: "posInt",
+        alignContent: "alignContent",
+        layout: "layout",
+      };
+      validate(attributeCss, finalCss, mapping);
+
+      // Repeat with each css value
+      for (const [key, value] of Object.entries(finalCss)) {
+        if (value === "null") {
+          continue;
+        }
+
+        const on = "stack" + incrementor;
+        if (key === "background") {
+          // Background must be completed differently because it can have 3 different types
+          try {
+            // try for background image
+            types.image.validate("background", true, value);
+            types.image.add(key, value, on);
+          } catch (e) {
+            // split for gradient and if the length is 1 set as a background colour else as a gradient
+            if (
+              value.split(
+                /,(?![^(]*\))(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)/
+              ).length === 1
+            ) {
+              await types.colour.add("backgroundColor", value, on);
             } else {
-              addFunc(key, value, on)
+              await types.gradient.add("backgroundGradient", value, on);
             }
           }
+        } else {
+          // Add style to stack
+          const addFunc = types[mapping[key]].add;
+          if (isAsync(addFunc)) {
+            await addFunc(key, value, on);
+          } else {
+            addFunc(key, value, on);
+          }
         }
-        return
-        break
-      case "text":
-        // Add text to the widget and validate attributes and css
-        code += `\nlet text${incrementor} = ${currentStack}.addText("${innerText.replace(
+      }
+
+      // Compile children with space indents
+      const linesBefore = code.split("\n").length;
+      const stack = "stack" + incrementor;
+      for (let child of tag.children) {
+        currentStack = stack;
+        await compile(child);
+      }
+
+      // add indents to the code before the stack tag
+      indent(linesBefore);
+    } else if (tag.name === "img") {
+      let image;
+      // Throw an error if there is no src attribute
+      if (!attributeCss.src || attributeCss.src === "null") {
+        error("`img` tag must have a `src` attribute.");
+      }
+      // Determine if the image is a URL or base encoding
+      if (attributeCss.src.startsWith("data:image/")) {
+        image = `Image.fromData(Data.fromBase64String("${attributeCss["src"]
+          .replace(/data:image\/.*?;base64,/, "")
+          .replace(/"/g, "")}"))`;
+      } else {
+        image = `await new Request("${attributeCss["src"].replace(
+          /"/g,
+          ""
+        )}").loadImage()`;
+      }
+      // Add the image to the code and validate attributes and css
+      appendCodeLine(
+        `let img${incrementor} = ${currentStack}.addImage(${image})`
+      );
+
+      const mapping = {
+        src: "image",
+        url: "url",
+        borderColor: "colour",
+        borderWidth: "posInt",
+        cornerRadius: "posInt",
+        imageSize: "size",
+        imageOpacity: "decimal",
+        tintColor: "colour",
+        resizable: "bool",
+        containerRelativeShape: "bool",
+        contentMode: "contentMode",
+        alignImage: "alignImage",
+      };
+      validate(attributeCss, finalCss, mapping);
+
+      // Add css styles to the image
+      for (const [key, value] of Object.entries(finalCss)) {
+        if (value === "null" || key === "src") {
+          continue;
+        }
+        const on = "img" + incrementor;
+        const addFunc = types[mapping[key]].add;
+        if (isAsync(addFunc)) {
+          await addFunc(key, value, on);
+        } else {
+          addFunc(key, value, on);
+        }
+      }
+    } else if (tag.name === "text") {
+      // Add text to the widget and validate attributes and css
+      appendCodeLine(
+        `let text${incrementor} = ${currentStack}.addText("${innerText.replace(
           /"/g,
           ""
         )}")`
-        mapping = {
-          "url": "url",
-          "font": "font",
-          "line-limit": "posInt",
-          "minimum-scale-factor": "decimal",
-          "shadow-color": "colour",
-          "shadow-offset": "point",
-          "shadow-radius": "posInt",
-          "text-color": "colour",
-          "text-opacity": "decimal",
-          "align-text": "alignText"
+      );
+      const mapping = {
+        url: "url",
+        font: "font",
+        lineLimit: "posInt",
+        minimumScaleFactor: "decimal",
+        shadowColor: "colour",
+        shadowOffset: "point",
+        shadowRadius: "posInt",
+        textColor: "colour",
+        textOpacity: "decimal",
+        alignText: "alignText",
+      };
+      validate(attributeCss, finalCss, mapping);
+
+      // Add styles to the text
+      for (const [key, value] of Object.entries(finalCss)) {
+        if (value === "null") {
+          continue;
         }
-        validate(attributeCss, finalCss, mapping)
-        // Add styles to the text
-        for (let key in finalCss) {
-          const value = finalCss[key]
-          const on = "text" + incrementor
-          if (value !== "null") {
-            const addFunc = types[mapping[key]].add
-            if (isAsync(addFunc)) {
-              await addFunc(key, value, on)
-            } else {
-              addFunc(key, value, on)
-            }
-          }
+
+        const on = "text" + incrementor;
+        const addFunc = types[mapping[key]].add;
+        if (isAsync(addFunc)) {
+          await addFunc(key, value, on);
+        } else {
+          addFunc(key, value, on);
         }
-        return
-        break
-      case "date":
-        // Add the date element to the widget and validate for the attributes and css
-        code += `\nlet date${incrementor} = ${currentStack}.addDate(new Date("${innerText.replace(
+      }
+    } else if (tag.name === "date") {
+      // Add the date element to the widget and validate for the attributes and css
+      appendCodeLine(
+        `let date${incrementor} = ${currentStack}.addDate(new Date("${innerText.replace(
           /"/g,
           ""
         )}"))`
-        mapping = {
-          "url": "url",
-          "font": "font",
-          "line-limit": "posInt",
-          "minimum-scale-factor": "decimal",
-          "shadow-color": "colour",
-          "shadow-offset": "point",
-          "shadow-radius": "posInt",
-          "text-color": "colour",
-          "text-opacity": "decimal",
-          "align-text": "alignText",
-          "apply-style": "applyStyle"
+      );
+      const mapping = {
+        url: "url",
+        font: "font",
+        lineLimit: "posInt",
+        minimumScaleFactor: "decimal",
+        shadowColor: "colour",
+        shadowOffset: "point",
+        shadowRadius: "posInt",
+        textColor: "colour",
+        textOpacity: "decimal",
+        alignText: "alignText",
+        applyStyle: "applyStyle",
+      };
+      validate(attributeCss, finalCss, mapping);
+
+      // Add styles to the date
+      for (const [key, value] of Object.entries(finalCss)) {
+        if (value === "null") {
+          continue;
         }
-        validate(attributeCss, finalCss, mapping)
-        // Add styles to the date
-        for (let key in finalCss) {
-          const value = finalCss[key]
-          const on = "date" + incrementor
-          if (value != "null") {
-            const addFunc = types[mapping[key]].add
-            if (isAsync(addFunc)) {
-              await addFunc(key, value, on)
-            } else {
-              addFunc(key, value, on)
-            }
-          }
-        }
-        return
-        break
-      default:
-        // Throw an error if it is not a valid addon
-        if (!(tag.name in addons)) {
-          error(21, tag.name)
-        }
-        code += `\n// <${tag.name}>`
-        // Run the addon
-        const addonParams = [
-          validate,
-          template,
-          update,
-          finalCss,
-          attributeCss,
-          innerText
-        ]
-        if (isAsync(addons[tag.name])) {
-          await addons[tag.name](...addonParams)
+        const on = "date" + incrementor;
+        const addFunc = types[mapping[key]].add;
+        if (isAsync(addFunc)) {
+          await addFunc(key, value, on);
         } else {
-          addons[tag.name](...addonParams)
+          addFunc(key, value, on);
         }
-        code += `\n// </${tag.name}>`
-        return
+      }
+    } else {
+      // Throw an error if it is not a valid addon
+      if (!(tag.name in addons)) {
+        error("Invalid tag name: `{}`.", tag.name);
+      }
+      appendCodeLine(`// <${tag.name}>`);
 
-        // Function to add the raw html of the addon to the widget
-        async function template(input) {
-          // Parse the template
-          let parsedInput = parseHTML(input)
-          // Run through all children to determine where to put the tag children and add the no-css attribute
-          parsedInput.children = parsedInput.children.map((e) =>
-            putChildren(e, tag.children)
-          )
+      // Run the addon
+      const addonParams = [
+        validate,
+        template,
+        update,
+        finalCss,
+        attributeCss,
+        innerText,
+      ];
+      if (isAsync(addons[tag.name])) {
+        await addons[tag.name](...addonParams);
+      } else {
+        addons[tag.name](...addonParams);
+      }
+      appendCodeLine(`// </${tag.name}>`);
 
-          // Compile template
-          let stack = currentStack
-          linesBefore = code.split("\n").length
+      // Function to add the raw html of the addon to the widget
+      async function template(input) {
+        // Parse the template
+        let parsedInput = parseHTML(input);
+        // Run through all children to determine where to put the tag children and add the no-css attribute
+        parsedInput.children = parsedInput.children.map((e) =>
+          putChildren(e, tag.children)
+        );
 
-          for (let child of parsedInput.children) {
-            let currentStack = stack
-            await compile(child)
-          }
-          const codeLines = code.split("\n")
+        // Compile template
+        let stack = currentStack;
+        const linesBefore = code.split("\n").length;
 
-          indent(linesBefore)
-
-          // Function to add the no-css attribute to all children and put the tag children into the template
-          function putChildren(tag, children) {
-            if (tag.children) {
-              tag.children.map((e) => {
-                putChildren(e, children)
-              })
-            }
-            if ("children" in tag.attrs) {
-              for (let item of children) {
-                tag.children.push(item)
-              }
-            }
-            tag.attrs["no-css"] = ""
-            return tag
-          }
+        for (let child of parsedInput.children) {
+          currentStack = stack;
+          await compile(child);
         }
+
+        indent(linesBefore);
+
+        // Function to add the no-css attribute to all children and put the tag children into the template
+        function putChildren(tag, children) {
+          if (tag.children) {
+            tag.children.map((e) => {
+              putChildren(e, children);
+            });
+          }
+          if ("children" in tag.attrs) {
+            for (let item of children) {
+              tag.children.push(item);
+            }
+          }
+          tag.attrs["no-css"] = "";
+          return tag;
+        }
+      }
     }
   }
+
   // Function that validated all attributes and css
   function validate(attributeCss, finalCss, mapping) {
     // Repeat with all the attributes
-    for (let attr in attributeCss) {
+    for (const attr in attributeCss) {
       // Do nothing if the attributes is null
       if (attributeCss[attr] === "null") {
-        continue
+        continue;
       }
       // Throw an error if the attribute is not in the mapping
       if (!mapping[attr]) {
-        error(22, attr)
+        error("Unknown attribute: `{}`.", attr);
       }
-      // Validate the attribute as a string or array of posibilities
+      // Validate the attribute as a string or array of possibilities
       if (typeof mapping[attr] === "string") {
-        types[mapping[attr]].validate(attr, "attribute", attributeCss[attr])
+        types[mapping[attr]].validate(attr, "attribute", attributeCss[attr]);
       } else {
-        let isValid = false
-        for (let posibility of mapping[attr]) {
+        let isValid = false;
+        for (let possibility of mapping[attr]) {
           try {
-            types[posibility].validate(attr, "attribute", attributeCss[attr])
-            isValid = true
+            types[possibility].validate(attr, "attribute", attributeCss[attr]);
+            isValid = true;
           } catch (e) {}
         }
         if (!isValid) {
           error(
-            23,
+            "`{}` attribute must be a {} type: `{}`",
             attr,
             mapping[attr].join(", ").replace(/,([^,]*?)$/, " or$1"),
             attributeCss[attr]
-          )
+          );
         }
       }
     }
+
     // Repeat with all the css
     for (let css in finalCss) {
       // Do nothing if the css is children or no-css or the value is null
       if (finalCss[css] === "null") {
-        continue
+        continue;
       }
       // Ignore css properties that are not in the mapping
       if (!mapping[css]) {
-        delete finalCss[css]
-        continue
+        continue;
       }
-      // Validate the css as a string or array of posibilities
+      // Validate the css as a string or array of possibilities
       if (typeof mapping[css] === "string") {
-        types[mapping[css]].validate(css, "property", finalCss[css])
+        types[mapping[css]].validate(css, "property", finalCss[css]);
       } else {
-        let isValid = false
-        for (let posibility of mapping[css]) {
+        let isValid = false;
+        for (let possibility of mapping[css]) {
           try {
-            types[posibility].validate(css, "property", finalCss[css])
-            isValid = true
+            types[possibility].validate(css, "property", finalCss[css]);
+            isValid = true;
           } catch (e) {}
         }
         if (!isValid) {
           error(
-            24,
+            "`{}` property must be a {} type: `{}`.",
             attr,
             mapping[css].join(", ").replace(/,([^,]*?)$/, " or$1"),
             finalCss[css]
-          )
+          );
         }
       }
     }
   }
+
   // Function to fill all not entered keys from the mapping with null
   function update(input, mapping) {
     for (let key in mapping) {
       if (!(key in input)) {
-        input[key] = "null"
+        input[key] = "null";
       }
     }
-    return input
+    return input;
   }
 
-  ///////////////////
-  // HELPER FUNCTIONS
-  ///////////////////
+  // Function to indent the code
+  function indent(startLine) {
+    const codeLines = code.split("\n");
+    for (let i = codeLines.length - 1; i >= startLine; i--) {
+      codeLines[i] = "  " + codeLines[i];
+    }
+    code = codeLines.join("\n");
+  }
+
+  /******************
+   * HELPER FUNCTIONS
+   ******************/
+
+  function appendCodeLine(line) {
+    code += `\n${line}`;
+  }
 
   // Function to get any html supported color
   async function colorFromValue(c) {
-    let w = new WebView()
-    await w.loadHTML(`<div id="div"style="color:${c}"></div>`)
+    let w = new WebView();
+    await w.loadHTML(`<div id="div"style="color:${c}"></div>`);
     let result = await w.evaluateJavaScript(
       'window.getComputedStyle(document.getElementById("div")).color'
-    )
+    );
     return rgbaToScriptable(
       ...result.match(/\d+(\.\d+)?/g).map((e) => Number(e))
-    )
+    );
     function rgbaToScriptable(r, g, b, a) {
-      r = r.toString(16)
-      g = g.toString(16)
-      b = b.toString(16)
+      r = r.toString(16);
+      g = g.toString(16);
+      b = b.toString(16);
       if (r.length == 1) {
-        r = "0" + r
+        r = "0" + r;
       }
       if (g.length == 1) {
-        g = "0" + g
+        g = "0" + g;
       }
       if (b.length == 1) {
-        b = "0" + b
+        b = "0" + b;
       }
       if (a) {
         if (a.length == 1) {
-          a = ",0" + a
+          a = ",0" + a;
         } else {
-          a = "," + a
+          a = "," + a;
         }
       } else {
-        a = ""
+        a = "";
       }
-      return `new Color("${"#" + r + g + b}"${a})`
+      return `new Color("${"#" + r + g + b}"${a})`;
     }
   }
 
   function toCamelCase(text) {
-    return text
-      .toLowerCase()
-      .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())
-  }
-
-  function indent(startLine) {
-    const codeLines = code.split("\n")
-    for (let i = codeLines.length - 1; i >= startLine; i--) {
-      codeLines[i] = "  " + codeLines[i]
-    }
-    code = codeLines.join("\n")
+    return text.replace(/-(.)/g, (m, chr) => chr.toUpperCase());
   }
 
   // if the provided function is a async function
   function isAsync(func) {
-    return func.constructor.name === "AsyncFunction"
+    return func.constructor.name === "AsyncFunction";
   }
 
   // error function
-  function error(number) {
-    const errors = {
-      1: "`{}` {} must be a positive integer: `{}`",
-      2: "`{}` {} must be a positive integer or float with an optional `%` at the end: `{}`",
-      3: "`{}` {} locations must be in ascending order: `{}`",
-      4: "`{}` {} locations must be equal or greater than `0`: `{}`",
-      5: "`{}` {} locations must be equal or less than `1`: `{}`",
-      6: "`{}` {} must be 1, 2 or 4 positive integers separated by commas or be `default`: `{}`",
-      7: "`{}` {} must be 2 positive integers separated by commas: `{}`",
-      8: "`{}` {} must be 1 font name and 1 positive integer separated by commas or be a content-based font: `{}`",
-      9: "`{}` {} must be 2 integers separated by commas: `{}`",
-      10: "`{}` {} must be a valid URL: `{}`",
-      11: "`{}` {} must be `vertically` or `horizontally`: `{}`",
-      12: "`{}` {} must be `left`, `right` or `center`: `{}`",
-      13: "`{}` {} must be `top`, `bottom` or `center`: `{}`",
-      15: "`{}` {} must be `date`, `timer` , `relative`, `time`, or `offset`: `{}`",
-      16: "`{}` {} must be `filling` or `fitting`: `{}`",
-      17: "`widget` tag must be the root tag",
-      18: "Invalid CSS rule: `{}`",
-      19: "`widget` tag must not be nestled",
-      20: "`img` tag must have a `src` attribute",
-      21: "Invalid tag name: `{}`",
-      22: "Unknown attribute: `{}`",
-      23: "`{}` attribute must be a {} type: `{}`",
-      24: "`{}` property must be a {} type: `{}`",
-      26: "`{}` {} must be a valid url or base encoded data link: `{}`",
-      14: "A parse error occurred, ensure your widget is formatted properly.",
-      25: "A parse error occurred, ensure all self closing tages are closed: <{}>",
-      27: "A css parse error occurred: `{}`"
-    }
-    let error = errors[number]
-    let params = [...arguments]
-    params.splice(0, 1)
+  function error(message, ...params) {
     for (let param of params) {
-      error = error.replace("{}", param)
+      message = message.replace("{}", param);
     }
-    throw new Error(error)
+    throw new Error(message);
   }
 }
+
+module.exports = htmlWidget;
