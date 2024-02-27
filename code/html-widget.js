@@ -1,4 +1,4 @@
-//HTML Widget Version 6.10
+//HTML Widget Version 6.11
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 async function htmlWidget(input, debug, addons) {
   /******************
@@ -1194,6 +1194,7 @@ async function htmlWidget(input, debug, addons) {
       }
       // Ignore css properties that are not in the mapping
       if (!mapping[css]) {
+        delete finalCss[CSS];
         continue;
       }
       // Validate the css as a string or array of possibilities
