@@ -1194,7 +1194,7 @@ async function htmlWidget(input, debug, addons) {
       }
       // Ignore css properties that are not in the mapping
       if (!mapping[css]) {
-        delete finalCss[CSS];
+        delete finalCss[css];
         continue;
       }
       // Validate the css as a string or array of possibilities
