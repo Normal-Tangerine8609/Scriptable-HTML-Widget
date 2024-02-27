@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.11
+
+- 14.1 KB
+- Fixed an error where the program would try to add css properties that are not in the mapping object, practically rendering the `*` selector useless
+  
 ## 6.10
 
 - 14.1 KB
