@@ -1,5 +1,16 @@
 # Changelog
 
+
+## 6.20
+
+- 14.3 KB
+- Add addAccessoryWidgetBackground bool property for widget elements
+- Outputs code on errors
+- Simplify add-ons by automatically calling validate and update methods. This is a breaking change. Please take a look at the docs for the updated basic add-on code.
+- Fix valid CSS selectors causing an invalid CSS rule error
+- Add an error message for if the HTML is formatted incorrectly by a missing closing tag
+- Reduces useless async checking code
+
 ## 6.11
 
 - 14.1 KB
