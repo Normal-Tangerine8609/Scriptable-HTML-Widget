@@ -1,5 +1,12 @@
 # Changelog
 
+## 6.21
+
+- 13.4 KB
+- Cache colours to majorly improve widget creation speed
+- Padding property can now be 3 characters
+- Improve gradients by expanding end and start points to the edges of the widget rather than in a circle
+- Reduce loops and traversals to improve widget creation speed 
 
 ## 6.20
 
