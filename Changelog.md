@@ -1,5 +1,59 @@
 # Changelog
 
+## 6.3.0
+
+- 13.7 KB
+- The values used for filling undefined properties and attributes are now `null` rather than `"null"`
+- Return early on hex colours to improve render performance
+- Stop adding spaces with inline text and accents
+- Allow non `https://` URLs, like `scriptable:///run/script-name`
+- Allow `no-css` attribute to be camel case: `noCss`
+- Fix unknown attribute error
+- Maintain CSS order regardless of the child combiner (`>`)
+  ```css
+  widget > text {
+    text-color: red;
+  }
+  text {
+    text-color: blue;
+  }
+  /* Previously, text-color would be red. */
+  /* Now, text-color is blue */
+  ```
+- Allow most text properties (not `url`) to be cascading. These properties work with `date` tags too.
+  ```html
+  <!-- Previously, you often had to do a common pattern like this, which only works with direct children. -->
+  <widget>
+    <style>
+     .pill {
+        padding: 2, 5;
+        corner-radius: 100;
+      }
+      .pill > text {
+        line-limit: 1;
+        font: regularSystemFont, 12;
+      }
+    </style>
+    <stack class="pill">
+      <text>The Text</text>
+    </stack>
+  </widget>
+  <!-- Now, you can use cascading properties. -->
+  <widget>
+    <style>
+     .pill {
+        padding: 2, 5;
+        corner-radius: 100;
+        line-limit: 1;
+        font: regularSystemFont, 12;
+      }
+    </style>
+    <stack class="pill">
+      <text>The Text</text>
+    </stack>
+  </widget>
+  ```
+  
 ## 6.21
 
 - 13.4 KB
