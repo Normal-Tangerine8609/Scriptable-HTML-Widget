@@ -1,8 +1,8 @@
 /*
-HTML Widget symbol 2.4
+HTML Widget symbol 2.5
 https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget/blob/main/add-ons/html-widget-symbol.js
 
-- Compatible with HTML Widget 6.20
+- Compatible with HTML Widget 6.3.0
 */
 module.exports = {
   mapping: {
@@ -16,24 +16,24 @@ module.exports = {
     resizable: "bool",
     containerRelativeShape: "bool",
     contentMode: "contentMode",
-    alignImage: "alignImage",
+    alignImage: "alignImage"
   },
   async render(template, styles, attrs, innerText) {
-    let symbol = SFSymbol.named(innerText);
+    let symbol = SFSymbol.named(innerText)
     if (!symbol) {
-      symbol = SFSymbol.named("questionmark.circle");
+      symbol = SFSymbol.named("questionmark.circle")
     }
 
-    let symbolSize = 100;
-    if (styles.imageSize !== "null") {
-      let [width, height] = styles.imageSize.match(/\d+/g);
-      symbolSize = parseInt(width > height ? height : width);
+    let symbolSize = 100
+    if (styles.imageSize !== null) {
+      let [width, height] = styles.imageSize.match(/\d+/g)
+      symbolSize = parseInt(width > height ? height : width)
     }
-    symbol.applyFont(Font.systemFont(symbolSize));
+    symbol.applyFont(Font.systemFont(symbolSize))
     await template(`
       <img 
         src="data:image/png;base64,${Data.fromPNG(
-          symbol.image,
+          symbol.image
         ).toBase64String()}" 
         url="${styles.url}" 
         borderColor="${styles.borderColor}"
@@ -47,6 +47,6 @@ module.exports = {
         containerRelativeShape="${styles.containerRelativeShape}" 
         resizable="${styles.resizable}"
       />
-        `);
-  },
-};
+        `)
+  }
+}

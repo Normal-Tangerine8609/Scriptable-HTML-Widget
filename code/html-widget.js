@@ -1,4 +1,4 @@
-//HTML Widget Version 6.21
+//HTML Widget Version 6.3.0
 //https://github.com/Normal-Tangerine8609/Scriptable-HTML-Widget
 
 async function htmlWidget(input, debug = false, addons = {}) {
@@ -11,6 +11,17 @@ async function htmlWidget(input, debug = false, addons = {}) {
   let gradientNumber = -1
   let indentLevel = 0
   const colorCache = new Map()
+  const cascadingProperties = [
+    "font",
+    "lineLimit",
+    "minimumScaleFactor",
+    "shadowColor",
+    "shadowOffset",
+    "shadowRadius",
+    "textColor",
+    "textOpacity",
+    "alignText"
+  ]
 
   // Parse and locate the widget
   const {root, styleTags} = parseHTML(input)
@@ -59,7 +70,9 @@ async function htmlWidget(input, debug = false, addons = {}) {
         attrs,
         innerText: "",
         children: [],
-        classList: []
+        classList: [],
+        noCss: false,
+        putChildren: false
       }
 
       // Style tags are not part of the output tree
@@ -74,17 +87,29 @@ async function htmlWidget(input, debug = false, addons = {}) {
 
     // Add the inner text to the node
     parser.foundCharacters = (text) => {
-      const node = stack.at(-1)
-      node.innerText += node.innerText === "" ? text : " " + text
+      stack.at(-1).innerText += text
     }
 
-    // Remove element from the stack and set its classes based on the attributes
+    // Remove element from the stack and normalize its attributes
     parser.didEndElement = () => {
       const removed = stack.pop()
-      // Add a classList property for the node
-      removed.classList = removed.attrs.class
-        ? removed.attrs.class.trim().split(/\s+/)
-        : []
+
+      const normalizedAttrs = {}
+      for (const [attr, value] of Object.entries(removed.attrs)) {
+        const normalizedAttrName = toCamelCase(attr)
+        if (normalizedAttrName === "class") {
+          removed.classList = removed.attrs.class.trim().split(/\s+/)
+        } else if (normalizedAttrName === "noCss") {
+          removed.noCss = true
+        } else if (normalizedAttrName === "children") {
+          removed.putChildren = true
+        } else {
+          const normalizedValue = value.trim()
+          normalizedAttrs[normalizedAttrName] =
+            normalizedValue === "null" ? null : normalizedValue
+        }
+      }
+      removed.attrs = normalizedAttrs
 
       if (stack.length === 0) {
         error("Unexpected closing tag: <{}/>", removed.name)
@@ -160,7 +185,7 @@ async function htmlWidget(input, debug = false, addons = {}) {
           const [prop, ...rest] = declaration.split(":")
           const key = toCamelCase(prop.trim())
           const value = rest.join(":").trim()
-          out[key] = value
+          out[key] = value === "null" ? null : value
           return out
         }, {})
 
@@ -181,37 +206,42 @@ async function htmlWidget(input, debug = false, addons = {}) {
 
   // function to add the css to each element and children elements
   function applyCss(root, css) {
-    traverse(root, [])
+    traverse(root, css, {})
 
     // css is the full parsed css, the inheritedRules are css rules that have been partially matched by the parent
-    function traverse(node, inheritedRules) {
-      const matchingRules = []
-      const nextInherited = []
+    function traverse(node, css, cascadingCss) {
+      const cascadingPropertiesObject = {...cascadingCss}
+      // cascading properties always matches, but has the lowest priority
+      const matchingRules = [{selector: "*", css: cascadingPropertiesObject}]
+      const nextRules = []
 
-      // get the matching and next inherited rules
-      partitionRules(node, css, matchingRules, nextInherited)
-      partitionRules(node, inheritedRules, matchingRules, nextInherited)
+      // get the matching rules, and the rules for the children nodes
+      for (const rule of css) {
+        // rules that have been partially matched do not extend to children nodes
+        if (!rule.partial) {
+          nextRules.push(rule)
+        }
+        const [segment, ...rest] = rule.selector
+        if (matchesSegment(node, segment)) {
+          if (rest.length) {
+            nextRules.push({selector: rest, css: rule.css, partial: true})
+          } else {
+            for (const property in rule.css) {
+              if (cascadingProperties.includes(property)) {
+                cascadingPropertiesObject[property] = rule.css[property]
+              }
+            }
+            matchingRules.push(rule)
+          }
+        }
+      }
 
       // apply the matching css
       node.css = matchingRules
 
-      // recurse with the children nodes and nextInherited rules
+      // recurse with the children nodes
       for (const child of node.children || []) {
-        traverse(child, nextInherited)
-      }
-    }
-  }
-
-  // Checks if the node matches a segment of each rule, or if it completely matches a rule
-  function partitionRules(node, rules, matchingRules, nextInheritedRules) {
-    for (const rule of rules) {
-      const [segment, ...rest] = rule.selector
-      if (matchesSegment(node, segment)) {
-        if (rest.length === 0) {
-          matchingRules.push(rule)
-        } else {
-          nextInheritedRules.push({selector: rest, css: rule.css})
-        }
+        traverse(child, nextRules, cascadingPropertiesObject)
       }
     }
   }
@@ -254,8 +284,7 @@ async function htmlWidget(input, debug = false, addons = {}) {
       .replace(/\n\s+/g, "\\n")
 
     // get the css
-    const attributeCss = buildAttributeCss(tag.attrs)
-    const finalCss = mergeCssRules(tag.css, attributeCss, tag.attrs["no-css"])
+    const finalCss = mergeCssRules(tag.css, tag.attrs, tag.noCss)
 
     // object for data pertaining to each widget element
     const handlers = {
@@ -275,7 +304,7 @@ async function htmlWidget(input, debug = false, addons = {}) {
         },
         async applyStyles(onVar) {
           const {background, ...rest} = finalCss
-          const kind = background in attributeCss ? "attribute" : "property"
+          const kind = background in tag.attrs ? "attribute" : "property"
           await applyBackground("widget", kind, background)
           await applyStandardStyles(onVar, rest, this.mapping)
         }
@@ -301,7 +330,7 @@ async function htmlWidget(input, debug = false, addons = {}) {
         },
         async applyStyles(onVar) {
           const {background, ...rest} = finalCss
-          const kind = background in attributeCss ? "attribute" : "property"
+          const kind = background in tag.attrs ? "attribute" : "property"
           await applyBackground(onVar, kind, background)
           await applyStandardStyles(onVar, rest, this.mapping)
         }
@@ -311,10 +340,7 @@ async function htmlWidget(input, debug = false, addons = {}) {
         mapping: {space: "posInt"},
         hasChildren: false,
         instantiate() {
-          const space =
-            attributeCss.space && attributeCss.space !== "null"
-              ? attributeCss.space
-              : ""
+          const space = tag.attrs.space ?? ""
           appendCodeLine(
             `let spacer${incrementor} = ${currentStack}.addSpacer(${space})`
           )
@@ -400,17 +426,17 @@ async function htmlWidget(input, debug = false, addons = {}) {
           let image
 
           // Throw an error if there is no src attribute
-          if (!attributeCss.src || attributeCss.src === "null") {
+          if (!tag.attrs.src) {
             error("`img` tag must have a `src` attribute.")
           }
 
           // Determine if the image is a URL or base encoding
-          if (attributeCss.src.startsWith("data:image/")) {
-            image = `Image.fromData(Data.fromBase64String("${attributeCss.src
+          if (tag.attrs.src.startsWith("data:image/")) {
+            image = `Image.fromData(Data.fromBase64String("${tag.attrs.src
               .replace(/data:image\/.*?;base64,/, "")
               .replace(/"/g, "")}"))`
           } else {
-            image = `await new Request("${attributeCss.src.replace(
+            image = `await new Request("${tag.attrs.src.replace(
               /"/g,
               ""
             )}").loadImage()`
@@ -445,26 +471,26 @@ async function htmlWidget(input, debug = false, addons = {}) {
       const mapping = addon.mapping || {}
 
       // set up the css
-      validateAll(attributeCss, finalCss, mapping)
+      validateAll(tag.attrs, finalCss, mapping)
       for (let key in mapping) {
         if (!(key in finalCss)) {
-          finalCss[key] = "null"
+          finalCss[key] = null
         }
-        if (!(key in attributeCss)) {
-          attributeCss[key] = "null"
+        if (!(key in tag.attrs)) {
+          tag.attrs[key] = null
         }
       }
 
       // render the addon
       const template = (input) => renderTemplate(input, tag.children)
-      await addon.render(template, finalCss, attributeCss, innerText)
+      await addon.render(template, finalCss, tag.attrs, innerText)
       appendCodeLine(`// </${tag.name}>`)
       return
     }
 
     // instantiate element and validate styles and attributes
     const onVar = handler.instantiate()
-    validateAll(attributeCss, finalCss, handler.mapping)
+    validateAll(tag.attrs, finalCss, handler.mapping)
 
     // apply styles, if there are any
     await handler.applyStyles?.(onVar)
@@ -484,18 +510,9 @@ async function htmlWidget(input, debug = false, addons = {}) {
     }
   }
 
-  // normalize the attributes
-  function buildAttributeCss(attrs) {
-    return Object.fromEntries(
-      Object.entries(attrs)
-        .filter(([k]) => !["class", "no-css", "children"].includes(k))
-        .map(([k, v]) => [toCamelCase(k), v.trim()])
-    )
-  }
-
   // create the final css, merging the matching css rules and attribute css
   function mergeCssRules(rules = [], attributeCss, noCss) {
-    if (noCss != null) return {...attributeCss}
+    if (noCss) return {...attributeCss}
     const fromRules = {}
     for (const {css} of rules) {
       Object.assign(fromRules, css)
@@ -506,7 +523,7 @@ async function htmlWidget(input, debug = false, addons = {}) {
   // apply styles on a widget element
   async function applyStandardStyles(onVar, finalCss, mapping) {
     for (const [key, value] of Object.entries(finalCss)) {
-      if (value === "null") continue
+      if (value === null) continue
       const typeKey = mapping[key]
       await types[typeKey].add(key, value, onVar)
     }
@@ -514,7 +531,7 @@ async function htmlWidget(input, debug = false, addons = {}) {
 
   // special function for background, since it can be an image, colour, or gradient
   async function applyBackground(onVar, kind, value) {
-    if (!value || value === "null") return
+    if (!value) return
     try {
       types.url.validate("background", "attribute", value)
       types.image.add("background", value, onVar)
@@ -534,13 +551,13 @@ async function htmlWidget(input, debug = false, addons = {}) {
     }
   }
 
-  // Function to add the no-css attribute to all children and put the tag children into the template
+  // Function to add the no-css property to all children and put the tag children into the template
   function mergeChildren(templateNode, children) {
-    templateNode.attrs["no-css"] = ""
+    templateNode.noCss = true
     for (let child of templateNode.children || []) {
       mergeChildren(child, children)
     }
-    if ("children" in templateNode.attrs) {
+    if (templateNode.putChildren) {
       templateNode.children.push(...children)
     }
   }
@@ -550,7 +567,7 @@ async function htmlWidget(input, debug = false, addons = {}) {
     // parse the template and ignore style tags
     let {root} = parseHTML(input)
 
-    // run through all children to determine where to put the tag children and add the no-css attribute
+    // run through all children to determine where to put the tag children and add the no-css property
     root.children.forEach((node) => mergeChildren(node, children))
 
     // compile the template
@@ -581,11 +598,11 @@ async function htmlWidget(input, debug = false, addons = {}) {
           continue
         }
         // we only error on invalid attributes because of the "*" or other similar selectors
-        error("Unknown attribute: `{}`.", attr)
+        error("Unknown attribute: `{}`.", key)
       }
 
       // skip null placeholders
-      if (value === "null") continue
+      if (value === null) continue
 
       // validate one type
       if (!Array.isArray(expected)) {
@@ -626,6 +643,11 @@ async function htmlWidget(input, debug = false, addons = {}) {
   // Function to get any html supported color, colours are memorized to speed up reusing same colours
   async function colorFromValue(c) {
     if (colorCache.has(c)) return colorCache.get(c)
+
+    // Hex colours are supported by scriptable
+    if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(c)) {
+      return `new Color("${c}")`
+    }
 
     let w = new WebView()
     await w.loadHTML(`<div id="div"style="color:${c}"></div>`)
@@ -1057,7 +1079,7 @@ async function htmlWidget(input, debug = false, addons = {}) {
           appendCodeLine(`${on}.url = "${value.replace(/"/g, "")}"`)
         },
         validate(attribute, kind, value) {
-          if (!/^https?:\/\/\S+$/.test(value)) {
+          if (!/^\w+:\/\/\S+$/.test(value)) {
             error("`{}` {} must be a valid URL: `{}.`", attribute, kind, value)
           }
         }
