@@ -7,62 +7,80 @@ HTML Widget allows you to create [Scriptable](https://scriptable.app/) widgets i
 
 [Link](https://normal-tangerine8609.gitbook.io/html-widget/)
 
+## Features
+
+* Simplifies gradients: `to top left, #134E5E, #71B280`.
+* Supports HSL, HSLA, RGB, RGBA, hex or CSS colour names like `red`.
+* Style elemnts with a CSS-like syntax or attributes.
+* Easily share styles between elements with classes.
+* Use addons like `symbol` to simplify adding SFSymbols to widgets.
+
 ## Example
 
 ![Small Reddit Widget](/images/RedditWidget.jpeg)
 
 ```javascript
-const htmlWidget = importModule("html-widget")
-const symbol = importModule("html-widget-symbol")
-const addons = {symbol}
+const htmlWidget = importModule("html-widget");
+const symbol = importModule("html-widget-symbol");
+const addons = { symbol };
 
-let json = await new Request("https://www.reddit.com/r/Showerthoughts.json").loadJSON()
-let post = json["data"]["children"][Math.floor((Math.random() * 10) + 2)]["data"]
-let title = post["title"].replace(/</g,"&lt;").replace(/>/g,"&gt;")
-let body = post["selftext"].replace(/</g,"&lt;").replace(/>/g,"&gt;")
-let ups = post["ups"]
-let awards = post["all_awardings"].length
-let comments = post["num_comments"]
-let url = post["url"]
-
-let widget = await htmlWidget(`
+const json = await new Request(
+  "https://www.reddit.com/r/Showerthoughts.json"
+).loadJSON();
+const post = json.data.children[Math.floor(Math.random() * 10)].data;
+const title = post.title.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const body = post.selftext.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const ups = post.ups;
+const upsRatio = post.upvote_ratio;
+const comments = post.num_comments;
+const url = post.url;
+const widget = await htmlWidget(
+  `
 <widget refresh-after-date="15" url="${url}">
   <style>
     symbol {
-      image-size: 11,11;
+      image-size: 13,13;
+    }
+    text {
+      font: system-ui, 11;
+      minimum-scale-factor: 0.3;
     }
     .title {
       font: system-ui, 13;
       align-text: center;
     }
-    .content {
-      font: system-ui, 11;
-      minimum-scale-factor: 0.3;
+    .bottom-bar {
+      align-content: center;
+    }
+    .bottom-bar > text {
+      line-limit: 1
     }
   </style>
   <text class="title">Showerthoughts</text>
   <spacer space="5"/>
-  <text class="content">${title}</text>
-  <text class="content">${body}</text>
-  <stack align-content="center">
+  <text>${title}</text>
+  <text>${body}</text>
+  <stack class="bottom-bar">
     <symbol>arrow.up.circle.fill</symbol>
     <spacer space="2"/>
-    <text class="content">${ups}</text>
+    <text>${ups}</text>
     <spacer/>
     <symbol>star.circle.fill</symbol>
     <spacer space="2"/>
-    <text class="content">${awards}</text>
+    <text>${upsRatio}</text>
     <spacer/>
     <symbol>message.circle.fill</symbol>
     <spacer space="2"/>
-    <text class="content">${comments}</text>
+    <text>${comments}</text>
   </stack>
 </widget>
-`, true, addons)
-
-Script.setWidget(widget)
-widget.presentSmall()
-Script.complete()
+`,
+  true,
+  addons
+);
+Script.setWidget(widget);
+widget.presentSmall();
+Script.complete();
 ```
 
 ## Module
